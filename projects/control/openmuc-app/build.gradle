@@ -1,0 +1,37 @@
+configurations.create('embed')
+
+def openmucversion = '0.17.7'
+def ini4jversion = '0.5.4'
+
+repositories {
+   flatDir {
+       dirs 'dependencies/openmuc'
+   }
+}
+
+dependencies {
+  compile group: 'org.openmuc.framework', name: 'openmuc-core-api', version: openmucversion
+  compile group: 'org.openmuc.framework', name: 'openmuc-core-spi', version: openmucversion
+  compile group: 'org.apache.felix', name: 'org.apache.felix.gogo.runtime', version:'1.0.10'
+
+  compile group: 'org.ini4j', name: 'ini4j', version: ini4jversion
+  embed group: 'org.ini4j', name: 'ini4j', version: ini4jversion
+
+  compile project(':th-e-optimization')
+  embed project(':th-e-optimization')
+}
+
+jar {
+  manifest {
+    name = "TH-E Box Control - OpenMUC Application"
+    instruction 'Bundle-ClassPath', '.,lib/th-e-optimization-' + cfgVersion + '.jar,lib/ini4j-' + ini4jversion + '.jar'
+    instruction 'Import-Package', '!de.thebox.control.opt*,!org.ini4j.*,*'
+    instruction 'Export-Package', ''
+  }
+}
+
+jar {
+  into('lib') {
+    from configurations.embed
+  }
+}

@@ -1,0 +1,81 @@
+project.ext {
+
+  cfgVersion = '0.1.0'
+
+  cfgGroup = 'de.konstanz.isc'
+
+  cfgCopyDependencies = false
+
+  cfgCopyToRoot = true
+
+  javaProjects = subprojects
+
+  jarDefaultImportPackageVersion=";version=0"
+
+  distributionProjects = subprojects.findAll {
+    it.getPath() == ":th-e-core" ||
+    it.getPath() == ":th-e-control-app" ||
+    it.getPath() == ":th-e-optimization"
+  }
+
+  docProjects = distributionProjects.findAll {
+    it.getPath() == ":th-e-core"
+  }
+
+}
+
+configure(javaProjects) {
+  apply plugin: "java"
+  apply plugin: "maven"
+}
+
+task bundles {
+  apply from: "./conf/bundles.gradle"
+
+  dependsOn(distributionProjects.install)
+  dependsOn(updateBundles)
+}
+
+tasks.withType(Tar) {
+
+  dependsOn(bundles)
+  
+  into(project.name) {
+
+    from("./") {
+      include "build.gradle"
+      include "configuration.gradle"
+      include "LICENSE**"
+      include "gradle/wrapper/**"
+      include "gradlew"
+      include "gradlew.bat"
+      include "build/libs/**"
+      include "dependencies/**"
+
+      exclude "**/projects/**/bin"
+      exclude "**/projects/**/build"
+      exclude "**/projects/**/.settings"
+      exclude "**/projects/**/.project"
+      exclude "**/projects/**/.classpath"
+      exclude "**/projects/**/.gradle"
+
+      for (Project myproject: distributionProjects) {
+        include myproject.getProjectDir().toString().substring((int)(getProjectDir().toString().size() + 1)) + "/**";
+      }
+    }
+
+    if (name.equals("tar") ){
+      exclude "**/dependencies/**/src"
+    }
+
+    from("./build/") {
+      include "settings.gradle"
+    }
+  }
+
+  into(project.name + "/doc/") {
+    from("./build/docs/") {
+      include "javadoc/**"
+    }
+  }
+}

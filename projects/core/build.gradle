@@ -1,0 +1,14 @@
+dependencies {
+  compile group: 'org.osgi', name: 'org.osgi.core', version: '6.0.0'
+  compile group: 'org.osgi', name: 'org.osgi.compendium', version: '5.0.0'
+  compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+  
+  testCompile group: 'pl.pragmatists', name: 'JUnitParams', version: '1.1.1'
+}
+
+jar {
+  manifest {
+    name = "TH-E Box Core - API"
+    instruction 'Export-Package', '*'
+  }
+}

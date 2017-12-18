@@ -1,0 +1,10 @@
+dependencies {
+  compile project(':th-e-core')
+}
+
+jar {
+  manifest {
+    name = "TH-E Box Control - Optimization"
+    instruction 'Export-Package', '!*.internal.*,*'
+  }
+}

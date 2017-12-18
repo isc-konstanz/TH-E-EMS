@@ -1,0 +1,27 @@
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+configurations.create("bundle")
+configurations.bundle.transitive = false;
+
+dependencies {
+  bundle project(":th-e-core")
+  bundle project(":th-e-control-app")
+  bundle project(":th-e-optimization")
+}
+
+task cleanBundles(type: Delete) {
+  delete fileTree(dir: "./bundles")
+}
+
+task syncBundles(type: Sync) {
+  from configurations.bundle;
+  into rootDir.getPath() + "./bundles"
+}
+
+task updateBundles {
+  dependsOn cleanBundles
+  dependsOn syncBundles
+}

@@ -1,0 +1,90 @@
+{
+    "name": "Gondzik",
+    "category": "TH-E Box",
+    "group": "Heat pump",
+    "description": "Gondzik domestic monoblock hot water heat pump",
+
+    "device": [
+        {
+            "name": "GPIO_2",
+            "driver": "rpi-gpio",
+            "address": "pin:2",
+            "settings": "type:output,defaultState:true,shutdownState:true"
+        },
+        {
+            "name": "GPIO_1",
+            "driver": "rpi-gpio",
+            "address": "pin:1",
+            "settings": "type:output"
+        }
+    ],
+
+    "items": [
+        {
+            "id": "compressor",
+            "type": "Switch",
+            "label": "Compressor",
+            "mapping": {
+                "ON": { "channel": "HP100TIn", "value": "true" },
+                "OFF": { "channel": "HP100TIn", "value": "false" }
+            },
+            "input": "HP100TIn"
+        },
+        {
+            "id": "ventilation",
+            "type": "Switch",
+            "label": "Ventilation",
+            "mapping": {
+                "ON": { "channel": "RLY450", "value": "true" },
+                "OFF": { "channel": "RLY450", "value": "false" }
+            },
+            "input": "RLY450"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "HP100TIn",
+            "description": "hp_state",
+            "device": "GPIO_2",
+            "settings": "inverted:true",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "hp_state"}
+                }
+            ]
+        },
+        {
+            "name": "RLY450",
+            "description": "hp_vent_state",
+            "device": "GPIO_1",
+            "settings": "inverted:true",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "hp_vent_state"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "hp_state",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "hp_vent_state",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        }
+    ]
+}

@@ -1,0 +1,291 @@
+{
+    "name": "Centurion",
+    "category": "TH-E Box",
+    "group": "Inverter",
+    "description": "EnergyDepot GmbH Centurion inverter",
+    
+    "device": [
+        {
+            "name": "Centurion",
+            "driver": "edcom",
+            "settings": "user:ISC Konstanz"
+        }
+    ],
+    
+    "options": [
+        {
+            "id": "ip",
+            "name": "IP address",
+            "description": "The IP address of the EnergyDepot GmbH product, a connection should be established to.",
+            "type": "text",
+            "mandatory": true,
+            "syntax": "deviceAddress"
+        }
+    ],
+    
+    "items": [
+        {
+            "id": "target",
+            "type": "Slider",
+            "label": "Export/Import",
+			"format": "%.1f kW",
+            "max": 5000,
+            "min": -5000,
+			"step": 10,
+            "scale": 0.1,
+            "mapping": {
+                "SET": { "channel": "centurio_target" }
+            },
+            "input": "centurio_target"
+        }
+    ],
+    
+    "channels": [
+        {
+            "name": "centurio_target",
+            "description": "inv_target",
+            "address": "TARGET",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"}
+        },
+        {
+            "name": "centurio_bat_soc",
+            "description": "storage_el_soc",
+            "address": "BAT_SOC",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_soc"}
+                }
+            ]
+        },
+        {
+            "name": "centurio_bat_power",
+            "description": "storage_el_power",
+            "address": "BAT_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_energy"}
+                }
+            ]
+        },
+        {
+            "name": "centurio_bat_voltage",
+            "description": "storage_el_voltage",
+            "address": "BAT_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_voltage"}
+                }
+            ]
+        },
+        {
+            "name": "dc_power",
+            "description": "inv_dc_power",
+            "address": "DC_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "inv_dc_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "inv_dc_energy"}
+                }
+            ]
+        },
+        {
+            "name": "dc1_voltage",
+            "description": "inv_dc1_voltage",
+            "address": "DC_1_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "inv_dc1_voltage"}
+                }
+            ]
+        },
+        {
+            "name": "dc2_voltage",
+            "description": "inv_dc2_voltage",
+            "address": "DC_2_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "inv_dc2_voltage"}
+                }
+            ]
+        },
+        {
+            "name": "ac_active_power",
+            "description": "grid_active_power",
+            "address": "GRID_ACTIVE_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_active_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_active_energy"}
+                }
+            ]
+        },
+        {
+            "name": "ac_reactive_power",
+            "description": "grid_reactive_power",
+            "address": "GRID_REACTIVE_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_reactive_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_reactive_energy"}
+                }
+            ]
+        },
+        {
+            "name": "ac_voltage",
+            "description": "grid_voltage",
+            "address": "GRID_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_voltage"}
+                }
+            ]
+        },
+        {
+            "name": "ac_frequency",
+            "description": "grid_frequency",
+            "address": "GRID_FREQUENCY",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_frequency"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "storage_el_soc",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "storage_el_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "storage_el_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "storage_el_voltage",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "inv_dc_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "inv_dc_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "inv_dc1_voltage",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "inv_dc2_voltage",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "ac_active_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "ac_active_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "ac_reactive_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "ac_reactive_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "ac_voltage",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "ac_frequency",
+            "tag": "Frequency",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        }
+    ],
+    
+    "syntax": {
+        "deviceAddress": {
+            "keyValue": true
+        }
+    }
+}

@@ -106,15 +106,16 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 	public synchronized void onTemperatureReceived(CabinetTemperature type, Double temperature) {
 		if (temperature > temperatureMax + temperatureTolerance && !temperatureHighFlags.contains(type)) {
 			temperatureHighFlags.add(type);
-			
 			start();
 		}
-		else if (temperature < temperatureMax - temperatureTolerance && temperatureHighFlags.contains(type) &&
+		else if (temperature < temperatureMax - temperatureTolerance &&
 				System.currentTimeMillis() - startTimeLast >= intervalMin) {
 			
-			temperatureHighFlags.remove(type);
-			if (temperatureHighFlags.size() == 0) {
-				stop();
+			if (stateValueLast != null && stateValueLast.booleanValue()) {
+				temperatureHighFlags.remove(type);
+				if (temperatureHighFlags.size() == 0) {
+					stop();
+				}
 			}
 		}
 	}

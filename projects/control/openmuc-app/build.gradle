@@ -1,6 +1,6 @@
 configurations.create('embed')
 
-def openmucversion = '0.17.7'
+def openmucversion = '1.0.0'
 def ini4jversion = '0.5.4'
 
 repositories {

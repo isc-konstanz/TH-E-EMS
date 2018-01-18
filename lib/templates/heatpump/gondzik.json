@@ -4,7 +4,7 @@
     "group": "Heat pump",
     "description": "Gondzik domestic monoblock hot water heat pump",
 
-    "device": [
+    "devices": [
         {
             "name": "GPIO_2",
             "driver": "rpi-gpio",

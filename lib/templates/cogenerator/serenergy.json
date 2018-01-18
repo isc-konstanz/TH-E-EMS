@@ -4,7 +4,7 @@
     "group": "Fuel cell",
     "description": "Serenergy Methanol fuel cell system",
     
-    "device": [
+    "devices": [
         {
             "name": "Serenergy",
             "driver": "snmp",

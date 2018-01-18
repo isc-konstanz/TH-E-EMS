@@ -4,7 +4,7 @@
     "group": "Inverter",
     "description": "EnergyDepot GmbH Centurion inverter",
     
-    "device": [
+    "devices": [
         {
             "name": "Centurion",
             "driver": "edcom",
@@ -44,15 +44,17 @@
         {
             "name": "inv_target",
             "description": "inv_target",
+            "device": "Centurion",
             "address": "INV_TARGET",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"}
         },
         {
             "name": "inv_bat_soc",
             "description": "storage_el_soc",
+            "device": "Centurion",
             "address": "BAT_SOC",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
             "processList": [
                 {
@@ -64,6 +66,7 @@
         {
             "name": "inv_bat_power",
             "description": "storage_el_power",
+            "device": "Centurion",
             "address": "BAT_POWER",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -73,14 +76,35 @@
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_power"}
                 },
                 {
-                    "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_energy"}
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_charge"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "allownegative",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "scale",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "storage_el_discharge"}
                 }
             ]
         },
         {
             "name": "inv_bat_voltage",
             "description": "storage_el_voltage",
+            "device": "Centurion",
             "address": "BAT_VOLTAGE",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -94,6 +118,7 @@
         {
             "name": "inv_dc_power",
             "description": "inv_dc_power",
+            "device": "Centurion",
             "address": "DC_POWER",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -111,6 +136,7 @@
         {
             "name": "inv_dc1_voltage",
             "description": "inv_dc1_voltage",
+            "device": "Centurion",
             "address": "DC_1_VOLTAGE",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -124,6 +150,7 @@
         {
             "name": "inv_dc2_voltage",
             "description": "inv_dc2_voltage",
+            "device": "Centurion",
             "address": "DC_2_VOLTAGE",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -137,6 +164,7 @@
         {
             "name": "inv_ac_active_power",
             "description": "grid_active_power",
+            "device": "Centurion",
             "address": "GRID_ACTIVE_POWER",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -154,6 +182,7 @@
         {
             "name": "inv_ac_reactive_power",
             "description": "grid_reactive_power",
+            "device": "Centurion",
             "address": "GRID_REACTIVE_POWER",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -171,6 +200,7 @@
         {
             "name": "inv_ac_voltage",
             "description": "grid_voltage",
+            "device": "Centurion",
             "address": "GRID_VOLTAGE",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -184,6 +214,7 @@
         {
             "name": "inv_ac_frequency",
             "description": "grid_frequency",
+            "device": "Centurion",
             "address": "GRID_FREQUENCY",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
@@ -210,8 +241,14 @@
             "engine": "Engine::PHPTIMESERIES"
         },
         {
-            "name": "storage_el_energy",
-            "tag": "Energy",
+            "name": "storage_el_charge",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "storage_el_discharge",
+            "tag": "Power",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES"
         },

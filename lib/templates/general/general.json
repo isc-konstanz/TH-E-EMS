@@ -1,0 +1,40 @@
+{
+    "name": "TH-E Control",
+    "category": "TH-E Box",
+    "group": "General",
+    "description": "The control configurations of TH-E Box",
+    
+    "devices": [
+        {
+            "name": "TH-E-Control",
+            "driver": "virtual"
+        }
+    ],
+    
+    "items": [
+        {
+            "id": "target",
+            "type": "Slider",
+            "label": "Storage temperature",
+			"format": "%.1f°C",
+            "max": 75,
+            "min": 30,
+			"step": 1,
+			"default": 65,
+            "mapping": {
+                "SET": { "channel": "storage_th_target", "write": false }
+            },
+            "input": "storage_th_target"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "storage_th_target",
+            "description": "storage_th_target_temp",
+            "device": "TH-E-Control",
+            "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },
+            "configs": { "valueType":"INTEGER" }
+        }
+    ]
+}

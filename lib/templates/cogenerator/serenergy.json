@@ -57,10 +57,10 @@
             "id": "power",
             "type": "Slider",
             "label": "Power",
-			"format": "%.1f kW",
+            "format": "%.1f kW",
             "max": 72,
             "min": 24,
-			"step": 1,
+            "step": 1,
             "scale": 0.0625,
             "mapping": {
                 "SET": { "channel": "sngyh3control_current_limit" }
@@ -102,7 +102,7 @@
             "device": "Serenergy",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.1.0",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
-            "configs": {"samplingInterval": 5000, "offset":-1, "valueType":"INTEGER"}
+            "configs": {"samplingInterval": 5000, "valueOffset":-1, "valueType":"INTEGER"}
         },
         {
             "name": "sngyh3control_requested_state",
@@ -110,7 +110,7 @@
             "device": "Serenergy",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.2.0",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
-            "configs": {"samplingInterval": 5000, "offset":-1, "valueType":"INTEGER"}
+            "configs": {"samplingInterval": 5000, "valueOffset":-1, "valueType":"INTEGER"}
         },
         {
             "name": "sngyh3control_start",

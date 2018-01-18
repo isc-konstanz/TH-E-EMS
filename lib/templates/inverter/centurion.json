@@ -28,10 +28,10 @@
             "id": "target",
             "type": "Slider",
             "label": "Export/Import",
-			"format": "%.1f kW",
+            "format": "%.1f kW",
             "max": 10000,
             "min": -10000,
-			"step": 100,
+            "step": 100,
             "scale": 0.001,
             "mapping": {
                 "SET": { "channel": "inv_target" }

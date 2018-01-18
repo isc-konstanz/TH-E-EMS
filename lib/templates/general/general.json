@@ -16,11 +16,11 @@
             "id": "target",
             "type": "Slider",
             "label": "Storage temperature",
-			"format": "%.1f°C",
+            "format": "%.1f°C",
             "max": 75,
             "min": 30,
-			"step": 1,
-			"default": 65,
+            "step": 1,
+            "default": 65,
             "mapping": {
                 "SET": { "channel": "storage_th_target", "write": false }
             },

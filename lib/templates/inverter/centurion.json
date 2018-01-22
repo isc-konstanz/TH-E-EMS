@@ -174,8 +174,60 @@
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_active_power"}
                 },
                 {
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_import_power"}
+                },
+                {
                     "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_active_energy"}
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_import_energy"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "allownegative",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "scale",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_energy"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "if_gt_equal_skip",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "0"}
+                },
+                {
+                    "process": "add_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "inv_dc_power"}
+                },
+                {
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_energy"}
                 }
             ]
         },
@@ -190,10 +242,6 @@
                 {
                     "process": "log_to_feed",
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_reactive_power"}
-                },
-                {
-                    "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_reactive_energy"}
                 }
             ]
         },
@@ -289,19 +337,31 @@
             "engine": "Engine::PHPTIMESERIES"
         },
         {
-            "name": "grid_active_energy",
-            "tag": "Energy",
-            "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
-        },
-        {
             "name": "grid_reactive_power",
             "tag": "Power",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES"
         },
         {
-            "name": "grid_reactive_energy",
+            "name": "grid_import_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_import_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_export_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_export_energy",
             "tag": "Energy",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES"
@@ -315,6 +375,18 @@
         {
             "name": "grid_frequency",
             "tag": "Frequency",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "consumption_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "consumption_energy",
+            "tag": "Energy",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES"
         }

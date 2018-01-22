@@ -32,6 +32,7 @@
         {
             "name": "storage_th_target",
             "description": "storage_th_target_temp",
+            "node": "Virtual",
             "device": "TH-E-Control",
             "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },
             "configs": { "valueType":"INTEGER" }

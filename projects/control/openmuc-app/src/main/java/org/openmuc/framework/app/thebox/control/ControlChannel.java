@@ -19,28 +19,32 @@ import de.thebox.control.core.data.ShortValue;
 import de.thebox.control.core.data.Value;
 
 public class ControlChannel implements RecordListener {
-	
+
 	private final Channel channel;
 	private final List<ControlValueListener> listeners;
-	
+
 	public ControlChannel(Channel channel) {
 		this.channel = channel;
 		this.listeners = new ArrayList<ControlValueListener>();
 	}
-	
+
 	public boolean write(Value value) {
-		Flag result = channel.write(ControlChannel.parseNumber(value));
+		Flag result = channel.write(ControlChannel.encodeValue(value));
 		if (result == Flag.VALID) {
 			return true;
 		}
 		return false;
 	}
-	
+
+	public void setLatestValue(Value value) {
+		channel.setLatestRecord(ControlChannel.encodeRecord(value));
+	}
+
 	public Value getLatestValue() {
 		Record record = channel.getLatestRecord();
-		return ControlChannel.parseRecord(record, channel.getValueType());
+		return ControlChannel.decodeRecord(record, channel.getValueType());
 	}
-	
+
 	public void register(ControlValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.size() == 0) {
@@ -51,7 +55,7 @@ public class ControlChannel implements RecordListener {
 			}
 		}
 	}
-	
+
 	public void deregister(ControlValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.contains(listener)) {
@@ -62,10 +66,10 @@ public class ControlChannel implements RecordListener {
 			}
 		}
 	}
-	
+
 	@Override
 	public void newRecord(Record record) {
-		Value value = ControlChannel.parseRecord(record, channel.getValueType());
+		Value value = ControlChannel.decodeRecord(record, channel.getValueType());
 		if (value != null) {
 			for (ControlValueListener listener : listeners) {
 				listener.onValueReceived(value);
@@ -73,8 +77,8 @@ public class ControlChannel implements RecordListener {
 		}
 		// TODO: implement error warnings for certain flags
 	}
-	
-	public static Value parseRecord(org.openmuc.framework.data.Record record, org.openmuc.framework.data.ValueType type) {
+
+	public static Value decodeRecord(org.openmuc.framework.data.Record record, org.openmuc.framework.data.ValueType type) {
 		if (record.getFlag() == Flag.VALID) {
 			Long time = record.getTimestamp();
 			
@@ -105,8 +109,13 @@ public class ControlChannel implements RecordListener {
 		}
 		return null;
 	}
-	
-	public static org.openmuc.framework.data.Value parseNumber(Value value) {
+
+	public static org.openmuc.framework.data.Record encodeRecord(Value value) {
+		org.openmuc.framework.data.Value recordValue = ControlChannel.encodeValue(value);
+		return new org.openmuc.framework.data.Record(recordValue, value.getTimestamp(), Flag.VALID);
+	}
+
+	public static org.openmuc.framework.data.Value encodeValue(Value value) {
 		if (value != null) {
 			try {
 				switch(value.getType()) {

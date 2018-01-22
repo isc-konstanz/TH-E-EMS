@@ -150,18 +150,18 @@ public final class Control extends Thread implements ControlService {
 		
 		// OSGi deactivate functions are always called sequentially:
 		ComponentService removedComponent;
-        synchronized (components) {
-        	removedComponent = components.remove(id);
-        }
-        if (removedComponent != null) {
+		synchronized (components) {
+			removedComponent = components.remove(id);
+		}
+		if (removedComponent != null) {
 			logger.info("Deregistering TH-E Control component: " + id);
 			
 			removedComponent.deactivate();
-        }
-        else {
-            // Component was removed before it was added to the active components
-            newComponents.remove(id);
-        }
+		}
+		else {
+			// Component was removed before it was added to the active components
+			newComponents.remove(id);
+		}
 		logger.debug("Component deregistered: " + id);
 	}
 	
@@ -174,21 +174,21 @@ public final class Control extends Thread implements ControlService {
 		this.access = null;
 	}
 	
-    public void reload() {
-        logger.info("Reload TH-E Control configuration.");
-        // TODO: implement reload
+	public void reload() {
+		logger.info("Reload TH-E Control configuration.");
+		// TODO: implement reload
 		String fileName = System.getProperty(CONFIG_CONTROL);
 		if (fileName == null) {
 			fileName = "conf" + File.separator + "th-e-control.cfg";
 		}
-        try {
+		try {
 			configs = new Ini(new File(fileName));
-            
-        } catch (IOException e) {
-            logger.error("Error while reloading TH-E Control configuration: {}", e.getMessage());
-        }
-    }
-    
+			
+		} catch (IOException e) {
+			logger.error("Error while reloading TH-E Control configuration: {}", e.getMessage());
+		}
+	}
+
 	@Override
 	public Preferences readComponentConfigs(String component) throws IOException {
 		String fileDir = System.getProperty(CONFIG_COMPONENTS);
@@ -202,7 +202,28 @@ public final class Control extends Thread implements ControlService {
 		Ini ini = new Ini(new File(fileName));
 		return new IniPreferences(ini);
 	}
-	
+
+	@Override
+	public boolean writeValue(String id, Value value) {
+		logger.debug("Writing value for channel \"{}\": {}", id, value);
+		
+		ControlChannel channel = getChannel(id);
+		if (channel != null) {
+			return channel.write(value);
+		}
+		return false;
+	}
+
+	@Override
+	public void setLatestValue(String id, Value value) {
+		logger.debug("Set latest value for channel \"{}\": {}", id, value);
+		
+		ControlChannel channel = getChannel(id);
+		if (channel != null) {
+			channel.setLatestValue(value);
+		}
+	}
+
 	@Override
 	public Value getLatestValue(String id) {
 		ControlChannel channel = getChannel(id);
@@ -211,7 +232,7 @@ public final class Control extends Thread implements ControlService {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public Value getLatestValue(String id, ControlValueListener listener) {
 		ControlChannel channel = getChannel(id);
@@ -222,7 +243,7 @@ public final class Control extends Thread implements ControlService {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void registerValueListener(String id, ControlValueListener listener) {
 		ControlChannel channel = getChannel(id);
@@ -230,7 +251,7 @@ public final class Control extends Thread implements ControlService {
 			channel.register(listener);
 		}
 	}
-	
+
 	@Override
 	public void deregisterValueListener(String id, ControlValueListener listener) {
 		ControlChannel channel = getChannel(id);
@@ -238,18 +259,7 @@ public final class Control extends Thread implements ControlService {
 			channel.deregister(listener);
 		}
 	}
-    
-	@Override
-	public boolean setValue(String id, Value value) {
-		logger.debug("Writing value for channel \"{}\": {}", id, value);
-		
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			return channel.write(value);
-		}
-		return false;
-	}
-	
+
 	private ControlChannel getChannel(String id) {
 		if (!channels.containsKey(id)) {
 			if (!access.getAllIds().contains(id)) {
@@ -262,13 +272,13 @@ public final class Control extends Thread implements ControlService {
 		}
 		return channels.get(id);
 	}
-	
+
 	@Override
 	public void run() {
 		logger.info("Starting TH-E Control");
 		
 		setName("TH-E Control");
-        handleInterruptEvent();
+		handleInterruptEvent();
 		
 		while (!deactivateFlag) {
 			if (interrupted()) {
@@ -287,7 +297,7 @@ public final class Control extends Thread implements ControlService {
 			}
 		}
 	}
-	
+
 	private void handleInterruptEvent() {
 
 		if (deactivateFlag) {
@@ -298,26 +308,26 @@ public final class Control extends Thread implements ControlService {
 		}
 		
 		if (access != null) {
-	        synchronized (newComponents) {
-	            if (newComponents.size() != 0) {
-	                synchronized (components) {
-	                	components.putAll(newComponents);
-	                }
-	                for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
-	                	String id = newComponentEntry.getKey();
-	                    logger.info("Activating TH-E Control component: " + id);
-                    	try {
+			synchronized (newComponents) {
+				if (newComponents.size() != 0) {
+					synchronized (components) {
+						components.putAll(newComponents);
+					}
+					for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
+						String id = newComponentEntry.getKey();
+						logger.info("Activating TH-E Control component: " + id);
+						try {
 							newComponentEntry.getValue().activate(this);
 							
 						} catch (ComponentException e) {
-		                    logger.warn("Error while activating component \"{}\": ", id, e);
+							logger.warn("Error while activating component \"{}\": ", id, e);
 						}
-	                }
-	                newComponents.clear();
-	            }
-	        }
-	        
-	        // TODO: handle control schedule
+					}
+					newComponents.clear();
+				}
+			}
+			
+			// TODO: handle control schedule
 		}
 	}
 }

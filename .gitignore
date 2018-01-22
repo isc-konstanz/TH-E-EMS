@@ -45,4 +45,4 @@ build/
 !/build/docs
 !/build/libs
 /build/libs/*
-!/build/libs/th-e-*
+!/build/libs/th-e-component*

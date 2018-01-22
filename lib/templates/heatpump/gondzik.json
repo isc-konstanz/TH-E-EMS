@@ -16,6 +16,10 @@
             "driver": "rpi-gpio",
             "address": "pin:1",
             "settings": "type:output"
+        },
+        {
+            "name": "HeatpumpCirculation",
+            "driver": "virtual"
         }
     ],
 
@@ -61,13 +65,26 @@
             "name": "RLY450",
             "description": "hp_vent_state",
             "device": "GPIO_1",
-            "settings": "inverted:true",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
             "processList": [
                 {
                     "process": "log_to_feed",
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "hp_vent_state"}
+                }
+            ]
+        },
+        {
+            "name": "hp_circ_delta_temperature",
+            "description": "hp_flow_delta_temperature",
+            "node": "Virtual",
+            "device": "HeatpumpCirculation",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.25},
+            "configs": {"valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "hp_flow_delta_temperature"}
                 }
             ]
         }
@@ -83,6 +100,12 @@
         {
             "name": "hp_vent_state",
             "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "hp_flow_delta_temperature",
+            "tag": "Temperature",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES"
         }

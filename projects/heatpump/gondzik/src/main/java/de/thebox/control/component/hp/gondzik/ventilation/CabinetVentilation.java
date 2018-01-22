@@ -95,11 +95,11 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 	}
 	
 	public void start() {
-		control.setValue(stateValue, new BooleanValue(true));
+		control.writeValue(stateValue, new BooleanValue(true));
 	}
 	
 	public void stop() {
-		control.setValue(stateValue, new BooleanValue(false));
+		control.writeValue(stateValue, new BooleanValue(false));
 	}
 	
 	@Override

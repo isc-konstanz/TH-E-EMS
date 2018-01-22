@@ -18,22 +18,31 @@ import de.thebox.control.core.component.ComponentException;
 public class SerenergyComponent implements CogeneratorService {
 	private final static Logger logger = LoggerFactory.getLogger(SerenergyComponent.class);
 	private final static String ID = "Serenergy";
-	
+
+	private Preferences configs;
+
 	private ControlService control;
 	private CirculationPump circulation = null;
-	
+
 	@Override
 	public String getId() {
 		return ID;
 	}
-	
+
 	@Override
 	public void activate(ControlService context) throws ComponentException {
 		this.control = context;
-		
-		activateCirculation();
+
+		try {
+			configs = control.readComponentConfigs(ID);
+			activateCirculation();
+			
+		} catch (IOException e) {
+			// TODO: Fatal error! Inform error event handler
+			logger.error("Error while reading Serenergy configuration: {}", e.getMessage());
+		}
 	}
-	
+
 	@Override
 	public void reload() throws ComponentException {
 		if (circulation != null) {
@@ -41,41 +50,33 @@ public class SerenergyComponent implements CogeneratorService {
 		}
 		activateCirculation();
 	}
-	
+
 	private void activateCirculation() throws ComponentConfigException {
-		try {
-			Preferences configs = control.readComponentConfigs(ID);
-			circulation = new CirculationPump(control, configs.node(CirculationPumpConst.CIRCULATION_SECTION));
-			
-		} catch (IOException e) {
-			// TODO: Fatal error! Inform error event handler
-			logger.error("Error while reading Serenergy configuration: {}", e.getMessage());
-		}
+		circulation = new CirculationPump(control, configs.node(CirculationPumpConst.CIRCULATION_SECTION));
 	}
-	
+
 	@Override
 	public void deactivate() {
 		if (circulation != null) {
 			circulation.deactivate();
 		}
 	}
-	
+
 	@Override
 	public void startGeneration(Long timestamp) {
 		// TODO Auto-generated method stub
 		
 	}
-	
+
 	@Override
 	public void stopGeneration(Long timestamp) {
 		// TODO Auto-generated method stub
 		
 	}
-	
+
 	@Override
 	public void scheduleGeneration(long start, long stop, double energy) {
 		// TODO Auto-generated method stub
 		
 	}
-
 }

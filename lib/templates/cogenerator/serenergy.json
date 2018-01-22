@@ -9,6 +9,16 @@
             "name": "Serenergy",
             "driver": "snmp",
             "settings": "SNMPVersion=V2c:AUTHENTICATIONPASSPHRASE=private"
+        },
+        {
+            "name": "GPIO_0",
+            "driver": "rpi-gpio",
+            "address": "pin:0",
+            "settings": "type:output"
+        },
+        {
+            "name": "CogeneratorCirculation",
+            "driver": "virtual"
         }
     ],
     
@@ -52,6 +62,16 @@
                 "OFF": { "channel": "sngyh3control_stop", "value": 3 }
             },
             "input": "sngyh3control_requested_state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Circulation",
+            "mapping": {
+                "ON": { "channel": "RLY410", "value": "true" },
+                "OFF": { "channel": "RLY410", "value": "false" }
+            },
+            "input": "RLY410"
         },
         {
             "id": "power",
@@ -209,6 +229,33 @@
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "fc_stack_temperature"}
                 }
             ]
+        },
+        {
+            "name": "RLY410",
+            "description": "fc_pump_state",
+            "device": "GPIO_0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "fc_pump_state"}
+                }
+            ]
+        },
+        {
+            "name": "chp_circ_delta_temperature",
+            "description": "fc_flow_delta_temperature",
+            "node": "Virtual",
+            "device": "CogeneratorCirculation",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.25},
+            "configs": {"valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "fc_flow_delta_temperature"}
+                }
+            ]
         }
     ],
 
@@ -245,6 +292,18 @@
         },
         {
             "name": "fc_stack_temperature",
+            "tag": "Temperature",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "fc_pump_state",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "fc_flow_delta_temperature",
             "tag": "Temperature",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES"

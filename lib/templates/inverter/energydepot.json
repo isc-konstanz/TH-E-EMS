@@ -9,6 +9,10 @@
             "name": "Centurion",
             "driver": "edcom",
             "settings": "user:ISC Konstanz"
+        },
+        {
+            "name": "InverterObjective",
+            "driver": "virtual"
         }
     ],
     
@@ -25,7 +29,7 @@
     
     "items": [
         {
-            "id": "target",
+            "id": "objective",
             "type": "Slider",
             "label": "Export/Import",
             "format": "%.1f kW",
@@ -34,18 +38,18 @@
             "step": 500,
             "scale": 0.001,
             "mapping": {
-                "SET": { "channel": "inv_target" }
+                "SET": { "channel": "inv_objective_setpoint" }
             },
-            "input": "inv_target"
+            "input": "inv_objective_setpoint"
         }
     ],
     
     "channels": [
         {
-            "name": "inv_target",
-            "description": "inv_target",
+            "name": "inv_objective",
+            "description": "inv_objective",
             "device": "Centurion",
-            "address": "INV_TARGET",
+            "address": "INV_OBJECTIVE",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"}
         },
@@ -272,6 +276,14 @@
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_frequency"}
                 }
             ]
+        },
+        {
+            "name": "inv_objective_setpoint",
+            "description": "inv_objective_setpoint",
+            "node": "Virtual",
+            "device": "InverterObjective",
+            "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },
+            "configs": { "valueType":"DOUBLE" }
         }
     ],
 

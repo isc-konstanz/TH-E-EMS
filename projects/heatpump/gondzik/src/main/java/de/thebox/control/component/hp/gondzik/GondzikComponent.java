@@ -16,6 +16,8 @@ import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.HeatPumpService;
+import de.thebox.control.core.data.Value;
+import de.thebox.control.core.schedule.Schedule;
 
 @Component
 public class GondzikComponent implements HeatPumpService, CabinetService {
@@ -79,27 +81,27 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 		// TODO Auto-generated method stub
 		
 	}
-	
+
 	@Override
 	public void stopVentilation(Long timestamp) {
 		// TODO Auto-generated method stub
 		
 	}
-	
+
 	@Override
-	public void startHeating(Long timestamp) {
+	public void startHeating(Value value) {
 		// TODO Auto-generated method stub
 		
 	}
-	
+
 	@Override
-	public void stopHeating(Long timestamp) {
+	public void stopHeating(Value value) {
 		// TODO Auto-generated method stub
 		
 	}
-	
+
 	@Override
-	public void scheduleHeating(long start, long stop, double energy) {
+	public void scheduleHeating(Schedule schedule) {
 		// TODO Auto-generated method stub
 		
 	}

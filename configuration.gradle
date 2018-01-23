@@ -13,6 +13,7 @@ project.ext {
   jarDefaultImportPackageVersion=";version=0"
 
   distributionProjects = subprojects.findAll {
+    it.getPath() == ":th-e-component-energydepot" ||
     it.getPath() == ":th-e-component-serenergy" ||
     it.getPath() == ":th-e-component-gondzik"
   }

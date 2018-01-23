@@ -13,6 +13,8 @@ import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.data.Value;
+import de.thebox.control.core.schedule.Schedule;
 
 @Component
 public class SerenergyComponent implements CogeneratorService {
@@ -63,19 +65,19 @@ public class SerenergyComponent implements CogeneratorService {
 	}
 
 	@Override
-	public void startGeneration(Long timestamp) {
+	public void startGeneration(Value value) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void stopGeneration(Long timestamp) {
+	public void stopGeneration(Value value) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void scheduleGeneration(long start, long stop, double energy) {
+	public void scheduleGeneration(Schedule schedule) {
 		// TODO Auto-generated method stub
 		
 	}

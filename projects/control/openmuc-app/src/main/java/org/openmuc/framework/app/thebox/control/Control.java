@@ -32,6 +32,7 @@ import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
+import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.data.Value;
 
 @Component(
@@ -46,24 +47,24 @@ import de.thebox.control.core.data.Value;
 )
 public final class Control extends Thread implements ControlService {
 	private final static Logger logger = LoggerFactory.getLogger(Control.class);
-	
+
 	private final static int SLEEP_INTERVAL = 60000;
 	private final static String CONFIG_CONTROL = "de.thebox.control.config.control";
 	private final static String CONFIG_COMPONENTS = "de.thebox.control.config.components";
-	
+
 	private final Map<String, ControlChannel> channels = new HashMap<String, ControlChannel>();
-	
+
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
 	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
 	private DataAccessService access;
-	
+
 	private volatile boolean deactivateFlag;
-	
+
 	private ScheduledExecutorService scheduler = null;
 	private ExecutorService executor = null;
-	
-	private Ini configs = null;
-	
+
+	private Preferences configs = null;
+
 	@Activate
 	protected void activate(ComponentContext context) {
 		logger.info("Activating TH-E Control");
@@ -77,7 +78,8 @@ public final class Control extends Thread implements ControlService {
 			fileName = "conf" + File.separator + "th-e-control.cfg";
 		}
 		try {
-			configs = new Ini(new File(fileName));
+			Ini ini = new Ini(new File(fileName));
+			configs = new IniPreferences(ini);
 			
 		} catch (IOException e) {
 			logger.error("Error while reading control configuration: {}", e.getMessage());
@@ -85,7 +87,7 @@ public final class Control extends Thread implements ControlService {
 		
 		start();
 	}
-	
+
 	@Deactivate
 	protected void deactivate(ComponentContext context) {
 		logger.info("Deactivating TH-E Control");
@@ -97,7 +99,34 @@ public final class Control extends Thread implements ControlService {
 		} catch (InterruptedException e) {
 		}
 	}
-	
+
+	@Reference
+	protected void bindInverterService(InverterService inverterService) {
+		bindComponentService(inverterService);
+	}
+
+	protected void unbindInverterService(InverterService inverterService) {
+		unbindComponentService(inverterService);
+	}
+
+	@Reference
+	protected void bindCogeneratorService(CogeneratorService cogeneratorService) {
+		bindComponentService(cogeneratorService);
+	}
+
+	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
+		unbindComponentService(cogeneratorService);
+	}
+
+	@Reference
+	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
+		bindComponentService(heatPumpService);
+	}
+
+	protected void unbindHeatPumpService(HeatPumpService heatPumpService) {
+		unbindComponentService(heatPumpService);
+	}
+
 	@Reference(
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
@@ -105,29 +134,11 @@ public final class Control extends Thread implements ControlService {
 	protected void bindCabinetService(CabinetService cabinetService) {
 		bindComponentService(cabinetService);
 	}
-	
+
 	protected void unbindCabinetService(CabinetService cabinetService) {
 		unbindComponentService(cabinetService);
 	}
-	
-	@Reference
-	protected void bindCogeneratorService(CogeneratorService cogeneratorService) {
-		bindComponentService(cogeneratorService);
-	}
-	
-	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
-		unbindComponentService(cogeneratorService);
-	}
-	
-	@Reference
-	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
-		bindComponentService(heatPumpService);
-	}
-	
-	protected void unbindHeatPumpService(HeatPumpService heatPumpService) {
-		unbindComponentService(heatPumpService);
-	}
-	
+
 	@Reference(
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
@@ -144,7 +155,7 @@ public final class Control extends Thread implements ControlService {
 			}
 		}
 	}
-	
+
 	protected void unbindComponentService(ComponentService componentService) {
 		String id = componentService.getId();
 		
@@ -164,16 +175,16 @@ public final class Control extends Thread implements ControlService {
 		}
 		logger.debug("Component deregistered: " + id);
 	}
-	
+
 	@Reference
 	protected void bindDataAccessService(DataAccessService dataAccessService) {
 		this.access = dataAccessService;
 	}
-	
+
 	protected void unbindDataAccessService(DataAccessService dataAccessService) {
 		this.access = null;
 	}
-	
+
 	public void reload() {
 		logger.info("Reload TH-E Control configuration.");
 		// TODO: implement reload
@@ -182,7 +193,8 @@ public final class Control extends Thread implements ControlService {
 			fileName = "conf" + File.separator + "th-e-control.cfg";
 		}
 		try {
-			configs = new Ini(new File(fileName));
+			Ini ini = new Ini(new File(fileName));
+			configs = new IniPreferences(ini);
 			
 		} catch (IOException e) {
 			logger.error("Error while reloading TH-E Control configuration: {}", e.getMessage());
@@ -317,8 +329,18 @@ public final class Control extends Thread implements ControlService {
 						String id = newComponentEntry.getKey();
 						logger.info("Activating TH-E Control component: " + id);
 						try {
-							newComponentEntry.getValue().activate(this);
+							ComponentService component = newComponentEntry.getValue();
 							
+							component.activate(this);
+							if (component instanceof InverterService) {
+								onInverterActivated((InverterService) component);
+							}
+							else if (component instanceof CogeneratorService) {
+								onCogeneratorActivated((CogeneratorService) component);
+							}
+							else if (component instanceof HeatPumpService) {
+								onHeatPumpActivated((HeatPumpService) component);
+							}
 						} catch (ComponentException e) {
 							logger.warn("Error while activating component \"{}\": ", id, e);
 						}
@@ -329,5 +351,20 @@ public final class Control extends Thread implements ControlService {
 			
 			// TODO: handle control schedule
 		}
+	}
+
+	private void onInverterActivated(InverterService interver) {
+		// TODO: handle inverter activation
+		
+	}
+
+	private void onCogeneratorActivated(CogeneratorService cogenerator) {
+		// TODO: handle cogenerator activation
+		
+	}
+
+	private void onHeatPumpActivated(HeatPumpService heatpump) {
+		// TODO: handle heatpump activation
+		
 	}
 }

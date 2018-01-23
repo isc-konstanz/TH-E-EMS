@@ -1,11 +1,14 @@
 package de.thebox.control.core.component;
 
+import de.thebox.control.core.data.Value;
+import de.thebox.control.core.schedule.Schedule;
+
 public interface HeatPumpService extends ComponentService {
-	
-	public void startHeating(Long timestamp);
-	
-	public void stopHeating(Long timestamp);
-	
-	public void scheduleHeating(long start, long stop, double energy);
+
+	public void startHeating(Value value);
+
+	public void stopHeating(Value value);
+
+	public void scheduleHeating(Schedule schedule);
 
 }

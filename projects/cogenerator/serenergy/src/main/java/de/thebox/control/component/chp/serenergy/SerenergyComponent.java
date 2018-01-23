@@ -34,7 +34,10 @@ public class SerenergyComponent implements CogeneratorService {
 	@Override
 	public void activate(ControlService context) throws ComponentException {
 		this.control = context;
+		activateComponent();
+	}
 
+	private void activateComponent() throws ComponentConfigException {
 		try {
 			configs = control.readComponentConfigs(ID);
 			activateCirculation();
@@ -45,16 +48,14 @@ public class SerenergyComponent implements CogeneratorService {
 		}
 	}
 
-	@Override
-	public void reload() throws ComponentException {
-		if (circulation != null) {
-			circulation.deactivate();
-		}
-		activateCirculation();
-	}
-
 	private void activateCirculation() throws ComponentConfigException {
 		circulation = new CirculationPump(control, configs.node(CirculationPumpConst.CIRCULATION_SECTION));
+	}
+
+	@Override
+	public void reload() throws ComponentException {
+		deactivate();
+		activateCirculation();
 	}
 
 	@Override
@@ -65,20 +66,27 @@ public class SerenergyComponent implements CogeneratorService {
 	}
 
 	@Override
-	public void startGeneration(Value value) {
+	public void startGeneration(double value) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void stopGeneration(Value value) {
+	public void startGeneration(Value value) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void scheduleGeneration(Schedule schedule) {
+	public void stopGeneration(Long timestamp) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void scheduleGeneration(Schedule schedule) throws ComponentException {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

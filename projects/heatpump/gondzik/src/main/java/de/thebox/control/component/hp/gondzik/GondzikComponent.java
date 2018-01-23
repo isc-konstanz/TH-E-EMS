@@ -38,7 +38,10 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 	@Override
 	public void activate(ControlService context) throws ComponentException {
 		this.control = context;
+		activateComponent();
+	}
 
+	private void activateComponent() throws ComponentConfigException {
 		try {
 			configs = control.readComponentConfigs(ID);
 			activateVentilation();
@@ -46,16 +49,8 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 			
 		} catch (IOException e) {
 			// TODO: Fatal error! Inform error event handler
-			logger.error("Error while reading Serenergy configuration: {}", e.getMessage());
+			logger.error("Error while reading Gondzik configuration: {}", e.getMessage());
 		}
-	}
-
-	@Override
-	public void reload() throws ComponentException {
-		deactivate();
-		
-		activateVentilation();
-		activateVentilation();
 	}
 
 	private void activateVentilation() throws ComponentConfigException {
@@ -64,6 +59,12 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 
 	private void activateCirculation() throws ComponentConfigException {
 		circulation = new CirculationPump(control, configs.node(CirculationPumpConst.CIRCULATION_SECTION));
+	}
+
+	@Override
+	public void reload() throws ComponentException {
+		deactivate();
+		activateComponent();
 	}
 
 	@Override
@@ -77,31 +78,39 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 	}
 
 	@Override
-	public void startVentilation(Long timestamp) {
+	public void startVentilation(Long timestamp) throws ComponentException {
+		// TODO Schedule by timestamp
+		
+		ventilation.start();
+	}
+
+	@Override
+	public void stopVentilation(Long timestamp) throws ComponentException {
+		// TODO Schedule by timestamp
+		
+		ventilation.stop();
+	}
+
+	@Override
+	public void startHeating(double value) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void stopVentilation(Long timestamp) {
+	public void startHeating(Value value) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void startHeating(Value value) {
+	public void stopHeating(Long timestamp) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void stopHeating(Value value) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void scheduleHeating(Schedule schedule) {
+	public void scheduleHeating(Schedule schedule) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}

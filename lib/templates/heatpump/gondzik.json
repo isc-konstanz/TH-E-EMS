@@ -50,6 +50,7 @@
         {
             "name": "HP100TIn",
             "description": "hp_state",
+            "node": "Pins",
             "device": "GPIO_2",
             "settings": "inverted:true",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
@@ -64,6 +65,7 @@
         {
             "name": "RLY450",
             "description": "hp_vent_state",
+            "node": "Pins",
             "device": "GPIO_1",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},

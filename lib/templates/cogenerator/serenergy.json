@@ -233,6 +233,7 @@
         {
             "name": "RLY410",
             "description": "fc_pump_state",
+            "node": "Pins",
             "device": "GPIO_0",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},

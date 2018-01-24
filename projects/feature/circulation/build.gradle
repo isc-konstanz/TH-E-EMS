@@ -1,0 +1,10 @@
+dependencies {
+  compile project(':th-e-core')
+}
+
+jar {
+  manifest {
+    name = "TH-E Box Feature - Circulation"
+    instruction 'Export-Package', '!*.internal.*,*'
+  }
+}

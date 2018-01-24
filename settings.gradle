@@ -1,6 +1,9 @@
-include "th-e-core", "th-e-optimization", "th-e-control-app"
+include "th-e-core", "th-e-optimization", "th-e-control-app", "th-e-feature-emoncms", "th-e-feature-circulation"
 
 project(":th-e-core").projectDir = file("projects/core")
 
 project(":th-e-control-app").projectDir = file("projects/control/openmuc-app")
 project(":th-e-optimization").projectDir = file("projects/control/optimization")
+
+project(":th-e-feature-emoncms").projectDir = file("projects/feature/emoncms")
+project(":th-e-feature-circulation").projectDir = file("projects/feature/circulation")

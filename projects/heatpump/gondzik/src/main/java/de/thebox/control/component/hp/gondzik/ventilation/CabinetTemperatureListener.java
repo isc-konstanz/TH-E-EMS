@@ -3,10 +3,10 @@ package de.thebox.control.component.hp.gondzik.ventilation;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.thebox.control.core.ControlValueListener;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 
-public class CabinetTemperatureListener implements ControlValueListener {
+public class CabinetTemperatureListener implements ValueListener {
 	
 	private final static int MOVING_AVG_SIZE = 6;
 	

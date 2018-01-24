@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 
 import de.thebox.control.component.hp.gondzik.ventilation.CabinetTemperatureListener.CabinetTemperatureCallbacks;
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.ControlValueListener;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 
 
 public class CabinetVentilation implements CabinetTemperatureCallbacks {
@@ -21,7 +21,7 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 	private final ControlService control;
 	
 	private final String stateValue;
-	private final ControlValueListener stateListener;
+	private final ValueListener stateListener;
 	
 	private Value stateValueLast = null;
 	private volatile long startTimeLast = 0;
@@ -48,9 +48,9 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 		registerTemperatureListener(configs.get(CabinetVentilationConst.BOTTOM_TEMPERATURE_KEY, null), CabinetTemperature.BOTTOM);
 	}
 	
-	private ControlValueListener registerStateListener(String id) throws ComponentConfigException {
+	private ValueListener registerStateListener(String id) throws ComponentConfigException {
 		if (id != null) {
-			ControlValueListener stateListener = new ControlValueListener() {
+			ValueListener stateListener = new ValueListener() {
 				
 				@Override
 				public void onValueReceived(Value value) {

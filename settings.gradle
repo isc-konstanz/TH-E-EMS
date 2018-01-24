@@ -1,6 +1,6 @@
 include "th-e-core", "th-e-component-energydepot", "th-e-component-serenergy", "th-e-component-gondzik"
 
-project(":th-e-core").projectDir = file("./../TH-E-Control/projects/core")
+project(":th-e-core").projectDir = file("../TH-E-Control/projects/core")
 
 project(":th-e-component-energydepot").projectDir = file("projects/inverter/energydepot")
 project(":th-e-component-serenergy").projectDir = file("projects/cogenerator/serenergy")

@@ -1,10 +1,31 @@
+configurations.create('embed')
+
+def controlVersion = '0.1.2'
+
+repositories {
+  flatDir {
+    dirs rootDir.getPath() + "/../TH-E-Control/build/libs"
+  }
+}
+
 dependencies {
   compile project(':th-e-core')
+
+  compile group: 'de.konstanz.isc', name: 'th-e-feature-circulation', version: controlVersion
+  embed group: 'de.konstanz.isc', name: 'th-e-feature-circulation', version: controlVersion
 }
 
 jar {
   manifest {
     name = "TH-E Box Cogenerator - Serenergy Fuel Cell"
-    instruction 'Export-Package', '!*.internal.*,*'
+    instruction 'Bundle-ClassPath', '.,lib/th-e-feature-circulation-' + controlVersion + '.jar'
+    instruction 'Import-Package', '!de.thebox.control.feature.circulation*,*'
+    instruction 'Export-Package', ''
+  }
+}
+
+jar {
+  into('lib') {
+    from configurations.embed
   }
 }

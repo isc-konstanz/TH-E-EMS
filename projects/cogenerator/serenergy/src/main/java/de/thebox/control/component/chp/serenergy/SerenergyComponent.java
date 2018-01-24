@@ -7,14 +7,14 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.thebox.control.component.chp.serenergy.circulation.CirculationPump;
-import de.thebox.control.component.chp.serenergy.circulation.CirculationPumpConst;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.Schedule;
+import de.thebox.control.feature.circulation.pump.CirculationPump;
+import de.thebox.control.feature.circulation.pump.CirculationPumpConst;
 
 @Component
 public class SerenergyComponent implements CogeneratorService {

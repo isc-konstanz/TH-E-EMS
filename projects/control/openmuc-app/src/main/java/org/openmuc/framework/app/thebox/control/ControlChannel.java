@@ -8,7 +8,6 @@ import org.openmuc.framework.data.Record;
 import org.openmuc.framework.dataaccess.Channel;
 import org.openmuc.framework.dataaccess.RecordListener;
 
-import de.thebox.control.core.ControlValueListener;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.ByteValue;
 import de.thebox.control.core.data.DoubleValue;
@@ -17,15 +16,16 @@ import de.thebox.control.core.data.IntValue;
 import de.thebox.control.core.data.LongValue;
 import de.thebox.control.core.data.ShortValue;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 
 public class ControlChannel implements RecordListener {
 
 	private final Channel channel;
-	private final List<ControlValueListener> listeners;
+	private final List<ValueListener> listeners;
 
 	public ControlChannel(Channel channel) {
 		this.channel = channel;
-		this.listeners = new ArrayList<ControlValueListener>();
+		this.listeners = new ArrayList<ValueListener>();
 	}
 
 	public boolean write(Value value) {
@@ -45,7 +45,7 @@ public class ControlChannel implements RecordListener {
 		return ControlChannel.decodeRecord(record, channel.getValueType());
 	}
 
-	public void register(ControlValueListener listener) {
+	public void register(ValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.size() == 0) {
 				channel.addListener(this);
@@ -56,7 +56,7 @@ public class ControlChannel implements RecordListener {
 		}
 	}
 
-	public void deregister(ControlValueListener listener) {
+	public void deregister(ValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.contains(listener)) {
 				listeners.remove(listener);
@@ -71,7 +71,7 @@ public class ControlChannel implements RecordListener {
 	public void newRecord(Record record) {
 		Value value = ControlChannel.decodeRecord(record, channel.getValueType());
 		if (value != null) {
-			for (ControlValueListener listener : listeners) {
+			for (ValueListener listener : listeners) {
 				listener.onValueReceived(value);
 			}
 		}

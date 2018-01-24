@@ -3,11 +3,11 @@ package de.thebox.control.feature.circulation;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.thebox.control.core.ControlValueListener;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 
-public class CirculationTemperatureListener implements ControlValueListener {
+public class CirculationTemperatureListener implements ValueListener {
 	
 	private final static int MOVING_AVG_SIZE = 6;
 	

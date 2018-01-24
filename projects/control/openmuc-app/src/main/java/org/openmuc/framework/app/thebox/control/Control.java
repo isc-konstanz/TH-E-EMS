@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.ControlValueListener;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
@@ -34,6 +33,7 @@ import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 
 @Component(
 	immediate = true,
@@ -246,7 +246,7 @@ public final class Control extends Thread implements ControlService {
 	}
 
 	@Override
-	public Value getLatestValue(String id, ControlValueListener listener) {
+	public Value getLatestValue(String id, ValueListener listener) {
 		ControlChannel channel = getChannel(id);
 		if (channel != null) {
 			channel.register(listener);
@@ -257,7 +257,7 @@ public final class Control extends Thread implements ControlService {
 	}
 
 	@Override
-	public void registerValueListener(String id, ControlValueListener listener) {
+	public void registerValueListener(String id, ValueListener listener) {
 		ControlChannel channel = getChannel(id);
 		if (channel != null) {
 			channel.register(listener);
@@ -265,7 +265,7 @@ public final class Control extends Thread implements ControlService {
 	}
 
 	@Override
-	public void deregisterValueListener(String id, ControlValueListener listener) {
+	public void deregisterValueListener(String id, ValueListener listener) {
 		ControlChannel channel = getChannel(id);
 		if (channel != null) {
 			channel.deregister(listener);

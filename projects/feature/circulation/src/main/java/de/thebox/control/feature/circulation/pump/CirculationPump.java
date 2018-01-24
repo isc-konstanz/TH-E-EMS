@@ -3,10 +3,10 @@ package de.thebox.control.feature.circulation.pump;
 import java.util.prefs.Preferences;
 
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.ControlValueListener;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 import de.thebox.control.feature.circulation.Circulation;
 import de.thebox.control.feature.circulation.CirculationTemperature;
 
@@ -14,7 +14,7 @@ import de.thebox.control.feature.circulation.CirculationTemperature;
 public class CirculationPump extends Circulation {
 
 	private final String stateValue;
-	private final ControlValueListener stateListener;
+	private final ValueListener stateListener;
 	private Value stateValueLast = new BooleanValue(false);
 	private volatile long startTimeLast = 0;
 	private final int intervalMin;
@@ -37,9 +37,9 @@ public class CirculationPump extends Circulation {
 		this.stateListener = registerStateListener(stateValue);
 	}
 
-	private ControlValueListener registerStateListener(String id) throws ComponentConfigException {
+	private ValueListener registerStateListener(String id) throws ComponentConfigException {
 		if (id != null) {
-			ControlValueListener stateListener = new ControlValueListener() {
+			ValueListener stateListener = new ValueListener() {
 				
 				@Override
 				public void onValueReceived(Value value) {

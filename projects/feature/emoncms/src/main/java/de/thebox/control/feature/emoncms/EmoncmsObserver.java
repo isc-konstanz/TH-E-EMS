@@ -11,11 +11,9 @@ import org.emoncms.Feed;
 import org.emoncms.com.EmoncmsException;
 import org.emoncms.com.EmoncmsUnavailableException;
 import org.emoncms.com.http.HttpEmoncmsFactory;
-import org.emoncms.data.Timevalue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.ValueListener;
 
 public class EmoncmsObserver extends Thread {
@@ -24,7 +22,7 @@ public class EmoncmsObserver extends Thread {
 	private final int interval;
 
 	private final Emoncms connection;
-	private final Map<ValueListener, Feed> listeners = new HashMap<ValueListener, Feed>();
+	private final Map<String, FeedListener> listeners = new HashMap<String, FeedListener>();
 
 	private volatile boolean deactivateFlag;
 
@@ -68,20 +66,24 @@ public class EmoncmsObserver extends Thread {
 		try {
 			List<Feed> feeds = connection.getFeedList();
 			
-			Feed feed = null;
-			for (Feed f : feeds) {
-				if (f.getName().equals(name)) {
-					feed = f;
+			FeedListener feedListener = null;
+			for (Feed feed : feeds) {
+				if (feed.getName().equals(name)) {
+					feedListener = new FeedListener(feed, listener);
 				}
 			}
-			if (feed == null) {
+			if (feedListener == null) {
 				throw new EmoncmsObserverException("Unable to register listener for feed: " + name);
 			}
-			listeners.put(listener, feed);
+			listeners.put(name, feedListener);
 			
 		} catch (EmoncmsException e) {
 			throw new EmoncmsObserverException("Error while requesting feed list: " + e.getMessage());
 		}
+	}
+
+	public void deregisterFeedListener(String name) {
+		listeners.remove(name);
 	}
 
 	@Override
@@ -90,11 +92,9 @@ public class EmoncmsObserver extends Thread {
 		
 		while (!deactivateFlag) {
 			try {
-				for (Map.Entry<ValueListener, Feed> entry : listeners.entrySet()) {
-					Feed feed = entry.getValue();
+				for (FeedListener feed : listeners.values()) {
 					try {
-						Timevalue value = feed.getLatestTimevalue();
-						entry.getKey().onValueReceived(new DoubleValue(value.getValue(), value.getTime()));
+						feed.poll();
 						
 					} catch (EmoncmsException e) {
 						logger.warn("Error while reading feed value: {}", e.getMessage());

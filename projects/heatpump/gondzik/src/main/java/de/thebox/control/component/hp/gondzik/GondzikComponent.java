@@ -16,8 +16,8 @@ import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.Schedule;
-import de.thebox.control.feature.circulation.pump.CirculationPump;
-import de.thebox.control.feature.circulation.pump.CirculationPumpConst;
+import de.thebox.control.feature.circulation.Circulation;
+import de.thebox.control.feature.circulation.CirculationConst;
 
 @Component
 public class GondzikComponent implements HeatPumpService, CabinetService {
@@ -28,7 +28,7 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 
 	private ControlService control;
 	private CabinetVentilation ventilation = null;
-	private CirculationPump circulation = null;
+	private Circulation circulation = null;
 
 	@Override
 	public String getId() {
@@ -58,7 +58,7 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 	}
 
 	private void activateCirculation() throws ComponentConfigException {
-		circulation = new CirculationPump(control, configs.node(CirculationPumpConst.CIRCULATION_SECTION));
+		circulation = new Circulation(control, configs.node(CirculationConst.CIRCULATION_SECTION));
 	}
 
 	@Override

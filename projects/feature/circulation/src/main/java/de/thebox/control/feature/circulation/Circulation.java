@@ -35,7 +35,7 @@ public class Circulation implements CirculationTemperatureCallbacks {
 			temperatureListeners.add(listener);
 			control.registerValueListener(id, listener);
 		}
-		else throw new ComponentConfigException("Unable to find configured cabinet temperature value");
+		else throw new ComponentConfigException("Unable to find configured circulation temperature value: " + id);
 	}
 
 	public void deactivate() {

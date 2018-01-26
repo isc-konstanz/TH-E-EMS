@@ -52,7 +52,7 @@ public class EmoncmsObserver extends Thread {
 		}
 	}
 
-	protected void deactivate() {
+	public void deactivate() {
 		deactivateFlag = true;
 		
 		interrupt();

@@ -1,12 +1,15 @@
 package de.thebox.control.component.inv.energydepot;
 
 import java.io.IOException;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.thebox.control.component.inv.energydepot.objective.ExternalObjective;
+import de.thebox.control.component.inv.energydepot.objective.ExternalObjectiveConst;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
@@ -20,9 +23,12 @@ public class EnergyDepotComponent implements InverterService {
 	private final static Logger logger = LoggerFactory.getLogger(EnergyDepotComponent.class);
 	private final static String ID = "EnergyDepot";
 
-	private String objectiveValue;
+	private Preferences configs;
 
 	private ControlService control;
+	private ExternalObjective externalObjective;
+
+	private String objectiveValue;
 
 	@Override
 	public String getId() {
@@ -35,10 +41,13 @@ public class EnergyDepotComponent implements InverterService {
 		activateComponent();
 	}
 
-	private void activateComponent() throws ComponentConfigException {
+	private void activateComponent() throws ComponentException {
 		try {
-			Preferences configs = control.readComponentConfigs(ID).node(EnergyDepotConst.INVERTER_SECTION);
+			configs = control.readComponentConfigs(ID);
+			
+			Preferences configs = this.configs.node(EnergyDepotConst.INVERTER_SECTION);
 			objectiveValue = configs.get(EnergyDepotConst.OBJECTIVE_KEY, null);
+			activateExternalObjective();
 			
 		} catch (IOException e) {
 			// TODO: Fatal error! Inform error event handler
@@ -46,37 +55,55 @@ public class EnergyDepotComponent implements InverterService {
 		}
 	}
 
+	private void activateExternalObjective() throws ComponentException {
+		try {
+			if (configs.nodeExists(ExternalObjectiveConst.EXTERNAL_SECTION)) {
+				Preferences emoncms = null;
+				if (configs.nodeExists(ExternalObjectiveConst.EMONCMS_SECTION)) {
+					emoncms = configs.node(ExternalObjectiveConst.EMONCMS_SECTION);
+				}
+				externalObjective = new ExternalObjective(this, control, configs.node(ExternalObjectiveConst.EXTERNAL_SECTION), emoncms);
+			}
+		} catch (BackingStoreException e) {
+			throw new ComponentConfigException("Error while reading Energy Depot external configuration: " + e.getMessage());
+		}
+	}
+
 	@Override
 	public void reload() throws ComponentException {
+		deactivate();
 		activateComponent();
 	}
 
 	@Override
 	public void deactivate() {
-		// Not implemented for this component
+		if (externalObjective != null) {
+			externalObjective.deactivate();
+		}
 	}
 
 	@Override
-	public void setObjective(double value) throws ComponentException {
+	public boolean setObjective(double value) throws ComponentException {
 		if (value <= EnergyDepotConst.OBJECTIVE_MAX && value >= EnergyDepotConst.OBJECTIVE_MIN) {
-			control.writeValue(objectiveValue, new DoubleValue(value));
+			return control.writeValue(objectiveValue, new DoubleValue(value));
 		}
 		throw new ComponentException("Inverter objective out of bounds: " + value);
 	}
 
 	@Override
-	public void setObjective(Value value) throws ComponentException {
+	public boolean setObjective(Value value) throws ComponentException {
 		// TODO Auto-generated method stub
 		
+		return false;
 	}
 
 	@Override
-	public void resetObjective(Long timestamp) throws ComponentException {
+	public boolean resetObjective(Long timestamp) throws ComponentException {
 		if (timestamp != null) {
-			
+			return false;
 		}
 		else {
-			control.writeValue(objectiveValue, new DoubleValue(EnergyDepotConst.OBJECTIVE_DEFAULT));
+			return control.writeValue(objectiveValue, new DoubleValue(EnergyDepotConst.OBJECTIVE_DEFAULT));
 		}
 	}
 

@@ -31,16 +31,16 @@
         {
             "id": "objective",
             "type": "Slider",
-            "label": "Export/Import",
+            "label": "Import/Export",
             "format": "%.1f kW",
             "max": 10000,
             "min": -10000,
             "step": 500,
-            "scale": 0.001,
+            "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_objective_setpoint" }
+                "SET": { "channel": "inv_objective_external", "write":false }
             },
-            "input": "inv_objective_setpoint"
+            "input": "inv_objective_external"
         }
     ],
     
@@ -278,8 +278,8 @@
             ]
         },
         {
-            "name": "inv_objective_setpoint",
-            "description": "inv_objective_setpoint",
+            "name": "inv_objective_external",
+            "description": "inv_objective_external",
             "node": "Virtual",
             "device": "InverterObjective",
             "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },

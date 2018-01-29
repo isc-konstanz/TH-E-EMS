@@ -8,12 +8,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.prefs.Preferences;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.ini4j.Ini;
 import org.ini4j.IniPreferences;
+import org.openmuc.framework.app.thebox.control.channel.ControlChannel;
+import org.openmuc.framework.app.thebox.control.channel.ControlChannel.ControlChannelCallbacks;
 import org.openmuc.framework.dataaccess.DataAccessService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -32,6 +33,8 @@ import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
+import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
 
@@ -45,7 +48,7 @@ import de.thebox.control.core.data.ValueListener;
 		Control.class
 	}
 )
-public final class Control extends Thread implements ControlService {
+public final class Control extends Thread implements ControlService, ControlChannelCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(Control.class);
 
 	private final static int SLEEP_INTERVAL = 60000;
@@ -59,18 +62,15 @@ public final class Control extends Thread implements ControlService {
 	private DataAccessService access;
 
 	private volatile boolean deactivateFlag;
-
-	private ScheduledExecutorService scheduler = null;
 	private ExecutorService executor = null;
 
-	private Preferences configs = null;
+	private Preferences config = null;
 
 	@Activate
 	protected void activate(ComponentContext context) {
 		logger.info("Activating TH-E Control");
 		
 		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E Control Pool - thread-");
-		scheduler = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
 		executor = Executors.newCachedThreadPool(namedThreadFactory);
 		
 		String fileName = System.getProperty(CONFIG_CONTROL);
@@ -79,7 +79,7 @@ public final class Control extends Thread implements ControlService {
 		}
 		try {
 			Ini ini = new Ini(new File(fileName));
-			configs = new IniPreferences(ini);
+			config = new IniPreferences(ini);
 			
 		} catch (IOException e) {
 			logger.error("Error while reading control configuration: {}", e.getMessage());
@@ -194,7 +194,7 @@ public final class Control extends Thread implements ControlService {
 		}
 		try {
 			Ini ini = new Ini(new File(fileName));
-			configs = new IniPreferences(ini);
+			config = new IniPreferences(ini);
 			
 		} catch (IOException e) {
 			logger.error("Error while reloading TH-E Control configuration: {}", e.getMessage());
@@ -216,73 +216,54 @@ public final class Control extends Thread implements ControlService {
 	}
 
 	@Override
-	public boolean writeValue(String id, Value value) {
-		logger.debug("Writing value for channel \"{}\": {}", id, value);
-		
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			return channel.write(value);
-		}
-		return false;
-	}
-
-	@Override
-	public void setLatestValue(String id, Value value) {
-		logger.debug("Set latest value for channel \"{}\": {}", id, value);
-		
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			channel.setLatestValue(value);
-		}
-	}
-
-	@Override
-	public Value getLatestValue(String id) {
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			return channel.getLatestValue();
-		}
-		return null;
-	}
-
-	@Override
-	public Value getLatestValue(String id, ValueListener listener) {
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			channel.register(listener);
-			
-			return channel.getLatestValue();
-		}
-		return null;
-	}
-
-	@Override
-	public void registerValueListener(String id, ValueListener listener) {
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			channel.register(listener);
-		}
-	}
-
-	@Override
-	public void deregisterValueListener(String id, ValueListener listener) {
-		ControlChannel channel = getChannel(id);
-		if (channel != null) {
-			channel.deregister(listener);
-		}
-	}
-
-	private ControlChannel getChannel(String id) {
+	public Channel getChannel(String id) throws UnknownChannelException {
 		if (!channels.containsKey(id)) {
 			if (!access.getAllIds().contains(id)) {
-				return null;
+				throw new UnknownChannelException("Unknown channel for id: " + id);
 			}
-			ControlChannel channel = new ControlChannel(access.getChannel(id));
+			ControlChannel channel = new ControlChannel(this, access.getChannel(id));
 			channels.put(id, channel);
 			
 			return channel;
 		}
 		return channels.get(id);
+	}
+
+	@Override
+	public void registerValueListener(String id, ValueListener listener) throws UnknownChannelException {
+		getChannel(id).registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterValueListener(String id, ValueListener listener) throws UnknownChannelException {
+		getChannel(id).deregisterValueListener(listener);
+	}
+
+	@Override
+	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException {
+		return getChannel(id).getLatestValue(listener);
+	}
+
+	@Override
+	public Value getLatestValue(String id) throws UnknownChannelException {
+		return getChannel(id).getLatestValue();
+	}
+
+	@Override
+	public void setLatestValue(String id, Value value) throws UnknownChannelException {
+		logger.debug("Set latest value for channel \"{}\": {}", id, value);
+		getChannel(id).setLatestValue(value);
+	}
+
+	@Override
+	public void writeValue(String id, Value value) throws UnknownChannelException {
+		logger.debug("Writing value for channel \"{}\": {}", id, value);
+		getChannel(id).writeValue(value);
+	}
+
+	@Override
+	public void execute(Runnable task) {
+		executor.execute(task);
 	}
 
 	@Override
@@ -315,7 +296,6 @@ public final class Control extends Thread implements ControlService {
 		if (deactivateFlag) {
 			logger.info("TH-E Control thread interrupted and will stop");
 			executor.shutdown();
-			scheduler.shutdown();
 			return;
 		}
 		

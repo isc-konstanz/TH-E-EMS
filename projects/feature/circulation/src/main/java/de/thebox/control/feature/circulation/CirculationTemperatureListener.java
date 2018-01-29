@@ -3,48 +3,44 @@ package de.thebox.control.feature.circulation;
 import java.util.LinkedList;
 import java.util.List;
 
+import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
-import de.thebox.control.core.data.ValueListener;
 
-public class CirculationTemperatureListener implements ValueListener {
-	
+public class CirculationTemperatureListener extends ChannelListener {
+
 	private final static int MOVING_AVG_SIZE = 6;
-	
+
 	/**
 	 * Interface used to notify the {@link Circulation} 
 	 * implementation about changed temperatures
 	 */
 	public interface CirculationTemperatureCallbacks {
-		
 		public void onTemperatureReceived(CirculationTemperature type, Value temperature);
 	}
-	
+
 	/**
 	 * The Listeners' current callback object, which is notified of changed temperatures
 	 */
 	private final CirculationTemperatureCallbacks callbacks;
 
 	private final CirculationTemperature type;
-	private final String id;
-	
+
 	private List<Double> temperatures = new LinkedList<Double>();
 	private double temperatureSum = -1;
-	
-	public CirculationTemperatureListener(CirculationTemperatureCallbacks callbacks, CirculationTemperature type, String id) {
+
+	public CirculationTemperatureListener(CirculationTemperatureCallbacks callbacks, CirculationTemperature type, Channel channel) {
+		super(channel);
+		
 		this.callbacks = callbacks;
 		this.type = type;
-		this.id = id;
 	}
-	
+
 	public CirculationTemperature getType() {
 		return type;
 	}
-	
-	public String getId() {
-		return id;
-	}
-	
+
 	@Override
 	public void onValueReceived(Value value) {
 		if (value != null) {

@@ -5,16 +5,17 @@ import java.util.prefs.Preferences;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.data.BooleanValue;
+import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.ChannelListener;
+import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
-import de.thebox.control.core.data.ValueListener;
 import de.thebox.control.feature.circulation.Circulation;
 import de.thebox.control.feature.circulation.CirculationTemperature;
 
-
 public class CirculationPump extends Circulation {
 
-	private final String stateKey;
-	private final ValueListener stateListener;
+	private final Channel state;
+	private final ChannelListener stateListener;
 	private Value stateValueLast = new BooleanValue(false);
 	private volatile long startTimeLast = 0;
 	private final int intervalMin;
@@ -27,19 +28,23 @@ public class CirculationPump extends Circulation {
 		super(control, prefs);
 		
 		CirculationPumpConfig config = new CirculationPumpConfig(prefs);
+		this.intervalMin = config.getIntervalMin();
 		this.deltaTemperatureMin = config.getDeltaTemperatureMin();
 		this.referenceTemperatureMax = config.getReferenceTemperatureMax();
 		this.referenceTemperatureMin = config.getReferenceTemperatureMin();
-		registerTemperatureListener(config.getReferenceTemperature(), CirculationTemperature.REF);
-		
-		this.stateKey = config.getState();
-		this.stateListener = registerStateListener(stateKey);
-
-		this.intervalMin = config.getIntervalMin();
+		try {
+			registerTemperatureListener(control.getChannel(config.getReferenceTemperature()), CirculationTemperature.REF);
+			
+			this.state = control.getChannel(config.getState());
+			this.stateListener = registerStateListener(state);
+			
+		} catch (UnknownChannelException e) {
+			throw new ComponentConfigException("Invalid circulation pump configuration: " + e.getMessage());
+		}
 	}
 
-	private ValueListener registerStateListener(String id) {
-		ValueListener stateListener = new ValueListener() {
+	private ChannelListener registerStateListener(Channel channel) {
+		ChannelListener stateListener = new ChannelListener(channel) {
 			
 			@Override
 			public void onValueReceived(Value value) {
@@ -52,8 +57,6 @@ public class CirculationPump extends Circulation {
 				}
 			}
 		};
-		control.registerValueListener(id, stateListener);
-		
 		return stateListener;
 	}
 
@@ -62,16 +65,16 @@ public class CirculationPump extends Circulation {
 		super.deactivate();
 		
 		if (stateListener != null) {
-			control.deregisterValueListener(stateKey, stateListener);
+			stateListener.deregister();
 		}
 	}
 
 	public void start() {
-		control.writeValue(stateKey, new BooleanValue(true));
+		state.writeValue(new BooleanValue(true));
 	}
 
 	public void stop() {
-		control.writeValue(stateKey, new BooleanValue(false));
+		state.writeValue(new BooleanValue(false));
 	}
 
 	protected  void onTemperatureReferenceUpdated(Value delta) {

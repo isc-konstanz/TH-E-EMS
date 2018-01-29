@@ -1,15 +1,15 @@
-package org.openmuc.framework.app.thebox.control;
+package org.openmuc.framework.app.thebox.control.channel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.openmuc.framework.data.Flag;
 import org.openmuc.framework.data.Record;
-import org.openmuc.framework.dataaccess.Channel;
 import org.openmuc.framework.dataaccess.RecordListener;
 
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.ByteValue;
+import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.FloatValue;
 import de.thebox.control.core.data.IntValue;
@@ -18,34 +18,32 @@ import de.thebox.control.core.data.ShortValue;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
 
-public class ControlChannel implements RecordListener {
+public class ControlChannel implements Channel, RecordListener {
 
-	private final Channel channel;
+	/**
+	 * Interface used to notify the {@link Control} 
+	 * implementation about changed temperatures
+	 */
+	public interface ControlChannelCallbacks {
+		public void execute(Runnable task);
+	}
+
+	/**
+	 * The Channels' current callback object, which is notified of changed temperatures
+	 */
+	private final ControlChannelCallbacks callbacks;
+
+	private final org.openmuc.framework.dataaccess.Channel channel;
 	private final List<ValueListener> listeners;
 
-	public ControlChannel(Channel channel) {
+	public ControlChannel(ControlChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
+		this.callbacks = callbacks;
 		this.channel = channel;
 		this.listeners = new ArrayList<ValueListener>();
 	}
 
-	public boolean write(Value value) {
-		Flag result = channel.write(ControlChannel.encodeValue(value));
-		if (result == Flag.VALID) {
-			return true;
-		}
-		return false;
-	}
-
-	public void setLatestValue(Value value) {
-		channel.setLatestRecord(ControlChannel.encodeRecord(value));
-	}
-
-	public Value getLatestValue() {
-		Record record = channel.getLatestRecord();
-		return ControlChannel.decodeRecord(record, channel.getValueType());
-	}
-
-	public void register(ValueListener listener) {
+	@Override
+	public void registerValueListener(ValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.size() == 0) {
 				channel.addListener(this);
@@ -56,7 +54,8 @@ public class ControlChannel implements RecordListener {
 		}
 	}
 
-	public void deregister(ValueListener listener) {
+	@Override
+	public void deregisterValueListener(ValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.contains(listener)) {
 				listeners.remove(listener);
@@ -65,6 +64,31 @@ public class ControlChannel implements RecordListener {
 				channel.removeListener(this);
 			}
 		}
+	}
+
+	@Override
+	public Value getLatestValue(ValueListener listener) {
+		registerValueListener(listener);
+		return getLatestValue();
+	}
+
+	@Override
+	public Value getLatestValue() {
+		Record record = channel.getLatestRecord();
+		return ControlChannel.decodeRecord(record, channel.getValueType());
+	}
+
+	@Override
+	public void setLatestValue(Value value) {
+		channel.setLatestRecord(ControlChannel.encodeRecord(value));
+	}
+
+	@Override
+	public void writeValue(Value value) {
+		Runnable task = () -> {
+			channel.write(ControlChannel.encodeValue(value));
+		};
+		callbacks.execute(task);
 	}
 
 	@Override
@@ -141,4 +165,5 @@ public class ControlChannel implements RecordListener {
 		}
 		return null;
 	}
+
 }

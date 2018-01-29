@@ -6,40 +6,39 @@ import java.util.prefs.Preferences;
 
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.DoubleValue;
+import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.feature.circulation.CirculationTemperatureListener.CirculationTemperatureCallbacks;
 
-
 public class Circulation implements CirculationTemperatureCallbacks {
 
-	protected final ControlService control;
-
-	protected final String deltaTemperature;
+	protected final Channel deltaTemperature;
 	protected Value outTemperatureLast = null;
 	protected Value inTemperatureLast = null;
 	protected final List<CirculationTemperatureListener> temperatureListeners = new ArrayList<CirculationTemperatureListener>();
 
 	public Circulation(ControlService control, Preferences prefs) throws ComponentConfigException {
-		this.control = control;
-		
 		CirculationConfig config = new CirculationConfig(prefs);
-		this.deltaTemperature = config.getDeltaTemperature();
-		
-		registerTemperatureListener(config.getInTemperature(), CirculationTemperature.IN);
-		registerTemperatureListener(config.getOutTemperature(), CirculationTemperature.OUT);
+		try {
+			this.deltaTemperature = control.getChannel(config.getDeltaTemperature());
+			registerTemperatureListener(control.getChannel(config.getInTemperature()), CirculationTemperature.IN);
+			registerTemperatureListener(control.getChannel(config.getOutTemperature()), CirculationTemperature.OUT);
+			
+		} catch (UnknownChannelException e) {
+			throw new ComponentConfigException("Invalid circulation configuration: " + e.getMessage());
+		}
 	}
 
-	protected void registerTemperatureListener(String id, CirculationTemperature type) {
-		CirculationTemperatureListener listener = new CirculationTemperatureListener(this, type, id);
-		
+	protected void registerTemperatureListener(Channel channel, CirculationTemperature type) {
+		CirculationTemperatureListener listener = new CirculationTemperatureListener(this, type, channel);
 		temperatureListeners.add(listener);
-		control.registerValueListener(id, listener);
 	}
 
 	public void deactivate() {
 		for (CirculationTemperatureListener listener: temperatureListeners) {
-			control.deregisterValueListener(listener.getId(), listener);
+			listener.deregister();
 		}
 	}
 
@@ -71,6 +70,6 @@ public class Circulation implements CirculationTemperatureCallbacks {
 	}
 
 	protected  void onTemperatureDeltaUpdated(Value delta) {
-		control.setLatestValue(deltaTemperature, delta);
+		deltaTemperature.setLatestValue(delta);
 	}
 }

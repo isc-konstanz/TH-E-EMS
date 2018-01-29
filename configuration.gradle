@@ -14,8 +14,7 @@ project.ext {
 
   distributionProjects = subprojects.findAll {
     it.getPath() == ":th-e-core" ||
-    it.getPath() == ":th-e-control-app" ||
-    it.getPath() == ":th-e-optimization" ||
+    it.getPath() == ":th-e-control" ||
     it.getPath() == ":th-e-feature-emoncms" ||
     it.getPath() == ":th-e-feature-circulation"
   }

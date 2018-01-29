@@ -5,11 +5,11 @@ import de.thebox.control.core.schedule.Schedule;
 
 public interface InverterService extends ComponentService {
 
-	public boolean setObjective(double value) throws ComponentException;
+	public void setObjective(double value) throws ComponentException;
 
-	public boolean setObjective(Value value) throws ComponentException;
+	public void setObjective(Value value) throws ComponentException;
 
-	public boolean resetObjective(Long timestamp) throws ComponentException;
+	public void resetObjective(Long timestamp) throws ComponentException;
 
 	public void scheduleObjective(Schedule schedule) throws ComponentException;
 

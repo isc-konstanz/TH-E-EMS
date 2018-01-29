@@ -13,7 +13,7 @@ import de.thebox.control.feature.circulation.CirculationTemperature;
 
 public class CirculationPump extends Circulation {
 
-	private final String stateValue;
+	private final String stateKey;
 	private final ValueListener stateListener;
 	private Value stateValueLast = new BooleanValue(false);
 	private volatile long startTimeLast = 0;
@@ -23,40 +23,38 @@ public class CirculationPump extends Circulation {
 	private final Double referenceTemperatureMin;
 	private final double deltaTemperatureMin;
 
-	public CirculationPump(ControlService control, Preferences configs) throws ComponentConfigException {
-		super(control, configs);
+	public CirculationPump(ControlService control, Preferences prefs) throws ComponentConfigException {
+		super(control, prefs);
 		
-		this.deltaTemperatureMin = configs.getDouble(CirculationPumpConst.MIN_DELTA_TEMPERATURE_KEY, CirculationPumpConst.MIN_DELTA_TEMPERATURE_DEFAULT);
+		CirculationPumpConfig config = new CirculationPumpConfig(prefs);
+		this.deltaTemperatureMin = config.getDeltaTemperatureMin();
+		this.referenceTemperatureMax = config.getReferenceTemperatureMax();
+		this.referenceTemperatureMin = config.getReferenceTemperatureMin();
+		registerTemperatureListener(config.getReferenceTemperature(), CirculationTemperature.REF);
 		
-		this.referenceTemperatureMax = configs.getDouble(CirculationPumpConst.MAX_REF_TEMPERATURE_KEY, Double.NaN);
-		this.referenceTemperatureMin = configs.getDouble(CirculationPumpConst.MIN_REF_TEMPERATURE_KEY, Double.NaN);
-		registerTemperatureListener(configs.get(CirculationPumpConst.REF_TEMPERATURE_KEY, null), CirculationTemperature.REF);
-		
-		this.stateValue = configs.get(CirculationPumpConst.PUMP_STATE_KEY, null);
-		this.intervalMin = configs.getInt(CirculationPumpConst.INTERVAL_KEY, CirculationPumpConst.INTERVAL_DEFAULT)*60000;
-		this.stateListener = registerStateListener(stateValue);
+		this.stateKey = config.getState();
+		this.stateListener = registerStateListener(stateKey);
+
+		this.intervalMin = config.getIntervalMin();
 	}
 
-	private ValueListener registerStateListener(String id) throws ComponentConfigException {
-		if (id != null) {
-			ValueListener stateListener = new ValueListener() {
-				
-				@Override
-				public void onValueReceived(Value value) {
-					if (value != null) {
-						boolean state = value.booleanValue();
-						if (state && !stateValueLast.booleanValue()) {
-							startTimeLast = value.getTimestamp();
-						}
-						stateValueLast = value;
-					}
-				}
-			};
-			control.registerValueListener(id, stateListener);
+	private ValueListener registerStateListener(String id) {
+		ValueListener stateListener = new ValueListener() {
 			
-			return stateListener;
-		}
-		throw new ComponentConfigException("Unable to find configured state value");
+			@Override
+			public void onValueReceived(Value value) {
+				if (value != null) {
+					boolean state = value.booleanValue();
+					if (state && !stateValueLast.booleanValue()) {
+						startTimeLast = value.getTimestamp();
+					}
+					stateValueLast = value;
+				}
+			}
+		};
+		control.registerValueListener(id, stateListener);
+		
+		return stateListener;
 	}
 
 	@Override
@@ -64,16 +62,16 @@ public class CirculationPump extends Circulation {
 		super.deactivate();
 		
 		if (stateListener != null) {
-			control.deregisterValueListener(stateValue, stateListener);
+			control.deregisterValueListener(stateKey, stateListener);
 		}
 	}
 
 	public void start() {
-		control.writeValue(stateValue, new BooleanValue(true));
+		control.writeValue(stateKey, new BooleanValue(true));
 	}
 
 	public void stop() {
-		control.writeValue(stateValue, new BooleanValue(false));
+		control.writeValue(stateKey, new BooleanValue(false));
 	}
 
 	protected  void onTemperatureReferenceUpdated(Value delta) {

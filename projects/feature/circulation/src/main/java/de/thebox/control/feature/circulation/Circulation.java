@@ -20,22 +20,21 @@ public class Circulation implements CirculationTemperatureCallbacks {
 	protected Value inTemperatureLast = null;
 	protected final List<CirculationTemperatureListener> temperatureListeners = new ArrayList<CirculationTemperatureListener>();
 
-	public Circulation(ControlService control, Preferences configs) throws ComponentConfigException {
+	public Circulation(ControlService control, Preferences prefs) throws ComponentConfigException {
 		this.control = control;
 		
-		this.deltaTemperature = configs.get(CirculationConst.DELTA_TEMPERATURE_KEY, null);
-		registerTemperatureListener(configs.get(CirculationConst.IN_TEMPERATURE_KEY, null), CirculationTemperature.IN);
-		registerTemperatureListener(configs.get(CirculationConst.OUT_TEMPERATURE_KEY, null), CirculationTemperature.OUT);
+		CirculationConfig config = new CirculationConfig(prefs);
+		this.deltaTemperature = config.getDeltaTemperature();
+		
+		registerTemperatureListener(config.getInTemperature(), CirculationTemperature.IN);
+		registerTemperatureListener(config.getOutTemperature(), CirculationTemperature.OUT);
 	}
 
-	protected void registerTemperatureListener(String id, CirculationTemperature type) throws ComponentConfigException {
-		if (id != null) {
-			CirculationTemperatureListener listener = new CirculationTemperatureListener(this, type, id);
-			
-			temperatureListeners.add(listener);
-			control.registerValueListener(id, listener);
-		}
-		else throw new ComponentConfigException("Unable to find configured circulation temperature value: " + id);
+	protected void registerTemperatureListener(String id, CirculationTemperature type) {
+		CirculationTemperatureListener listener = new CirculationTemperatureListener(this, type, id);
+		
+		temperatureListeners.add(listener);
+		control.registerValueListener(id, listener);
 	}
 
 	public void deactivate() {

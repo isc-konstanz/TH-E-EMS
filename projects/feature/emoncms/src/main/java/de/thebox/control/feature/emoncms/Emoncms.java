@@ -1,12 +1,10 @@
 package de.thebox.control.feature.emoncms;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.prefs.Preferences;
 
-import org.emoncms.Emoncms;
 import org.emoncms.Feed;
 import org.emoncms.com.EmoncmsException;
 import org.emoncms.com.EmoncmsUnavailableException;
@@ -14,30 +12,30 @@ import org.emoncms.com.http.HttpEmoncmsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.thebox.control.core.ControlException;
 import de.thebox.control.core.data.ValueListener;
 
-public class EmoncmsObserver extends Thread {
-	private final static Logger logger = LoggerFactory.getLogger(EmoncmsObserver.class);
+public class Emoncms extends Thread {
+	private final static Logger logger = LoggerFactory.getLogger(Emoncms.class);
 
 	private final int interval;
 
-	private final Emoncms connection;
+	private final org.emoncms.Emoncms connection;
 	private final Map<String, FeedListener> listeners = new HashMap<String, FeedListener>();
 
 	private volatile boolean deactivateFlag;
 
-	public EmoncmsObserver(Preferences prefs) throws EmoncmsObserverException {
-		this.interval = prefs.getInt(EmoncmsConst.INTERVAL_KEY, EmoncmsConst.INTERVAL_DEFAULT);
+	public Emoncms(Preferences prefs) throws ControlException {
+		EmoncmsConfig config = new EmoncmsConfig(prefs);
+		this.interval = config.getInterval();
 		try {
-			EmoncmsConfig configs = new EmoncmsConfig(prefs.get(EmoncmsConst.CONFIGS_KEY, EmoncmsConst.CONFIGS_DEFAULT));
+			logger.debug("Activating emoncms observer at \"{}\"", config.getAddress());
 			
-			logger.debug("Activating emoncms observer at \"{}\"", configs.getAddress());
-			
-			String address = configs.getAddress();
-			int maxThreads = configs.getMaxThreads();
-			if (configs.hasAuthentication()) {
-				String authorization = configs.getAuthorization();
-				String authentication = configs.getAuthentication();
+			String address = config.getAddress();
+			int maxThreads = config.getMaxThreads();
+			if (config.hasAuthentication()) {
+				String authorization = config.getAuthorization();
+				String authentication = config.getAuthentication();
 				
 				connection = HttpEmoncmsFactory.newAuthenticatedConnection(address, authorization, authentication, maxThreads);
 			}
@@ -47,8 +45,8 @@ public class EmoncmsObserver extends Thread {
 			connection.start();
 			start();
 			
-		} catch (IOException | EmoncmsUnavailableException e) {
-			throw new EmoncmsObserverException("Error while activating emoncms observer: " + e.getMessage());
+		} catch (EmoncmsUnavailableException e) {
+			throw new ControlException("Error while activating emoncms observer: " + e.getMessage());
 		}
 	}
 
@@ -62,7 +60,7 @@ public class EmoncmsObserver extends Thread {
 		}
 	}
 
-	public void registerFeedListener(String name, ValueListener listener) throws EmoncmsObserverException {
+	public void registerFeedListener(String name, ValueListener listener) throws ControlException {
 		try {
 			List<Feed> feeds = connection.getFeedList();
 			
@@ -73,12 +71,12 @@ public class EmoncmsObserver extends Thread {
 				}
 			}
 			if (feedListener == null) {
-				throw new EmoncmsObserverException("Unable to register listener for feed: " + name);
+				throw new EmoncmsException("Unable to register listener for feed: " + name);
 			}
 			listeners.put(name, feedListener);
 			
 		} catch (EmoncmsException e) {
-			throw new EmoncmsObserverException("Error while requesting feed list: " + e.getMessage());
+			throw new ControlException("Error while requesting feed list: " + e.getMessage());
 		}
 	}
 

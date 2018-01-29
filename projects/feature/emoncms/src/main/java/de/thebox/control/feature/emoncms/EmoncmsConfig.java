@@ -6,11 +6,16 @@ import java.util.prefs.Preferences;
 
 import org.ini4j.Ini;
 import org.ini4j.IniPreferences;
-import org.ini4j.InvalidFileFormatException;
 
-public class EmoncmsConfig {
+import de.thebox.control.core.component.ComponentConfig;
+import de.thebox.control.core.component.ComponentConfigException;
 
-	private final static String SECTION = "Emoncms";
+public class EmoncmsConfig extends ComponentConfig {
+
+	public final static String SECTION = "Emoncms";
+
+	private final static String CONFIG_KEY = "config";
+	private final static String CONFIG_DEFAULT = "/opt/emonmuc/conf/emoncms.conf";
 
 	private final static String ADDRESS_KEY = "address";
 	private final static String ADDRESS_DEFAULT = "http://localhost/emoncms/";
@@ -19,32 +24,54 @@ public class EmoncmsConfig {
 	private final static String MAX_THREADS_KEY = "maxThreads";
 	private final static int MAX_THREADS_DEFAULT = 1;
 
-	private final Preferences configs;
+	private final static String INTERVAL_KEY = "interval";
+	private final static int INTERVAL_DEFAULT = 60000;
 
-	public EmoncmsConfig(String fileName) throws InvalidFileFormatException, IOException {
-		Ini ini = new Ini(new File(fileName));
-		configs = new IniPreferences(ini).node(SECTION);
+	private final Preferences serverConfig;
+
+	public EmoncmsConfig(Preferences config) throws ComponentConfigException {
+		super(config);
+		try {
+			Ini ini = new Ini(getConfigFile());
+			serverConfig = new IniPreferences(ini).node(SECTION);
+			
+		} catch (IOException e) {
+			throw new ComponentConfigException("Error opening emoncms configuration: " + e.getMessage());
+		}
+	}
+
+	@Override
+	protected String getSectionKey() {
+		return SECTION;
+	}
+
+	protected File getConfigFile() {
+		return new File(config.get(CONFIG_KEY, CONFIG_DEFAULT));
 	}
 
 	public String getAddress() {
-		return configs.get(ADDRESS_KEY, ADDRESS_DEFAULT);
+		return serverConfig.get(ADDRESS_KEY, ADDRESS_DEFAULT);
 	}
 
 	public String getAuthorization() {
-		return configs.get(AUTHORIZATION_KEY, null);
+		return serverConfig.get(AUTHORIZATION_KEY, null);
 	}
 
 	public String getAuthentication() {
-		return configs.get(AUTHENTICATION_KEY, null);
+		return serverConfig.get(AUTHENTICATION_KEY, null);
 	}
 
 	public int getMaxThreads() {
-		return configs.getInt(MAX_THREADS_KEY, MAX_THREADS_DEFAULT);
+		return serverConfig.getInt(MAX_THREADS_KEY, MAX_THREADS_DEFAULT);
+	}
+
+	public int getInterval() {
+		return config.getInt(INTERVAL_KEY, INTERVAL_DEFAULT);
 	}
 
 	public boolean hasAuthentication() {
-		if (configs.get(AUTHENTICATION_KEY, null) != null && 
-				configs.get(AUTHORIZATION_KEY, null) != null) {
+		if (serverConfig.get(AUTHENTICATION_KEY, null) != null && 
+				serverConfig.get(AUTHORIZATION_KEY, null) != null) {
 			return true;
 		}
 		return false;

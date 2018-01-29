@@ -1,4 +1,4 @@
-package org.openmuc.framework.app.thebox.control.channel;
+package org.openmuc.framework.app.thebox.control;
 
 import java.util.ArrayList;
 import java.util.List;

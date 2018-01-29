@@ -1,4 +1,4 @@
-package org.openmuc.framework.app.thebox.control;
+package de.thebox.control.core.schedule;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

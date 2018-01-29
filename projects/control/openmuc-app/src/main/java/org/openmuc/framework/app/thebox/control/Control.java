@@ -13,8 +13,7 @@ import java.util.prefs.Preferences;
 import org.apache.felix.service.command.CommandProcessor;
 import org.ini4j.Ini;
 import org.ini4j.IniPreferences;
-import org.openmuc.framework.app.thebox.control.channel.ControlChannel;
-import org.openmuc.framework.app.thebox.control.channel.ControlChannel.ControlChannelCallbacks;
+import org.openmuc.framework.app.thebox.control.ControlChannel.ControlChannelCallbacks;
 import org.openmuc.framework.dataaccess.DataAccessService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -37,6 +36,10 @@ import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
+import de.thebox.control.core.schedule.ControlSchedule;
+import de.thebox.control.core.schedule.NamedThreadFactory;
+import de.thebox.control.core.schedule.ScheduleListener;
+import de.thebox.control.core.schedule.ScheduleService;
 
 @Component(
 	immediate = true,
@@ -48,7 +51,7 @@ import de.thebox.control.core.data.ValueListener;
 		Control.class
 	}
 )
-public final class Control extends Thread implements ControlService, ControlChannelCallbacks {
+public final class Control extends Thread implements ControlService, ControlChannelCallbacks, ScheduleListener {
 	private final static Logger logger = LoggerFactory.getLogger(Control.class);
 
 	private final static int SLEEP_INTERVAL = 60000;
@@ -59,12 +62,18 @@ public final class Control extends Thread implements ControlService, ControlChan
 
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
 	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
+	private CogeneratorService cogenerator;
+	private HeatPumpService heatpump;
+
 	private DataAccessService access;
 
 	private volatile boolean deactivateFlag;
 	private ExecutorService executor = null;
 
 	private Preferences config = null;
+
+	private ControlSchedule schedule;
+	private ControlSchedule newSchedule;
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -98,6 +107,15 @@ public final class Control extends Thread implements ControlService, ControlChan
 			this.join();
 		} catch (InterruptedException e) {
 		}
+	}
+
+	@Reference
+	protected void bindScheduleService(ScheduleService scheduleService) {
+		bindComponentService(scheduleService);
+	}
+
+	protected void unbindScheduleService(ScheduleService scheduleService) {
+		unbindComponentService(scheduleService);
 	}
 
 	@Reference
@@ -292,7 +310,6 @@ public final class Control extends Thread implements ControlService, ControlChan
 	}
 
 	private void handleInterruptEvent() {
-
 		if (deactivateFlag) {
 			logger.info("TH-E Control thread interrupted and will stop");
 			executor.shutdown();
@@ -312,14 +329,14 @@ public final class Control extends Thread implements ControlService, ControlChan
 							ComponentService component = newComponentEntry.getValue();
 							
 							component.activate(this);
-							if (component instanceof InverterService) {
-								onInverterActivated((InverterService) component);
-							}
-							else if (component instanceof CogeneratorService) {
+							if (component instanceof CogeneratorService) {
 								onCogeneratorActivated((CogeneratorService) component);
 							}
 							else if (component instanceof HeatPumpService) {
 								onHeatPumpActivated((HeatPumpService) component);
+							}
+							else if (component instanceof ScheduleService) {
+								onSchedulerActivated((ScheduleService) component);
 							}
 						} catch (ComponentException e) {
 							logger.warn("Error while activating component \"{}\": ", id, e);
@@ -328,23 +345,42 @@ public final class Control extends Thread implements ControlService, ControlChan
 					newComponents.clear();
 				}
 			}
-			
-			// TODO: handle control schedule
+			if (newSchedule != null) {
+				// TODO: verify schedule integrity
+				if (newSchedule.getTimestamp() > schedule.getTimestamp()) {
+					try {
+						if (cogenerator != null) {
+							cogenerator.scheduleGeneration(schedule.getCogeneratorSchedule());
+						}
+						if (heatpump != null) {
+							heatpump.scheduleHeating(schedule.getHeatPumpSchedule());
+						}
+					} catch (ComponentException e) {
+						logger.warn("Error while scheduling: ", e);
+					}
+					schedule = newSchedule;
+				}
+				newSchedule = null;
+			}
 		}
 	}
 
-	private void onInverterActivated(InverterService interver) {
-		// TODO: handle inverter activation
-		
-	}
-
 	private void onCogeneratorActivated(CogeneratorService cogenerator) {
-		// TODO: handle cogenerator activation
-		
+		this.cogenerator = cogenerator;
 	}
 
 	private void onHeatPumpActivated(HeatPumpService heatpump) {
-		// TODO: handle heatpump activation
-		
+		this.heatpump = heatpump;
 	}
+
+	private void onSchedulerActivated(ScheduleService scheduler) {
+		onScheduleReceived(scheduler.getSchedule(this));
+	}
+
+	@Override
+	public void onScheduleReceived(ControlSchedule schedule) {
+		newSchedule = schedule;
+		interrupt();
+	}
+
 }

@@ -37,4 +37,5 @@ public class Schedule extends ArrayList<Value> {
 	public boolean add(long timestamp, double value) {
 		return add(new DoubleValue(value, timestamp));
 	}
+
 }

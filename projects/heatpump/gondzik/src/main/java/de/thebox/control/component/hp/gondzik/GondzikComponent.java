@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.thebox.control.component.hp.gondzik.ventilation.CabinetVentilation;
-import de.thebox.control.component.hp.gondzik.ventilation.CabinetVentilationConst;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.ComponentConfigException;
@@ -17,14 +16,11 @@ import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.Schedule;
 import de.thebox.control.feature.circulation.Circulation;
-import de.thebox.control.feature.circulation.CirculationConst;
 
 @Component
 public class GondzikComponent implements HeatPumpService, CabinetService {
 	private final static Logger logger = LoggerFactory.getLogger(GondzikComponent.class);
 	private final static String ID = "Gondzik";
-
-	private Preferences configs;
 
 	private ControlService control;
 	private CabinetVentilation ventilation = null;
@@ -43,9 +39,9 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 
 	private void activateComponent() throws ComponentConfigException {
 		try {
-			configs = control.readComponentConfigs(ID);
-			activateVentilation();
-			activateCirculation();
+			Preferences config = control.readComponentConfigs(ID);
+			activateVentilation(config);
+			activateCirculation(config);
 			
 		} catch (IOException e) {
 			// TODO: Fatal error! Inform error event handler
@@ -53,12 +49,12 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 		}
 	}
 
-	private void activateVentilation() throws ComponentConfigException {
-		ventilation = new CabinetVentilation(control, configs.node(CabinetVentilationConst.VENTILATION_SECTION));
+	private void activateVentilation(Preferences config) throws ComponentConfigException {
+		ventilation = new CabinetVentilation(control, config);
 	}
 
-	private void activateCirculation() throws ComponentConfigException {
-		circulation = new Circulation(control, configs.node(CirculationConst.CIRCULATION_SECTION));
+	private void activateCirculation(Preferences config) throws ComponentConfigException {
+		circulation = new Circulation(control, config);
 	}
 
 	@Override

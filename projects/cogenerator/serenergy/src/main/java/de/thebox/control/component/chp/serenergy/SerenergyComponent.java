@@ -14,14 +14,11 @@ import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.Schedule;
 import de.thebox.control.feature.circulation.pump.CirculationPump;
-import de.thebox.control.feature.circulation.pump.CirculationPumpConst;
 
 @Component
 public class SerenergyComponent implements CogeneratorService {
 	private final static Logger logger = LoggerFactory.getLogger(SerenergyComponent.class);
 	private final static String ID = "Serenergy";
-
-	private Preferences configs;
 
 	private ControlService control;
 	private CirculationPump circulation = null;
@@ -39,8 +36,8 @@ public class SerenergyComponent implements CogeneratorService {
 
 	private void activateComponent() throws ComponentConfigException {
 		try {
-			configs = control.readComponentConfigs(ID);
-			activateCirculation();
+			Preferences config = control.readComponentConfigs(ID);
+			activateCirculation(config);
 			
 		} catch (IOException e) {
 			// TODO: Fatal error! Inform error event handler
@@ -48,14 +45,14 @@ public class SerenergyComponent implements CogeneratorService {
 		}
 	}
 
-	private void activateCirculation() throws ComponentConfigException {
-		circulation = new CirculationPump(control, configs.node(CirculationPumpConst.CIRCULATION_SECTION));
+	private void activateCirculation(Preferences config) throws ComponentConfigException {
+		circulation = new CirculationPump(control, config);
 	}
 
 	@Override
 	public void reload() throws ComponentException {
 		deactivate();
-		activateCirculation();
+		activateComponent();
 	}
 
 	@Override

@@ -11,97 +11,88 @@ import de.thebox.control.component.hp.gondzik.ventilation.CabinetTemperatureList
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.data.BooleanValue;
+import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.ChannelListener;
+import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
-import de.thebox.control.core.data.ValueListener;
-
 
 public class CabinetVentilation implements CabinetTemperatureCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(CabinetVentilation.class);
-	
-	private final ControlService control;
-	
-	private final String stateValue;
-	private final ValueListener stateListener;
-	
+
+	private final Channel state;
+	private final ChannelListener stateListener;
+
 	private Value stateValueLast = null;
 	private volatile long startTimeLast = 0;
 	private final int intervalMin;
-	
+
 	private final double temperatureMax;
 	private final double temperatureTolerance;
 	private final List<CabinetTemperatureListener> temperatureListeners = new ArrayList<CabinetTemperatureListener>();
 	private final List<CabinetTemperature> temperatureHighFlags = new ArrayList<CabinetTemperature>(CabinetTemperature.values().length);
-	
-	public CabinetVentilation(ControlService control, Preferences configs) throws ComponentConfigException {
-		this.control = control;
-		
+
+	public CabinetVentilation(ControlService control, Preferences prefs) throws ComponentConfigException {
 		logger.info("Activating TH-E Control cabinet ventilation management");
-		
-		this.stateValue = configs.get(CabinetVentilationConst.VEMNTILATION_STATE_KEY, null);
-		this.intervalMin = configs.getInt(CabinetVentilationConst.INTERVAL_KEY, CabinetVentilationConst.INTERVAL_DEFAULT)*60000;
-		this.stateListener = registerStateListener(stateValue);
-		
-		this.temperatureMax = configs.getDouble(CabinetVentilationConst.MAX_TEMPERATURE_KEY, CabinetVentilationConst.MAX_TEMPERATURE_DEFAULT);
-		this.temperatureTolerance = configs.getDouble(CabinetVentilationConst.TOLERANCE_KEY, CabinetVentilationConst.TOLERANCE_DEFAULT);
-		registerTemperatureListener(configs.get(CabinetVentilationConst.TOP_TEMPERATURE_KEY, null), CabinetTemperature.TOP);
-		registerTemperatureListener(configs.get(CabinetVentilationConst.CENTER_TEMPERATURE_KEY, null), CabinetTemperature.CENTER);
-		registerTemperatureListener(configs.get(CabinetVentilationConst.BOTTOM_TEMPERATURE_KEY, null), CabinetTemperature.BOTTOM);
+		CabinetVentilationConfig config = new CabinetVentilationConfig(prefs);
+		this.intervalMin = config.getIntervalMin();
+		this.temperatureMax = config.getTemperatureMax();
+		this.temperatureTolerance = config.getTemperatureTolerance();
+		try {
+			registerTemperatureListener(control.getChannel(config.getTopTemperatureKey()), CabinetTemperature.TOP);
+			registerTemperatureListener(control.getChannel(config.getCenterTemperatureKey()), CabinetTemperature.CENTER);
+			registerTemperatureListener(control.getChannel(config.getBottomTemperatureKey()), CabinetTemperature.BOTTOM);
+			
+			this.state = control.getChannel(config.getStateKey());
+			this.stateListener = registerStateListener(state);
+		} catch (UnknownChannelException e) {
+			throw new ComponentConfigException("Invalid ventilation configuration: " + e.getMessage());
+		}
 	}
-	
-	private ValueListener registerStateListener(String id) throws ComponentConfigException {
-		if (id != null) {
-			ValueListener stateListener = new ValueListener() {
-				
-				@Override
-				public void onValueReceived(Value value) {
-					if (value != null) {
-						if (stateValueLast != null) {
-							boolean state = value.booleanValue();
-							if (state && !stateValueLast.booleanValue()) {
-								startTimeLast = value.getTimestamp();
-							}
-							else if (!state && temperatureHighFlags.size() > 0) {
-								temperatureHighFlags.clear();
-							}
+
+	private ChannelListener registerStateListener(Channel channel) {
+		ChannelListener stateListener = new ChannelListener(channel) {
+			
+			@Override
+			public void onValueReceived(Value value) {
+				if (value != null) {
+					if (stateValueLast != null) {
+						boolean state = value.booleanValue();
+						if (state && !stateValueLast.booleanValue()) {
+							startTimeLast = value.getTimestamp();
 						}
-						stateValueLast = value;
+						else if (!state && temperatureHighFlags.size() > 0) {
+							temperatureHighFlags.clear();
+						}
 					}
+					stateValueLast = value;
 				}
-			};
-			control.registerValueListener(id, stateListener);
-			
-			return stateListener;
-		}
-		throw new ComponentConfigException("Unable to find configured state value");
+			}
+		};
+		return stateListener;
 	}
-	
-	private void registerTemperatureListener(String id, CabinetTemperature type) throws ComponentConfigException {
-		if (id != null) {
-			CabinetTemperatureListener listener = new CabinetTemperatureListener(this, type, id);
-			
-			temperatureListeners.add(listener);
-			control.registerValueListener(id, listener);
-		}
-		else throw new ComponentConfigException("Unable to find configured cabinet temperature value");
+
+	private void registerTemperatureListener(Channel channel, CabinetTemperature type) {
+		CabinetTemperatureListener listener = new CabinetTemperatureListener(this, type, channel);
+		temperatureListeners.add(listener);
 	}
-	
+
 	public void deactivate() {
 		if (stateListener != null) {
-			control.deregisterValueListener(stateValue, stateListener);
+			stateListener.deregister();
 		}
 		for (CabinetTemperatureListener listener: temperatureListeners) {
-			control.deregisterValueListener(listener.getId(), listener);
+			listener.deregister();
 		}
 	}
-	
+
 	public void start() {
-		control.writeValue(stateValue, new BooleanValue(true));
+		state.writeValue(new BooleanValue(true));
 	}
-	
+
 	public void stop() {
-		control.writeValue(stateValue, new BooleanValue(false));
+		state.writeValue(new BooleanValue(false));
 	}
-	
+
 	@Override
 	public synchronized void onTemperatureReceived(CabinetTemperature type, Double temperature) {
 		if (temperature > temperatureMax + temperatureTolerance && !temperatureHighFlags.contains(type)) {
@@ -119,4 +110,5 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 			}
 		}
 	}
+
 }

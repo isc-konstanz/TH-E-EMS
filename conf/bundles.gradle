@@ -8,7 +8,7 @@ configurations.bundle.transitive = false;
 
 dependencies {
   bundle project(":th-e-core")
-  bundle project(":th-e-control")
+  bundle project(":th-e-ctrl")
 }
 
 task cleanBundles(type: Delete) {

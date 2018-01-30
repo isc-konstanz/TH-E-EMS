@@ -37,7 +37,7 @@ public class Objective {
 		ObjectiveConfig config = new ObjectiveConfig(prefs);
 		try {
 			this.objective = control.getChannel(config.getObjective());
-		
+			
 			if (prefs.nodeExists(ExternalObjectiveConfig.SECTION)) {
 				ExternalObjectiveConfig externalConfig = new ExternalObjectiveConfig(prefs);
 				
@@ -107,9 +107,11 @@ public class Objective {
 
 	public void set(double value) throws ComponentException {
 		if (value <= ObjectiveConfig.OBJECTIVE_MAX && value >= ObjectiveConfig.OBJECTIVE_MIN) {
-			objective.writeValue(new DoubleValue(value));
+			if (objective.getLatestValue().doubleValue() != value) {
+					objective.writeValue(new DoubleValue(value));
+			}
 		}
-		throw new ComponentException("Inverter objective out of bounds: " + value);
+		else throw new ComponentException("Inverter objective out of bounds: " + value);
 	}
 
 	public void reset() throws ComponentException {

@@ -7,6 +7,7 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.component.inv.energydepot.objective.Objective;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentException;
@@ -21,6 +22,7 @@ public class EnergyDepotComponent implements InverterService {
 
 	private ControlService control;
 	private Objective objective;
+	private Consumption consumption;
 
 	@Override
 	public String getId() {
@@ -37,6 +39,7 @@ public class EnergyDepotComponent implements InverterService {
 		try {
 			Preferences config = control.readComponentConfigs(ID);
 			activateObjective(config);
+			activateConsumption(config);
 			
 		} catch (IOException e) {
 			// TODO: Fatal error! Inform error event handler
@@ -46,6 +49,10 @@ public class EnergyDepotComponent implements InverterService {
 
 	private void activateObjective(Preferences config) throws ComponentException {
 		objective = new Objective(control, config);
+	}
+
+	private void activateConsumption(Preferences config) throws ComponentException {
+		consumption = new Consumption(control, config);
 	}
 
 	@Override
@@ -58,6 +65,9 @@ public class EnergyDepotComponent implements InverterService {
 	public void deactivate() {
 		if (objective != null) {
 			objective.deactivate();
+		}
+		if (consumption != null) {
+			consumption.deactivate();
 		}
 	}
 

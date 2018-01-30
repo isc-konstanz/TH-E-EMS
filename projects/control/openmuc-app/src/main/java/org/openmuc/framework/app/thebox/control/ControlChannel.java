@@ -80,7 +80,10 @@ public class ControlChannel implements Channel, RecordListener {
 
 	@Override
 	public void setLatestValue(Value value) {
-		channel.setLatestRecord(ControlChannel.encodeRecord(value));
+		Runnable task = () -> {
+			channel.setLatestRecord(ControlChannel.encodeRecord(value));
+		};
+		callbacks.execute(task);
 	}
 
 	@Override

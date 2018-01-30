@@ -5,7 +5,7 @@ public abstract class Value {
 	protected final ValueType type;
 	protected final Long timestamp;
 
-	public Value(ValueType type, Long timestamp) {
+	public Value(ValueType type, long timestamp) {
 		this.timestamp = timestamp;
 		this.type = type;
 	}
@@ -14,7 +14,7 @@ public abstract class Value {
 		return type;
 	}
 
-	public Long getTimestamp() {
+	public long getTimestamp() {
 		return timestamp;
 	}
 

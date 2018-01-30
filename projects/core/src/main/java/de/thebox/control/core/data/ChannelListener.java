@@ -9,6 +9,10 @@ public abstract class ChannelListener implements ValueListener {
 		this.channel.registerValueListener(this);
 	}
 
+	public Value getLatestValue() {
+		return channel.getLatestValue();
+	}
+
 	public void deregister() {
 		channel.deregisterValueListener(this);
 	}

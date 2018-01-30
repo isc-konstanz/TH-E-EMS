@@ -15,8 +15,8 @@ import de.thebox.control.feature.circulation.CirculationTemperatureListener.Circ
 public class Circulation implements CirculationTemperatureCallbacks {
 
 	protected final Channel deltaTemperature;
-	protected Value outTemperatureLast = null;
-	protected Value inTemperatureLast = null;
+	protected Value outTemperatureLast = DoubleValue.emptyValue();
+	protected Value inTemperatureLast = DoubleValue.emptyValue();
 	protected final List<CirculationTemperatureListener> temperatureListeners = new ArrayList<CirculationTemperatureListener>();
 
 	public Circulation(ControlService control, Preferences prefs) throws ComponentConfigException {
@@ -56,8 +56,7 @@ public class Circulation implements CirculationTemperatureCallbacks {
 			break;
 		}
 		if (type == CirculationTemperature.OUT || type == CirculationTemperature.IN) {
-			if (outTemperatureLast != null && inTemperatureLast != null &&
-					outTemperatureLast.getTimestamp().equals(inTemperatureLast.getTimestamp())) {
+			if (outTemperatureLast.getTimestamp() == inTemperatureLast.getTimestamp()) {
 				
 				double delta = outTemperatureLast.doubleValue() - inTemperatureLast.doubleValue();
 				onTemperatureDeltaUpdated(new DoubleValue(delta, outTemperatureLast.getTimestamp()));

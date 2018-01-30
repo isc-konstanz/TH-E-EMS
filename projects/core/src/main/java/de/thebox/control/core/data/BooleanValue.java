@@ -1,10 +1,12 @@
 package de.thebox.control.core.data;
 
+import java.util.Objects;
+
 public class BooleanValue extends Value {
 
 	private final boolean value;
 
-	public BooleanValue(boolean value, Long timestamp) {
+	public BooleanValue(boolean value, long timestamp) {
 		super(ValueType.BOOLEAN, timestamp);
 		this.value = value;
 	}
@@ -81,6 +83,26 @@ public class BooleanValue extends Value {
 	@Override
 	public String toString() {
 		return Boolean.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof BooleanValue)) {
+			return false;
+		}
+		BooleanValue user = (BooleanValue) o;
+		return Objects.equals(timestamp, user.timestamp) &&
+				Objects.equals(value, user.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, timestamp, value);
+	}
+
+	public static BooleanValue emptyValue() {
+		return new BooleanValue(false);
 	}
 
 }

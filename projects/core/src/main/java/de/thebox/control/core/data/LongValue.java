@@ -1,5 +1,7 @@
 package de.thebox.control.core.data;
 
+import java.util.Objects;
+
 public class LongValue extends Value {
 
 	private final long value;
@@ -51,6 +53,26 @@ public class LongValue extends Value {
 	@Override
 	public String toString() {
 		return Long.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof LongValue)) {
+			return false;
+		}
+		LongValue user = (LongValue) o;
+		return Objects.equals(timestamp, user.timestamp) &&
+				Objects.equals(value, user.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, timestamp, value);
+	}
+
+	public static LongValue emptyValue() {
+		return new LongValue(0);
 	}
 
 }

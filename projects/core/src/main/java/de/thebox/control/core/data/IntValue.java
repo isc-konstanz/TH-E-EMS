@@ -1,5 +1,7 @@
 package de.thebox.control.core.data;
 
+import java.util.Objects;
+
 public class IntValue extends Value {
 
 	private final int value;
@@ -51,6 +53,26 @@ public class IntValue extends Value {
 	@Override
 	public String toString() {
 		return Integer.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof IntValue)) {
+			return false;
+		}
+		IntValue user = (IntValue) o;
+		return Objects.equals(timestamp, user.timestamp) &&
+				Objects.equals(value, user.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, timestamp, value);
+	}
+
+	public static IntValue emptyValue() {
+		return new IntValue(0);
 	}
 
 }

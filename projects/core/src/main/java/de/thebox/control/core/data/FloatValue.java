@@ -1,5 +1,7 @@
 package de.thebox.control.core.data;
 
+import java.util.Objects;
+
 public class FloatValue extends Value {
 
 	private final float value;
@@ -51,6 +53,26 @@ public class FloatValue extends Value {
 	@Override
 	public String toString() {
 		return Float.toString(value);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof FloatValue)) {
+			return false;
+		}
+		FloatValue user = (FloatValue) o;
+		return Objects.equals(timestamp, user.timestamp) &&
+				Objects.equals(value, user.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, timestamp, value);
+	}
+
+	public static FloatValue emptyValue() {
+		return new FloatValue(0);
 	}
 
 }

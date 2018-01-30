@@ -9,11 +9,11 @@ public class CabinetVentilationConfig extends ComponentConfig {
 
 	public final static String SECTION = "Ventilation";
 
-	public final static String VEMNTILATION_STATE_KEY = "ventStateValue";
+	public final static String VEMNTILATION_STATE_KEY = "ventState";
 
-	public final static String TOP_TEMPERATURE_KEY = "cabinetTopTempValue";
-	public final static String CENTER_TEMPERATURE_KEY = "cabinetMidTempValue";
-	public final static String BOTTOM_TEMPERATURE_KEY = "cabinetBotTempValue";
+	public final static String TOP_TEMPERATURE_KEY = "cabinetTopTemp";
+	public final static String CENTER_TEMPERATURE_KEY = "cabinetMidTemp";
+	public final static String BOTTOM_TEMPERATURE_KEY = "cabinetBotTemp";
 
 	public final static String TOLERANCE_KEY = "cabinetTempTolerance";
 	public final static double TOLERANCE_DEFAULT = 0.5;

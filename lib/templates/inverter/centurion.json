@@ -11,7 +11,7 @@
             "settings": "user:ISC Konstanz"
         },
         {
-            "name": "InverterObjective",
+            "name": "Inverter",
             "driver": "virtual"
         }
     ],
@@ -208,30 +208,6 @@
                 {
                     "process": "power_to_kwh",
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_energy"}
-                },
-                {
-                    "process": "reset2original",
-                    "arguments": {"type": "ProcessArg::NONE"}
-                },
-                {
-                    "process": "if_gt_equal_skip",
-                    "arguments": {"type": "ProcessArg::VALUE", "value": "0"}
-                },
-                {
-                    "process": "add_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "inv_dc_power"}
-                },
-                {
-                    "process": "allowpositive",
-                    "arguments": {"type": "ProcessArg::NONE"}
-                },
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_power"}
-                },
-                {
-                    "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_energy"}
                 }
             ]
         },
@@ -281,9 +257,27 @@
             "name": "inv_objective_external",
             "description": "inv_objective_external",
             "node": "Virtual",
-            "device": "InverterObjective",
-            "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },
-            "configs": { "valueType":"DOUBLE" }
+            "device": "Inverter",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000 },
+            "configs": {"valueType":"DOUBLE" }
+        },
+        {
+            "name": "inv_cons_power",
+            "description": "consumption_power",
+            "node": "Virtual",
+            "device": "Inverter",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_energy"}
+                }
+            ]
         }
     ],
 

@@ -249,7 +249,7 @@
             "description": "fc_flow_delta_temperature",
             "node": "Virtual",
             "device": "CogeneratorCirculation",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.25},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.25, "average": true},
             "configs": {"valueType":"DOUBLE"},
             "processList": [
                 {

@@ -81,7 +81,7 @@
             "description": "hp_flow_delta_temperature",
             "node": "Virtual",
             "device": "HeatpumpCirculation",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.25},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.25, "average": true},
             "configs": {"valueType":"DOUBLE"},
             "processList": [
                 {

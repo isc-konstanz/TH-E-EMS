@@ -1,8 +1,6 @@
 package de.thebox.control.core.schedule;
 
-import de.thebox.control.core.component.ComponentService;
-
-public interface ScheduleService extends ComponentService {
+public interface ScheduleService {
 
 	public void registerScheduleListener(ScheduleListener listener);
 

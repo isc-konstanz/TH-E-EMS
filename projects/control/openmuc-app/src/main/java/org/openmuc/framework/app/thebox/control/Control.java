@@ -29,6 +29,7 @@ import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.component.ComponentScheduleService;
 import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
@@ -62,18 +63,17 @@ public final class Control extends Thread implements ControlService, ControlChan
 
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
 	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
-	private CogeneratorService cogenerator;
-	private HeatPumpService heatpump;
 
 	private DataAccessService access;
+
+	private ScheduleService scheduler;
+	private ControlSchedule schedule;
+	private ControlSchedule newSchedule;
 
 	private volatile boolean deactivateFlag;
 	private ExecutorService executor = null;
 
 	private Preferences config = null;
-
-	private ControlSchedule schedule;
-	private ControlSchedule newSchedule;
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -109,13 +109,20 @@ public final class Control extends Thread implements ControlService, ControlChan
 		}
 	}
 
+	@Override
+	public void onScheduleReceived(ControlSchedule schedule) {
+		newSchedule = schedule;
+		interrupt();
+	}
+
 	@Reference
 	protected void bindScheduleService(ScheduleService scheduleService) {
-		bindComponentService(scheduleService);
+		scheduler = scheduleService;
+		onScheduleReceived(scheduleService.getSchedule(this));
 	}
 
 	protected void unbindScheduleService(ScheduleService scheduleService) {
-		unbindComponentService(scheduleService);
+		scheduleService.deregisterScheduleListener(this);
 	}
 
 	@Reference
@@ -326,18 +333,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 						String id = newComponentEntry.getKey();
 						logger.info("Activating TH-E Control component: " + id);
 						try {
-							ComponentService component = newComponentEntry.getValue();
+							newComponentEntry.getValue().activate(this);
 							
-							component.activate(this);
-							if (component instanceof CogeneratorService) {
-								onCogeneratorActivated((CogeneratorService) component);
-							}
-							else if (component instanceof HeatPumpService) {
-								onHeatPumpActivated((HeatPumpService) component);
-							}
-							else if (component instanceof ScheduleService) {
-								onSchedulerActivated((ScheduleService) component);
-							}
 						} catch (ComponentException e) {
 							logger.warn("Error while activating component \"{}\": ", id, e);
 						}
@@ -348,15 +345,16 @@ public final class Control extends Thread implements ControlService, ControlChan
 			if (newSchedule != null) {
 				// TODO: verify schedule integrity
 				if (newSchedule.getTimestamp() > schedule.getTimestamp()) {
-					try {
-						if (cogenerator != null) {
-							cogenerator.scheduleGeneration(schedule.getCogeneratorSchedule());
+					synchronized (components) {
+						for (ComponentService component : components.values()) {
+							try {
+								if (component instanceof ComponentScheduleService) {
+									((ComponentScheduleService) component).schedule(newSchedule.get(component));
+								}
+							} catch (ComponentException e) {
+								logger.warn("Error while scheduling: ", e);
+							}
 						}
-						if (heatpump != null) {
-							heatpump.scheduleHeating(schedule.getHeatPumpSchedule());
-						}
-					} catch (ComponentException e) {
-						logger.warn("Error while scheduling: ", e);
 					}
 					schedule = newSchedule;
 				}
@@ -364,23 +362,4 @@ public final class Control extends Thread implements ControlService, ControlChan
 			}
 		}
 	}
-
-	private void onCogeneratorActivated(CogeneratorService cogenerator) {
-		this.cogenerator = cogenerator;
-	}
-
-	private void onHeatPumpActivated(HeatPumpService heatpump) {
-		this.heatpump = heatpump;
-	}
-
-	private void onSchedulerActivated(ScheduleService scheduler) {
-		onScheduleReceived(scheduler.getSchedule(this));
-	}
-
-	@Override
-	public void onScheduleReceived(ControlSchedule schedule) {
-		newSchedule = schedule;
-		interrupt();
-	}
-
 }

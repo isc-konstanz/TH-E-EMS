@@ -6,7 +6,7 @@ project.ext {
 
   cfgCopyDependencies = false
 
-  cfgCopyToRoot = true
+  cfgCopyToRoot = false
 
   javaProjects = subprojects
 
@@ -27,6 +27,13 @@ project.ext {
 configure(javaProjects) {
   apply plugin: "java"
   apply plugin: "maven"
+}
+
+task bundles {
+  apply from: "./conf/bundles.gradle"
+
+  dependsOn(distributionProjects.install)
+  dependsOn(updateBundles)
 }
 
 tasks.withType(Tar) {

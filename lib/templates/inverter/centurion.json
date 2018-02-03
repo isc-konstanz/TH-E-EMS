@@ -38,9 +38,9 @@
             "step": 500,
             "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_objective_external", "write":false }
+                "SET": { "channel": "inv_objective_virtual", "write":false }
             },
-            "input": "inv_objective_external"
+            "input": "inv_objective_virtual"
         }
     ],
     
@@ -254,8 +254,8 @@
             ]
         },
         {
-            "name": "inv_objective_external",
-            "description": "inv_objective_external",
+            "name": "inv_objective_virtual",
+            "description": "inv_objective_virtual",
             "node": "Virtual",
             "device": "Inverter",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000 },

@@ -1,9 +1,8 @@
 configurations.create('embed')
 
 def controlVersion = '0.2.1'
-def emonjavaversion = '1.1.3'
+def emonjavaversion = '1.1.4'
 def gsonversion = '2.8.2'
-def ini4jversion = '0.5.4'
 
 repositories {
   flatDir {
@@ -20,14 +19,13 @@ dependencies {
   embed group: 'org.emoncms', name: 'emoncms-api', version: emonjavaversion
   embed group: 'org.emoncms', name: 'emoncms-http', version: emonjavaversion
   embed group: 'com.google.code.gson', name: 'gson', version: gsonversion
-  embed group: 'org.ini4j', name: 'ini4j', version: ini4jversion
 }
 
 jar {
   manifest {
     name = "TH-E Box Inverter - EnergyDepot"
-    instruction 'Bundle-ClassPath', '.,lib/th-e-feature-emoncms-' + controlVersion + '.jar,lib/emoncms-api-' + emonjavaversion + '.jar,lib/emoncms-http-' + emonjavaversion + '.jar,lib/gson-' + gsonversion + '.jar,lib/ini4j-' + ini4jversion + '.jar'
-    instruction 'Import-Package', '!de.thebox.control.feature.emoncms*,!org.emoncms.*,!com.google.gson.*,!org.ini4j.*,*'
+    instruction 'Bundle-ClassPath', '.,lib/th-e-feature-emoncms-' + controlVersion + '.jar,lib/emoncms-api-' + emonjavaversion + '.jar,lib/emoncms-http-' + emonjavaversion + '.jar,lib/gson-' + gsonversion + '.jar'
+    instruction 'Import-Package', '!de.thebox.control.feature.emoncms*,!org.emoncms.*,!com.google.gson.*,*'
     instruction 'Export-Package', ''
   }
 }

@@ -7,21 +7,18 @@ configurations.create("bundle")
 configurations.bundle.transitive = false;
 
 dependencies {
+  bundle project(":th-e-optimization")
+
   bundle project(":th-e-component-energydepot")
   bundle project(":th-e-component-serenergy")
   bundle project(":th-e-component-gondzik")
 }
 
-task cleanBundles(type: Delete) {
-  delete fileTree(dir: "./bundles")
-}
-
-task syncBundles(type: Sync) {
+task copyBundles(type: Copy) {
   from configurations.bundle;
-  into rootDir.getPath() + "./bundles"
+  into rootDir.getPath() + "/../TH-E-Control/bundles"
 }
 
 task updateBundles {
-  dependsOn cleanBundles
-  dependsOn syncBundles
+  dependsOn copyBundles
 }

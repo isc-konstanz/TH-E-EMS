@@ -3,12 +3,19 @@ repositories {
   mavenCentral()
 }
 
+configurations.create("core")
 configurations.create("bundle")
+configurations.core.transitive = false;
 configurations.bundle.transitive = false;
 
 dependencies {
-  bundle project(":th-e-core")
+  core project(":th-e-core")
   bundle project(":th-e-ctrl")
+
+  //--------------------------------------------------------------------------------------------------
+  // ini4j is a simple Java API for handling configuration files in the .ini format.
+  //--------------------------------------------------------------------------------------------------
+  core group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
 }
 
 task cleanBundles(type: Delete) {
@@ -16,6 +23,7 @@ task cleanBundles(type: Delete) {
 }
 
 task syncBundles(type: Sync) {
+  from configurations.core;
   from configurations.bundle;
   into rootDir.getPath() + "./bundles"
 }

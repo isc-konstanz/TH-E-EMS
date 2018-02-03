@@ -39,6 +39,7 @@ local.properties
 #Gradle
 *.gradletasknamecache
 *.gradle/
+bundles/
 build/
 /build/
 !/build/

@@ -81,7 +81,7 @@ public class SerenergyComponent implements CogeneratorService {
 	}
 
 	@Override
-	public void scheduleGeneration(Schedule schedule) throws ComponentException {
+	public void schedule(Schedule schedule) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}

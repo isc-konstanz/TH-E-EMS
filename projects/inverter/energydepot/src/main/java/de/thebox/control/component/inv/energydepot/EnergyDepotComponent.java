@@ -92,7 +92,7 @@ public class EnergyDepotComponent implements InverterService {
 	}
 
 	@Override
-	public void scheduleObjective(Schedule schedule) throws ComponentException {
+	public void schedule(Schedule schedule) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}

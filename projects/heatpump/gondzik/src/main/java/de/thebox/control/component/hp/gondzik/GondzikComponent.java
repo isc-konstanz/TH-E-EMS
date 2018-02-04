@@ -106,7 +106,7 @@ public class GondzikComponent implements HeatPumpService, CabinetService {
 	}
 
 	@Override
-	public void scheduleHeating(Schedule schedule) throws ComponentException {
+	public void schedule(Schedule schedule) throws ComponentException {
 		// TODO Auto-generated method stub
 		
 	}

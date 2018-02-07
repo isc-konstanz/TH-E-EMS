@@ -78,7 +78,10 @@ public class EnergyDepotComponent implements InverterService {
 
 	@Override
 	public void setObjective(Value value) throws ComponentException {
-		// TODO Auto-generated method stub
+		Schedule schedule = new Schedule();
+		schedule.add(value);
+		
+		schedule(schedule);
 	}
 
 	@Override
@@ -93,8 +96,10 @@ public class EnergyDepotComponent implements InverterService {
 
 	@Override
 	public void schedule(Schedule schedule) throws ComponentException {
-		// TODO Auto-generated method stub
-		
+		Value value = schedule.pollFirst();
+		if (value != null) {
+			objective.setSetpoint(schedule.pollFirst());
+		}
 	}
 
 }

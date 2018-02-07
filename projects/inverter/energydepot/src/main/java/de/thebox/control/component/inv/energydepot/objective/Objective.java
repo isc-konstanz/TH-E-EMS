@@ -47,8 +47,12 @@ public class Objective {
 		ObjectiveConfig config = new ObjectiveConfig(prefs);
 		try {
 			objective = control.getChannel(config.getObjective());
+			virtualObjective = control.getChannel(config.getVirtualObjective());
+			virtualObjectiveListener = registerObjectiveListener(virtualObjective);
+			
 			batteryState = control.getChannel(config.getBatterySoC());
 			batteryStateMin = config.getBatteryStateMin();
+			
 			consumptionListener = registerConsumptionListener(consumption);
 			
 			if (prefs.nodeExists(ExternalObjectiveConfig.SECTION) && prefs.nodeExists(EmoncmsConfig.SECTION)) {
@@ -65,8 +69,6 @@ public class Objective {
 				}
 				actualPower = control.getChannel(externalConfig.getActualPower());
 				virtualPower = control.getChannel(externalConfig.getVirtualPower());
-				virtualObjective = control.getChannel(externalConfig.getVirtualObjective());
-				virtualObjectiveListener = registerObjectiveListener(virtualObjective);
 			}
 		} catch (BackingStoreException | UnknownChannelException e) {
 			throw new ComponentConfigException("Invalid objective configuration: " + e.getMessage());
@@ -132,6 +134,10 @@ public class Objective {
 			}
 			emoncms.deactivate();
 		}
+	}
+
+	public void setSetpoint(Value setpoint) {
+		virtualObjective.writeValue(setpoint);
 	}
 
 	public void set(double value) throws ComponentException {

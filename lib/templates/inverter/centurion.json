@@ -38,9 +38,9 @@
             "step": 500,
             "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_objective", "write":false }
+                "SET": { "channel": "inv_objective_virtual", "write":false }
             },
-            "input": "inv_objective"
+            "input": "inv_objective_virtual"
         }
     ],
     
@@ -270,6 +270,14 @@
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_energy"}
                 }
             ]
+        },
+        {
+            "name": "inv_objective_virtual",
+            "description": "inv_objective_virtual",
+            "node": "Virtual",
+            "device": "Inverter",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000 },
+            "configs": {"valueType":"DOUBLE" }
         }
     ],
 

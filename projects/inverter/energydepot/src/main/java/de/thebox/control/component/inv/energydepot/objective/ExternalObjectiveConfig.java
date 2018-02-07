@@ -9,7 +9,6 @@ public class ExternalObjectiveConfig extends ComponentConfig {
 
 	public final static String SECTION = "External";
 
-	public final static String OBJECTIVE_VIRTUAL_KEY = "virtualObjective";
 	public final static String POWER_VIRTUAL_KEY = "virtualPower";
 	public final static String POWER_ACTUAL_KEY = "actualPower";
 
@@ -22,10 +21,6 @@ public class ExternalObjectiveConfig extends ComponentConfig {
 	@Override
 	protected String getSectionKey() {
 		return SECTION;
-	}
-
-	public String getVirtualObjective() throws ComponentConfigException {
-		return getKey(OBJECTIVE_VIRTUAL_KEY);
 	}
 
 	public String getVirtualPower() throws ComponentConfigException {

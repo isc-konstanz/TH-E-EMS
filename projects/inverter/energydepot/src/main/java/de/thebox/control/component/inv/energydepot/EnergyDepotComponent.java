@@ -38,8 +38,8 @@ public class EnergyDepotComponent implements InverterService {
 	private void activateComponent() throws ComponentException {
 		try {
 			Preferences config = control.readComponentConfigs(ID);
-			activateObjective(config);
 			activateConsumption(config);
+			activateObjective(config);
 			
 		} catch (IOException e) {
 			// TODO: Fatal error! Inform error event handler
@@ -47,12 +47,12 @@ public class EnergyDepotComponent implements InverterService {
 		}
 	}
 
-	private void activateObjective(Preferences config) throws ComponentException {
-		objective = new Objective(control, config);
-	}
-
 	private void activateConsumption(Preferences config) throws ComponentException {
 		consumption = new Consumption(control, config);
+	}
+
+	private void activateObjective(Preferences config) throws ComponentException {
+		objective = new Objective(control, consumption, config);
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class EnergyDepotComponent implements InverterService {
 	@Override
 	public void deactivate() {
 		if (objective != null) {
-			objective.deactivate();
+			objective.deactivate(consumption);
 		}
 		if (consumption != null) {
 			consumption.deactivate();

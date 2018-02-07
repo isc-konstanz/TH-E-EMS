@@ -6,6 +6,7 @@ import java.util.prefs.Preferences;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentConfigException;
@@ -24,37 +25,48 @@ public class Objective {
 	private final static Logger logger = LoggerFactory.getLogger(Objective.class);
 
 	private Channel objective;
-	private Channel objectiveSetpoint = null;
-	private ChannelListener objectiveSetpointListener = null;
+	private Channel batteryState;
+	private final double batteryStateMin;
 	private double setpoint = 0;
 
-	private Emoncms emoncms = null;
-	private ValueListener externalListener = null;
-	private String externalPvFeed;
-	private double external = 0;
+	private ValueListener consumptionListener;
+	private Value consumption = DoubleValue.emptyValue();
 
-	public Objective(ControlService control, Preferences prefs) throws ComponentException {
+	private Emoncms emoncms = null;
+	private boolean externalPvEnabled = false;
+	private String externalPvFeed = null;
+	private ValueListener externalListener = null;
+	private double externalPv = 0;
+
+	private Channel actualPower = null;
+	private Channel virtualPower = null;
+	private Channel virtualObjective = null;
+	private ChannelListener virtualObjectiveListener = null;
+
+	public Objective(ControlService control, Consumption consumption, Preferences prefs) throws ComponentException {
 		ObjectiveConfig config = new ObjectiveConfig(prefs);
 		try {
-			this.objective = control.getChannel(config.getObjective());
+			objective = control.getChannel(config.getObjective());
+			batteryState = control.getChannel(config.getBatterySoC());
+			batteryStateMin = config.getBatteryStateMin();
+			consumptionListener = registerConsumptionListener(consumption);
 			
-			if (prefs.nodeExists(ExternalObjectiveConfig.SECTION)) {
+			if (prefs.nodeExists(ExternalObjectiveConfig.SECTION) && prefs.nodeExists(EmoncmsConfig.SECTION)) {
 				ExternalObjectiveConfig externalConfig = new ExternalObjectiveConfig(prefs);
-				
-				objectiveSetpoint = control.getChannel(externalConfig.getObjective());
-				objectiveSetpointListener = registerObjectiveListener(objectiveSetpoint);
-				
-				if (prefs.nodeExists(EmoncmsConfig.SECTION)) {
-					try {
-						emoncms = new Emoncms(prefs);
-						
-						externalPvFeed = externalConfig.getPvFeed();
-						externalListener = registerExternalPvListener(externalPvFeed);
-						
-					} catch (ControlException e) {
-						throw new ComponentException("Error while activating emoncms listeners: " + e.getMessage());
-					}
+				try {
+					emoncms = new Emoncms(prefs);
+					
+					externalPvEnabled = true;
+					externalPvFeed = externalConfig.getPvFeed();
+					externalListener = registerExternalPvListener(externalPvFeed);
+					
+				} catch (ControlException e) {
+					throw new ComponentException("Error while activating emoncms listeners: " + e.getMessage());
 				}
+				actualPower = control.getChannel(externalConfig.getActualPower());
+				virtualPower = control.getChannel(externalConfig.getVirtualPower());
+				virtualObjective = control.getChannel(externalConfig.getVirtualObjective());
+				virtualObjectiveListener = registerObjectiveListener(virtualObjective);
 			}
 		} catch (BackingStoreException | UnknownChannelException e) {
 			throw new ComponentConfigException("Invalid objective configuration: " + e.getMessage());
@@ -62,40 +74,57 @@ public class Objective {
 	}
 
 	private ChannelListener registerObjectiveListener(Channel channel) {
-		ChannelListener stateListener = new ChannelListener(channel) {
+		ChannelListener listener = new ChannelListener(channel) {
 			
 			@Override
 			public void onValueReceived(Value value) {
 				if (value != null) {
 					setpoint = value.doubleValue();
-					
 					onObjectiveUpdate();
 				}
 			}
 		};
-		return stateListener;
+		return listener;
 	}
 
-	private ValueListener registerExternalPvListener(String id) throws ControlException {
-		ValueListener pvListener = new ValueListener() {
+	private ValueListener registerConsumptionListener(Consumption context) {
+		ValueListener listener = new ValueListener() {
 			
 			@Override
 			public void onValueReceived(Value value) {
 				if (value != null) {
-					external = value.doubleValue();
-					
+					consumption = value;
 					onObjectiveUpdate();
 				}
 			}
 		};
-		emoncms.registerFeedListener(id, pvListener);
+		context.register(listener);
 		
-		return pvListener;
+		return listener;
 	}
 
-	public void deactivate() {
-		if (objectiveSetpointListener != null) {
-			objectiveSetpointListener.deregister();
+	private ValueListener registerExternalPvListener(String id) throws ControlException {
+		ValueListener listener = new ValueListener() {
+			
+			@Override
+			public void onValueReceived(Value value) {
+				if (value != null) {
+					externalPv = value.doubleValue();
+					onObjectiveUpdate();
+				}
+			}
+		};
+		emoncms.registerFeedListener(id, listener);
+		
+		return listener;
+	}
+
+	public void deactivate(Consumption consumption) {
+		if (virtualObjectiveListener != null) {
+			virtualObjectiveListener.deregister();
+		}
+		if (consumption != null && consumptionListener != null) {
+			consumption.deregister(consumptionListener);
 		}
 		if (emoncms != null) {
 			if (externalListener != null) {
@@ -106,12 +135,16 @@ public class Objective {
 	}
 
 	public void set(double value) throws ComponentException {
-		if (value <= ObjectiveConfig.OBJECTIVE_MAX && value >= ObjectiveConfig.OBJECTIVE_MIN) {
-			if (objective.getLatestValue().doubleValue() != value) {
-					objective.writeValue(new DoubleValue(value));
-			}
+		if (value > ObjectiveConfig.OBJECTIVE_MAX || value < ObjectiveConfig.OBJECTIVE_MIN) {
+			throw new ComponentException("Inverter objective out of bounds: " + value);
 		}
-		else throw new ComponentException("Inverter objective out of bounds: " + value);
+		Value state = batteryState.getLatestValue();
+		if (state != null && state.doubleValue() < batteryStateMin) {
+			reset();
+		}
+		else if (objective.getLatestValue().doubleValue() != value) {
+			objective.writeValue(new DoubleValue(value));
+		}
 	}
 
 	public void reset() throws ComponentException {
@@ -119,7 +152,21 @@ public class Objective {
 	}
 
 	private void onObjectiveUpdate() {
-		double objective = this.setpoint - external;
+		double objective = setpoint;
+		
+		if (externalPvEnabled) {
+			objective += (consumption.doubleValue() - externalPv);
+			
+			Value actualValue = actualPower.getLatestValue();
+			if (actualValue != null && actualValue.getTimestamp() == consumption.getTimestamp()) {
+				Value virtualValue = new DoubleValue(actualValue.doubleValue() - externalPv, actualValue.getTimestamp());
+				virtualPower.setLatestValue(virtualValue);
+			}
+		}
+		else if (setpoint > 0) {
+			objective += consumption.doubleValue();
+		}
+		
 		if (objective > ObjectiveConfig.OBJECTIVE_MAX) {
 			objective = ObjectiveConfig.OBJECTIVE_MAX;
 		}

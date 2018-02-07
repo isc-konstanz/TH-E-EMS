@@ -12,6 +12,7 @@ import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueListener;
 
 public class Consumption implements PowerCallbacks {
 
@@ -20,6 +21,7 @@ public class Consumption implements PowerCallbacks {
 	protected Value acPowerLast = DoubleValue.emptyValue();
 	protected Value dcPowerLast = DoubleValue.emptyValue();
 	protected final List<PowerListener> powerListeners = new ArrayList<PowerListener>();
+	protected final List<ValueListener> consListeners = new ArrayList<ValueListener>();
 
 	public Consumption(ControlService control, Preferences prefs) throws ComponentException {
 		ConsumptionConfig config = new ConsumptionConfig(prefs);
@@ -37,6 +39,14 @@ public class Consumption implements PowerCallbacks {
 	private void registerPowerValueListener(Channel channel, PowerType type) {
 		PowerListener listener = new PowerListener(this, type, channel);
 		powerListeners.add(listener);
+	}
+
+	public void register(ValueListener listener) {
+		consListeners.add(listener);
+	}
+
+	public void deregister(ValueListener listener) {
+		consListeners.remove(listener);
 	}
 
 	public void deactivate() {

@@ -15,8 +15,12 @@ public class ObjectiveConfig extends ComponentConfig {
 	public final static double OBJECTIVE_MIN = -10000;
 	public final static double OBJECTIVE_DEFAULT = 0;
 
-	public ObjectiveConfig(Preferences configs) {
-		super(configs);
+	public final static String BATTERY_SOC_KEY = "batState";
+	public final static String BATTERY_SOC_MIN_KEY = "batStateMin";
+	public final static double BATTERY_SOC_MIN__DEFAULT = 10;
+
+	public ObjectiveConfig(Preferences config) {
+		super(config);
 	}
 
 	@Override
@@ -26,6 +30,14 @@ public class ObjectiveConfig extends ComponentConfig {
 
 	public String getObjective() throws ComponentConfigException {
 		return getKey(OBJECTIVE_KEY);
+	}
+
+	public String getBatterySoC() throws ComponentConfigException {
+		return getKey(BATTERY_SOC_KEY);
+	}
+
+	public double getBatteryStateMin() {
+		return config.getDouble(BATTERY_SOC_MIN_KEY, BATTERY_SOC_MIN__DEFAULT);
 	}
 
 }

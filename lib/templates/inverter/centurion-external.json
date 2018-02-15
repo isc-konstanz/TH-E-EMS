@@ -38,9 +38,9 @@
             "step": 500,
             "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_objective_virtual", "write":false }
+                "SET": { "channel": "inv_virtual_objective", "write":false }
             },
-            "input": "inv_objective_virtual"
+            "input": "inv_virtual_objective"
         }
     ],
     
@@ -234,15 +234,15 @@
             ]
         },
         {
-            "name": "inv_objective_virtual",
-            "description": "inv_objective_virtual",
+            "name": "inv_virtual_objective",
+            "description": "inv_virtual_objective",
             "node": "Virtual",
             "device": "Inverter",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"valueType":"DOUBLE"}
         },
         {
-            "name": "inv_ac_power_virtual",
+            "name": "inv_ac_virtual_power",
             "description": "grid_active_power",
             "node": "Virtual",
             "device": "Inverter",

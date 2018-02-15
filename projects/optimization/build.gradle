@@ -1,10 +1,33 @@
+configurations.create('embed')
+
+def ini4jVersion = '0.5.4'
+
+repositories {
+  flatDir {
+    dirs rootDir.getPath() + "/dependencies/TH-E-Control", rootDir.getPath() + "/dependencies/emonjava"
+  }
+}
+
 dependencies {
   compile project(':th-e-core')
+  
+  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.2.1'
+  
+  compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
+  embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
 }
 
 jar {
   manifest {
     name = "TH-E Box Optimization"
+    instruction 'Bundle-ClassPath', '.,lib/ini4j-' + ini4jVersion + '.jar'
+    instruction 'Import-Package', '!org.ini4j.*,*'
     instruction 'Export-Package', ''
+  }
+}
+
+jar {
+  into('lib') {
+    from configurations.embed
   }
 }

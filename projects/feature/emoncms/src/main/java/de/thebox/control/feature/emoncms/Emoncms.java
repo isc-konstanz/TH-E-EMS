@@ -89,6 +89,7 @@ public class Emoncms extends Thread {
 		setName("TH-E Feature emoncms observer");
 		
 		while (!deactivateFlag) {
+			long start = System.currentTimeMillis();
 			try {
 				for (FeedListener feed : listeners.values()) {
 					try {
@@ -98,7 +99,10 @@ public class Emoncms extends Thread {
 						logger.warn("Error while reading feed value: {}", e.getMessage());
 					}
 				}
-				Thread.sleep(interval);
+				long sleep = interval - (System.currentTimeMillis() - start);
+				if (sleep > 0) {
+					Thread.sleep(sleep);
+				}
 			} catch (InterruptedException e) {
 			}
 		}

@@ -19,7 +19,7 @@ public abstract class ComponentConfig {
 		if (value != null && !value.isEmpty()) {
 			return value;
 		}
-		throw new ComponentConfigException("Circulation configuration missing: " + key);
+		throw new ComponentConfigException("Parameter \"" + key + "\" missing");
 	}
 
 	protected double getDouble(String key) throws ComponentConfigException {
@@ -27,7 +27,7 @@ public abstract class ComponentConfig {
 		if (value != Double.NaN) {
 			return value;
 		}
-		throw new ComponentConfigException("Circulation configuration missing: " + key);
+		throw new ComponentConfigException("Parameter \"" + key + "\" missing");
 	}
 
 	protected int getInteger(String key) throws ComponentConfigException {
@@ -35,7 +35,7 @@ public abstract class ComponentConfig {
 		if (value != Integer.MAX_VALUE) {
 			return value;
 		}
-		throw new ComponentConfigException("Circulation configuration missing: " + key);
+		throw new ComponentConfigException("Parameter \"" + key + "\" missing");
 	}
 
 }

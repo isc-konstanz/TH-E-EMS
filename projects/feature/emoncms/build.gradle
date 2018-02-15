@@ -1,3 +1,9 @@
+configurations.create('embed')
+
+def ini4jVersion = '0.5.4'
+def emonjavaVersion = '1.1.4'
+def gsonVersion = '2.8.2'
+
 repositories {
   flatDir {
     dirs 'dependencies/emonjava', rootDir.getPath() + "/dependencies/emonjava"
@@ -6,15 +12,30 @@ repositories {
 
 dependencies {
   compile project(':th-e-core')
-
-  compile group: 'org.emoncms', name: 'emoncms-api', version: '1.1.4'
-  compile group: 'org.emoncms', name: 'emoncms-http', version: '1.1.4'
-  compile group: 'org.ini4j', name: 'ini4j', version: '0.5.4'
+  
+  compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
+  embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
+  
+  compile group: 'org.emoncms', name: 'emoncms-api', version: emonjavaVersion
+  embed group: 'org.emoncms', name: 'emoncms-api', version: emonjavaVersion
+  
+  compile group: 'org.emoncms', name: 'emoncms-http', version: emonjavaVersion
+  embed group: 'org.emoncms', name: 'emoncms-http', version: emonjavaVersion
+  
+  embed group: 'com.google.code.gson', name: 'gson', version: gsonVersion
 }
 
 jar {
   manifest {
     name = "TH-E Box Feature - Emoncms"
-    instruction 'Export-Package', ''
+    instruction 'Bundle-ClassPath', '.,lib/ini4j-' + ini4jVersion + '.jar,lib/emoncms-api-' + emonjavaVersion + '.jar,lib/emoncms-http-' + emonjavaVersion + '.jar,lib/gson-' + gsonVersion + '.jar'
+    instruction 'Import-Package', '!de.thebox.control.feature.emoncms*,!org.ini4j*,!org.emoncms*,!com.google.gson*,*'
+    instruction "Export-Package", "!*.internal.*,*"
+  }
+}
+
+jar {
+  into('lib') {
+    from configurations.embed
   }
 }

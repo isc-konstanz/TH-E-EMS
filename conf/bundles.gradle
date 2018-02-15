@@ -11,7 +11,10 @@ configurations.bundle.transitive = false;
 dependencies {
   core project(":th-e-core")
   bundle project(":th-e-ctrl")
-
+  
+  bundle project(":th-e-feature-emoncms")
+  bundle project(":th-e-feature-circulation")
+  
   //--------------------------------------------------------------------------------------------------
   // ini4j is a simple Java API for handling configuration files in the .ini format.
   //--------------------------------------------------------------------------------------------------

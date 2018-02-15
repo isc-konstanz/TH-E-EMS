@@ -80,7 +80,12 @@ public class Consumption implements PowerCallbacks {
 			if (consumption < 0) {
 				consumption = 0;
 			}
-			this.consumption.setLatestValue(new DoubleValue(consumption, acPowerLast.getTimestamp()));
+			Value value = new DoubleValue(consumption, acPowerLast.getTimestamp());
+			
+			this.consumption.setLatestValue(value);
+			for (ValueListener listener : consListeners) {
+				listener.onValueReceived(value);
+			}
 		}
 	}
 

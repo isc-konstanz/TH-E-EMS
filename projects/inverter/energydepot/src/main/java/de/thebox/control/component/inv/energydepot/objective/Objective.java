@@ -35,7 +35,6 @@ public class Objective {
 	private Emoncms emoncms = null;
 	private boolean externalPvEnabled = false;
 	private String externalPvFeed = null;
-	private ValueListener externalListener = null;
 	private double externalPv = 0;
 
 	private Channel actualPower = null;
@@ -62,7 +61,7 @@ public class Objective {
 					
 					externalPvEnabled = true;
 					externalPvFeed = externalConfig.getPvFeed();
-					externalListener = registerExternalPvListener(externalPvFeed);
+					registerExternalPvListener(externalPvFeed);
 					
 				} catch (ControlException e) {
 					throw new ComponentException("Error while activating emoncms listeners: " + e.getMessage());
@@ -129,9 +128,7 @@ public class Objective {
 			consumption.deregister(consumptionListener);
 		}
 		if (emoncms != null) {
-			if (externalListener != null) {
-				emoncms.deregisterFeedListener(externalPvFeed);
-			}
+			emoncms.deregisterFeedListener(externalPvFeed);
 			emoncms.deactivate();
 		}
 	}
@@ -174,9 +171,11 @@ public class Objective {
 		}
 		
 		if (objective > ObjectiveConfig.OBJECTIVE_MAX) {
+			logger.warn("Inverter objective out of bounds and will be adjusted: {}", objective);
 			objective = ObjectiveConfig.OBJECTIVE_MAX;
 		}
 		else if (objective < ObjectiveConfig.OBJECTIVE_MIN) {
+			logger.warn("Inverter objective out of bounds and will be adjusted: {}", objective);
 			objective = ObjectiveConfig.OBJECTIVE_MIN;
 		}
 		try {

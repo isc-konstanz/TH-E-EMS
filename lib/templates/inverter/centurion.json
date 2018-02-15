@@ -276,8 +276,8 @@
             "description": "inv_objective_virtual",
             "node": "Virtual",
             "device": "Inverter",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000 },
-            "configs": {"valueType":"DOUBLE" }
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"valueType":"DOUBLE"}
         }
     ],
 

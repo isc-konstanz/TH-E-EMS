@@ -1,8 +1,8 @@
 {
-    "name": "Centurion",
+    "name": "Centurion (External PV)",
     "category": "TH-E Box",
     "group": "Inverter",
-    "description": "EnergyDepot GmbH Centurion inverter",
+    "description": "EnergyDepot GmbH Centurion inverter with external PV",
     
     "devices": [
         {
@@ -238,8 +238,8 @@
             "description": "inv_objective_virtual",
             "node": "Virtual",
             "device": "Inverter",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000 },
-            "configs": {"valueType":"DOUBLE" }
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"valueType":"DOUBLE"}
         },
         {
             "name": "inv_ac_power_virtual",

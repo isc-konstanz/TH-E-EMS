@@ -22,20 +22,99 @@
             "step": 1,
             "default": 65,
             "mapping": {
-                "SET": { "channel": "storage_th_target", "write": false }
+                "SET": { "channel": "storage_th_setpoint", "write": false }
             },
-            "input": "storage_th_target"
+            "input": "storage_th_setpoint"
         }
     ],
 
     "channels": [
         {
-            "name": "storage_th_target",
-            "description": "storage_th_target_temp",
+            "name": "storage_th_setpoint",
+            "description": "storage_th_setpoint_temp",
             "node": "Virtual",
             "device": "TH-E-Control",
             "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },
             "configs": { "valueType":"INTEGER" }
+        },
+        {
+            "name": "grid_service_power",
+            "description": "grid_service_power",
+            "node": "Virtual",
+            "device": "TH-E-Control",
+            "logging": { "loggingInterval": 60000, "loggingMaxInterval": 900000 },
+            "configs": { "valueType":"DOUBLE" },
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_service_power"}
+                },
+                {
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_service_import_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_service_import_energy"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "allownegative",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "scale",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_service_export_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_service_export_energy"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "grid_service_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_service_import_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_service_import_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_service_export_power",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "grid_service_export_energy",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
         }
     ]
 }

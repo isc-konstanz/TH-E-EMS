@@ -11,7 +11,7 @@ repositories {
 dependencies {
   compile project(':th-e-core')
   
-  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.2.1'
+  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.3.0'
   
   compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
   embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion

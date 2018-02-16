@@ -29,10 +29,10 @@ import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.ComponentScheduleService;
 import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
+import de.thebox.control.core.component.ScheduleComponent;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
@@ -333,7 +333,7 @@ public final class Control extends Thread implements ControlService, ControlChan
 						String id = newComponentEntry.getKey();
 						logger.info("Activating TH-E Control component: " + id);
 						try {
-							newComponentEntry.getValue().activate(this);
+							newComponentEntry.getValue().bind(this);
 							
 						} catch (ComponentException e) {
 							logger.warn("Error while activating component \"{}\": ", id, e);
@@ -348,8 +348,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 					synchronized (components) {
 						for (ComponentService component : components.values()) {
 							try {
-								if (component instanceof ComponentScheduleService) {
-									((ComponentScheduleService) component).schedule(newSchedule.get(component));
+								if (component instanceof ScheduleComponent) {
+									((ScheduleComponent) component).schedule(newSchedule.get(component));
 								}
 							} catch (ComponentException e) {
 								logger.warn("Error while scheduling: ", e);

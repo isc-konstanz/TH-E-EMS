@@ -1,18 +1,14 @@
 package de.thebox.control.core.component;
 
-import de.thebox.control.core.data.Value;
-
-public interface InverterService extends ComponentScheduleService {
+public interface InverterService extends ComponentService {
 
 	@Override
 	public default Component getType() {
-		return Component.COGENERATOR;
+		return Component.INVERTER;
 	};
 
 	public void setObjective(double value) throws ComponentException;
 
-	public void setObjective(Value value) throws ComponentException;
-
-	public void resetObjective(Long timestamp) throws ComponentException;
+	public void resetObjective() throws ComponentException;
 
 }

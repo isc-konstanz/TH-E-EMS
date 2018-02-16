@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 import de.thebox.control.core.component.Component;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.ComponentScheduleService;
+import de.thebox.control.core.component.ScheduleComponent;
 import de.thebox.control.core.component.ComponentService;
 
 public class ControlSchedule extends HashMap<String, Schedule> {
@@ -21,13 +21,13 @@ public class ControlSchedule extends HashMap<String, Schedule> {
 	}
 
 	public Schedule get(ComponentService component) throws ComponentException {
-		if (component instanceof ComponentScheduleService) {
-			return get(((ComponentScheduleService) component).getType());
+		if (component instanceof ScheduleComponent) {
+			return get(((ScheduleComponent) component).getType());
 		}
 		throw new ComponentException("Component not able to be scheduled");
 	}
 
-	public Schedule get(ComponentScheduleService component) {
+	public Schedule get(ScheduleComponent component) {
 		return get(component.getType());
 	}
 

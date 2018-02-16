@@ -29,8 +29,8 @@ jar {
   manifest {
     name = "TH-E Box Feature - Emoncms"
     instruction 'Bundle-ClassPath', '.,lib/ini4j-' + ini4jVersion + '.jar,lib/emoncms-api-' + emonjavaVersion + '.jar,lib/emoncms-http-' + emonjavaVersion + '.jar,lib/gson-' + gsonVersion + '.jar'
-    instruction 'Import-Package', '!de.thebox.control.feature.emoncms*,!org.ini4j*,!org.emoncms*,!com.google.gson*,*'
-    instruction "Export-Package", "!*.internal.*,*"
+    instruction 'Import-Package', '!de.thebox.control.feature.emoncms.*,!org.ini4j.*,!org.emoncms.*,!com.google.gson.*,*'
+    instruction 'Export-Package', '!*.internal.*,!org.ini4j.*,!org.emoncms.*,!com.google.gson.*,*'
   }
 }
 

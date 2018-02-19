@@ -26,7 +26,7 @@ public class FeedListener {
 		Timevalue value = feed.getLatestTimevalue();
 		if (lastValue == null || (value != null && value.getTime() > lastValue.getTime())) {
 			lastValue = value;
-			listener.onValueReceived(new DoubleValue(value.getValue(), value.getTime()));
+			listener.onValueReceived(new DoubleValue(value.getValue(), value.getTime()*1000));
 		}
 	}
 }

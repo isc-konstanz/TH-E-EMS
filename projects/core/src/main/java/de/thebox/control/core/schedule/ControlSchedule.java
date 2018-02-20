@@ -22,7 +22,7 @@ public class ControlSchedule extends HashMap<String, Schedule> {
 
 	public Schedule get(ComponentService component) throws ComponentException {
 		if (component instanceof ScheduleComponent) {
-			return get(((ScheduleComponent) component).getType());
+			return get((ScheduleComponent) component);
 		}
 		throw new ComponentException("Component not able to be scheduled");
 	}
@@ -61,6 +61,21 @@ public class ControlSchedule extends HashMap<String, Schedule> {
 
 	public Schedule addHeatPumpSchedule(Schedule schedule) {
 		return add(Component.HEATPUMP, schedule);
+	}
+
+	public boolean contains(ComponentService component) throws ComponentException {
+		if (component instanceof ScheduleComponent) {
+			return contains((ScheduleComponent) component);
+		}
+		throw new ComponentException("Component not able to be scheduled");
+	}
+
+	public boolean contains(ScheduleComponent component) {
+		return contains(component.getType());
+	}
+
+	public boolean contains(Component type) {
+		return containsKey(type.getKey());
 	}
 
 }

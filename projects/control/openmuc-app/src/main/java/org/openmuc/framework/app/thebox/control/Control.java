@@ -67,8 +67,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 	private DataAccessService access;
 
 	private ScheduleService scheduler;
-	private ControlSchedule schedule;
-	private ControlSchedule newSchedule;
+	private ControlSchedule schedule = new ControlSchedule();
+	private ControlSchedule newSchedule = null;
 
 	private volatile boolean deactivateFlag;
 	private ExecutorService executor = null;
@@ -322,44 +322,44 @@ public final class Control extends Thread implements ControlService, ControlChan
 			executor.shutdown();
 			return;
 		}
+		if (access == null) {
+			return;
+		}
 		
-		if (access != null) {
-			synchronized (newComponents) {
-				if (newComponents.size() != 0) {
-					synchronized (components) {
-						components.putAll(newComponents);
+		synchronized (newComponents) {
+			if (newComponents.size() != 0) {
+				synchronized (components) {
+					components.putAll(newComponents);
+				}
+				for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
+					String id = newComponentEntry.getKey();
+					logger.info("Activating TH-E Control component: " + id);
+					try {
+						newComponentEntry.getValue().bind(this);
+						
+					} catch (ComponentException e) {
+						logger.warn("Error while activating component \"{}\": ", id, e);
 					}
-					for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
-						String id = newComponentEntry.getKey();
-						logger.info("Activating TH-E Control component: " + id);
-						try {
-							newComponentEntry.getValue().bind(this);
-							
-						} catch (ComponentException e) {
-							logger.warn("Error while activating component \"{}\": ", id, e);
+				}
+				newComponents.clear();
+			}
+		}
+		
+		if (newSchedule != null && newSchedule.getTimestamp() > schedule.getTimestamp()) {
+			// TODO: verify schedule integrity
+			synchronized (components) {
+				for (ComponentService component : components.values()) {
+					try {
+						if (component instanceof ScheduleComponent && newSchedule.contains(component)) {
+							ScheduleComponent scheduleComponent = (ScheduleComponent) component;
+							scheduleComponent.schedule(newSchedule.get(scheduleComponent.getType()));
 						}
+					} catch (ComponentException e) {
+						logger.warn("Error while scheduling: ", e);
 					}
-					newComponents.clear();
 				}
 			}
-			if (newSchedule != null) {
-				// TODO: verify schedule integrity
-				if (newSchedule.getTimestamp() > schedule.getTimestamp()) {
-					synchronized (components) {
-						for (ComponentService component : components.values()) {
-							try {
-								if (component instanceof ScheduleComponent) {
-									((ScheduleComponent) component).schedule(newSchedule.get(component));
-								}
-							} catch (ComponentException e) {
-								logger.warn("Error while scheduling: ", e);
-							}
-						}
-					}
-					schedule = newSchedule;
-				}
-				newSchedule = null;
-			}
+			schedule = newSchedule;
 		}
 	}
 }

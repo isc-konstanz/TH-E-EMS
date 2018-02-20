@@ -46,8 +46,8 @@ public class Schedule extends LinkedList<Value> {
 
 	@Override
 	public boolean add(Value value) {
-		if (value.getTimestamp() <= getStartTime() || value.getTimestamp() >= getEndTime() ||
-				(interval != null && (value.getTimestamp() - getStartTime()) % interval != 0)) {
+		if (value.getTimestamp() <= getStartTime() || (interval != null && 
+				(value.getTimestamp() >= getEndTime() || (value.getTimestamp() - getStartTime()) % interval != 0))) {
 			return false;
 		}
 		return super.add(value);

@@ -6,7 +6,7 @@ repositories {
 
 dependencies {
   compile project(':th-e-core')
-  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.3.0'
+  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.3.1'
 }
 
 jar {

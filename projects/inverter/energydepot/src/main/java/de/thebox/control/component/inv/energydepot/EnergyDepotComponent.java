@@ -7,8 +7,8 @@ import org.osgi.service.component.annotations.Component;
 import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.component.inv.energydepot.objective.Objective;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.ScheduleComponent;
 import de.thebox.control.core.component.InverterService;
+import de.thebox.control.core.component.ScheduleComponent;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.Schedule;
 
@@ -54,7 +54,7 @@ public class EnergyDepotComponent extends ScheduleComponent implements InverterS
 	public void schedule(Schedule schedule) throws ComponentException {
 		Value value = schedule.pollFirst();
 		if (value != null) {
-			objective.setSetpoint(schedule.pollFirst());
+			objective.setSetpoint(value);
 		}
 	}
 

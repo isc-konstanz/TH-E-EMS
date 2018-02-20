@@ -20,16 +20,19 @@ import org.slf4j.LoggerFactory;
 
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.ControlSchedule;
 import de.thebox.control.core.schedule.NamedThreadFactory;
+import de.thebox.control.core.schedule.Schedule;
 import de.thebox.control.core.schedule.ScheduleListener;
 import de.thebox.control.core.schedule.ScheduleService;
 import de.thebox.control.feature.emoncms.EmoncmsConfig;
 import de.thebox.control.opt.service.GridService;
+import de.thebox.control.opt.service.GridService.GridServiceCallbacks;
 import de.thebox.control.opt.service.GridServiceConfig;
 
 @Component
-public class Optimization extends Thread implements ScheduleService {
+public class Optimization extends Thread implements ScheduleService, GridServiceCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(Optimization.class);
 
 	private final static int SLEEP_INTERVAL = 60000;
@@ -45,6 +48,8 @@ public class Optimization extends Thread implements ScheduleService {
 	private Preferences config = null;
 //	private int interval;
 
+	private ControlSchedule schedule;
+
 	@Activate
 	protected void activate(ComponentContext context) {
 		logger.info("Activating TH-E Optimization");
@@ -59,7 +64,8 @@ public class Optimization extends Thread implements ScheduleService {
 		try {
 			Ini ini = new Ini(new File(fileName));
 			config = new IniPreferences(ini);
-//			OptimizationConfig config = new OptimizationConfig(prefs);
+			
+//			OptimizationConfig config = new OptimizationConfig(this.config);
 //			
 //			interval = config.getInterval();
 			
@@ -89,7 +95,7 @@ public class Optimization extends Thread implements ScheduleService {
 	public void registerScheduleListener(ScheduleListener listener) {
 		try {
 			if (config.nodeExists(GridServiceConfig.SECTION) && config.nodeExists(EmoncmsConfig.SECTION)) {
-				gridService = new GridService((ControlService) listener, config);
+				gridService = new GridService(this, (ControlService) listener, config);
 			}
 		} catch (ComponentException | BackingStoreException e) {
 			logger.error("Error while activating grid service: {}", e.getMessage());
@@ -110,8 +116,19 @@ public class Optimization extends Thread implements ScheduleService {
 
 	@Override
 	public ControlSchedule getSchedule() {
-		// TODO Auto-generated method stub
-		return null;
+		return schedule;
+	}
+
+	@Override
+	public void onGridServiceRequest(Value power) {
+		Schedule inverterSchedule = new Schedule();
+		inverterSchedule.add(power);
+		schedule = new ControlSchedule();
+		schedule.addInverterSchedule(inverterSchedule);
+		
+		for (ScheduleListener listener : listeners) {
+			listener.onScheduleReceived(schedule);
+		}
 	}
 
 	@Override

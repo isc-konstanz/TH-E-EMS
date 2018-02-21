@@ -13,29 +13,26 @@
     
     "items": [
         {
-            "id": "target",
-            "type": "Slider",
-            "label": "Storage temperature",
-            "format": "%.1f°C",
-            "max": 75,
-            "min": 30,
-            "step": 1,
-            "default": 65,
+            "id": "service",
+            "type": "Switch",
+            "label": "Enable",
+            "default": true,
             "mapping": {
-                "SET": { "channel": "storage_th_setpoint", "write": false }
+                "ON": { "channel": "control_enable", "value": true },
+                "OFF": { "channel": "control_enable", "value": false }
             },
-            "input": "storage_th_setpoint"
+            "input": "control_enable"
         }
     ],
 
     "channels": [
         {
-            "name": "storage_th_setpoint",
-            "description": "storage_th_setpoint_temp",
+            "name": "control_enable",
+            "description": "control_enable",
             "node": "Virtual",
             "device": "TH-E-Control",
             "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },
-            "configs": { "valueType":"INTEGER" }
+            "configs": { "valueType":"BOOLEAN" }
         },
         {
             "name": "grid_service_power",

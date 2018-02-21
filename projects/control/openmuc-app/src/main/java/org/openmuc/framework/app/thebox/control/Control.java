@@ -28,12 +28,14 @@ import org.slf4j.LoggerFactory;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.CogeneratorService;
+import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.component.ScheduleComponent;
 import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
@@ -66,14 +68,13 @@ public final class Control extends Thread implements ControlService, ControlChan
 
 	private DataAccessService access;
 
-	private ScheduleService scheduler;
 	private ControlSchedule schedule = new ControlSchedule();
 	private ControlSchedule newSchedule = null;
 
+	private ChannelListener enabled = null;
+	private volatile boolean enabledFlag;
 	private volatile boolean deactivateFlag;
 	private ExecutorService executor = null;
-
-	private Preferences config = null;
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -88,13 +89,33 @@ public final class Control extends Thread implements ControlService, ControlChan
 		}
 		try {
 			Ini ini = new Ini(new File(fileName));
-			config = new IniPreferences(ini);
+			activateListeners(new IniPreferences(ini));
 			
-		} catch (IOException e) {
+		} catch (IOException | ComponentConfigException | UnknownChannelException e) {
 			logger.error("Error while reading control configuration: {}", e.getMessage());
 		}
 		
 		start();
+	}
+
+	protected void activateListeners(Preferences prefs) throws ComponentConfigException, UnknownChannelException {
+		ControlConfig config = new ControlConfig(prefs);
+		
+		if (enabled != null) {
+			enabled.deregister();
+		}
+		enabled = new ChannelListener(getChannel(config.getEnabled())) {
+			
+			@Override
+			public void onValueReceived(Value value) {
+				if (value != null) {
+					enabledFlag = value.booleanValue();
+				}
+			}
+		};
+		
+		Value enabledValue = enabled.getLatestValue();
+		enabledFlag =  enabledValue != null ? enabled.getLatestValue().booleanValue() : true;
 	}
 
 	@Deactivate
@@ -117,7 +138,6 @@ public final class Control extends Thread implements ControlService, ControlChan
 
 	@Reference
 	protected void bindScheduleService(ScheduleService scheduleService) {
-		scheduler = scheduleService;
 		onScheduleReceived(scheduleService.getSchedule(this));
 	}
 
@@ -219,10 +239,18 @@ public final class Control extends Thread implements ControlService, ControlChan
 		}
 		try {
 			Ini ini = new Ini(new File(fileName));
-			config = new IniPreferences(ini);
+			activateListeners(new IniPreferences(ini));
 			
-		} catch (IOException e) {
+		} catch (IOException | ComponentConfigException | UnknownChannelException e) {
 			logger.error("Error while reloading TH-E Control configuration: {}", e.getMessage());
+		}
+		for (ComponentService component : components.values()) {
+			try {
+				component.reload();
+				
+			} catch (ComponentException e) {
+				logger.error("Error while reloading TH-E Control component \"{}\": {}", component.getId(), e.getMessage());
+			}
 		}
 	}
 
@@ -322,9 +350,6 @@ public final class Control extends Thread implements ControlService, ControlChan
 			executor.shutdown();
 			return;
 		}
-		if (access == null) {
-			return;
-		}
 		
 		synchronized (newComponents) {
 			if (newComponents.size() != 0) {
@@ -345,21 +370,23 @@ public final class Control extends Thread implements ControlService, ControlChan
 			}
 		}
 		
-		if (newSchedule != null && newSchedule.getTimestamp() > schedule.getTimestamp()) {
-			// TODO: verify schedule integrity
-			synchronized (components) {
-				for (ComponentService component : components.values()) {
-					try {
-						if (component instanceof ScheduleComponent && newSchedule.contains(component)) {
-							ScheduleComponent scheduleComponent = (ScheduleComponent) component;
-							scheduleComponent.schedule(newSchedule.get(scheduleComponent.getType()));
+		if (enabledFlag) {
+			if (newSchedule != null && newSchedule.getTimestamp() > schedule.getTimestamp()) {
+				// TODO: verify schedule integrity
+				synchronized (components) {
+					for (ComponentService component : components.values()) {
+						try {
+							if (component instanceof ScheduleComponent && newSchedule.contains(component)) {
+								ScheduleComponent scheduleComponent = (ScheduleComponent) component;
+								scheduleComponent.schedule(newSchedule.get(scheduleComponent.getType()));
+							}
+						} catch (ComponentException e) {
+							logger.warn("Error while scheduling: ", e);
 						}
-					} catch (ComponentException e) {
-						logger.warn("Error while scheduling: ", e);
 					}
 				}
+				schedule = newSchedule;
 			}
-			schedule = newSchedule;
 		}
 	}
 }

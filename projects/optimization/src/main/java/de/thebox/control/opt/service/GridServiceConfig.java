@@ -10,9 +10,7 @@ public class GridServiceConfig extends ComponentConfig {
 	public final static String SECTION = "External";
 
 	public final static String GRID_SERVICE_KEY = "gridService";
-
-	public final static String FEED_EXPORT_KEY = "externalExportFeed";
-	public final static String FEED_IMPORT_KEY = "externalImportFeed";
+	public final static String FEED_EXTERNAL_KEY = "externalServiceFeed";
 
 	public GridServiceConfig(Preferences configs) {
 		super(configs);
@@ -27,12 +25,8 @@ public class GridServiceConfig extends ComponentConfig {
 		return getKey(GRID_SERVICE_KEY);
 	}
 
-	public String getGridExportFeed() throws ComponentConfigException {
-		return config.get(FEED_EXPORT_KEY, null);
-	}
-
-	public String getGridImportFeed() throws ComponentConfigException {
-		return getKey(FEED_IMPORT_KEY);
+	public String getExternalServiceFeed() throws ComponentConfigException {
+		return config.get(FEED_EXTERNAL_KEY, null);
 	}
 
 }

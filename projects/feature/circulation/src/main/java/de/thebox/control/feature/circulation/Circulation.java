@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.UnknownChannelException;
@@ -19,7 +19,7 @@ public class Circulation implements CirculationTemperatureCallbacks {
 	protected Value inTemperatureLast = DoubleValue.emptyValue();
 	protected final List<CirculationTemperatureListener> temperatureListeners = new ArrayList<CirculationTemperatureListener>();
 
-	public Circulation(ControlService control, Preferences prefs) throws ComponentConfigException {
+	public Circulation(ControlService control, Preferences prefs) throws ConfigurationException {
 		CirculationConfig config = new CirculationConfig(prefs);
 		try {
 			this.deltaTemperature = control.getChannel(config.getDeltaTemperature());
@@ -27,7 +27,7 @@ public class Circulation implements CirculationTemperatureCallbacks {
 			registerTemperatureListener(control.getChannel(config.getOutTemperature()), CirculationTemperature.OUT);
 			
 		} catch (UnknownChannelException e) {
-			throw new ComponentConfigException("Invalid circulation configuration: " + e.getMessage());
+			throw new ConfigurationException("Invalid circulation configuration: " + e.getMessage());
 		}
 	}
 

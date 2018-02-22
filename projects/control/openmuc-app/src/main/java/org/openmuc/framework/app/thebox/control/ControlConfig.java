@@ -2,10 +2,10 @@ package org.openmuc.framework.app.thebox.control;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class ControlConfig extends ComponentConfig {
+public class ControlConfig extends Configuration {
 
 	public final static String SECTION = "Control";
 
@@ -20,7 +20,7 @@ public class ControlConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getEnabled() throws ComponentConfigException {
+	public String getEnabled() throws ConfigurationException {
 		return getKey(ENABLE_KEY);
 	}
 

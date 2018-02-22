@@ -2,7 +2,7 @@ package de.thebox.control.feature.circulation.pump;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.feature.circulation.CirculationConfig;
 
 public class CirculationPumpConfig extends CirculationConfig {
@@ -27,19 +27,19 @@ public class CirculationPumpConfig extends CirculationConfig {
 		return config.getDouble(MIN_DELTA_TEMPERATURE_KEY, MIN_DELTA_TEMPERATURE_DEFAULT);
 	}
 
-	public double getReferenceTemperatureMax() throws ComponentConfigException {
+	public double getReferenceTemperatureMax() throws ConfigurationException {
 		return getDouble(MAX_REF_TEMPERATURE_KEY);
 	}
 
-	public double getReferenceTemperatureMin() throws ComponentConfigException {
+	public double getReferenceTemperatureMin() throws ConfigurationException {
 		return getDouble(MIN_REF_TEMPERATURE_KEY);
 	}
 
-	public String getReferenceTemperature() throws ComponentConfigException {
+	public String getReferenceTemperature() throws ConfigurationException {
 		return getKey(REF_TEMPERATURE_KEY);
 	}
 
-	public String getState() throws ComponentConfigException {
+	public String getState() throws ConfigurationException {
 		return getKey(PUMP_STATE_KEY);
 	}
 

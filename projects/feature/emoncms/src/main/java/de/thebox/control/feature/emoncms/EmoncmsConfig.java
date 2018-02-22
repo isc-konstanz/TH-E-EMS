@@ -7,10 +7,10 @@ import java.util.prefs.Preferences;
 import org.ini4j.Ini;
 import org.ini4j.IniPreferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class EmoncmsConfig extends ComponentConfig {
+public class EmoncmsConfig extends Configuration {
 
 	public final static String SECTION = "Emoncms";
 
@@ -29,14 +29,14 @@ public class EmoncmsConfig extends ComponentConfig {
 
 	private final Preferences serverConfig;
 
-	public EmoncmsConfig(Preferences config) throws ComponentConfigException {
+	public EmoncmsConfig(Preferences config) throws ConfigurationException {
 		super(config);
 		try {
 			Ini ini = new Ini(getConfigFile());
 			serverConfig = new IniPreferences(ini).node(SECTION);
 			
 		} catch (IOException e) {
-			throw new ComponentConfigException("Error opening emoncms configuration: " + e.getMessage());
+			throw new ConfigurationException("Error opening emoncms configuration: " + e.getMessage());
 		}
 	}
 

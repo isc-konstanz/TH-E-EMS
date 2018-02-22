@@ -25,15 +25,16 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.CogeneratorService;
-import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.component.ScheduleComponent;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
@@ -92,14 +93,14 @@ public final class Control extends Thread implements ControlService, ControlChan
 			Ini ini = new Ini(new File(fileName));
 			activateListeners(new IniPreferences(ini));
 			
-		} catch (IOException | ComponentConfigException | UnknownChannelException e) {
+		} catch (IOException | ConfigurationException | UnknownChannelException e) {
 			logger.error("Error while reading control configuration: {}", e.getMessage());
 		}
 		
 		start();
 	}
 
-	protected void activateListeners(Preferences prefs) throws ComponentConfigException, UnknownChannelException {
+	protected void activateListeners(Preferences prefs) throws ConfigurationException, UnknownChannelException {
 		ControlConfig config = new ControlConfig(prefs);
 		
 		if (enabled != null) {
@@ -242,14 +243,14 @@ public final class Control extends Thread implements ControlService, ControlChan
 			Ini ini = new Ini(new File(fileName));
 			activateListeners(new IniPreferences(ini));
 			
-		} catch (IOException | ComponentConfigException | UnknownChannelException e) {
+		} catch (IOException | ConfigurationException | UnknownChannelException e) {
 			logger.error("Error while reloading TH-E Control configuration: {}", e.getMessage());
 		}
 		for (ComponentService component : components.values()) {
 			try {
 				component.reload();
 				
-			} catch (ComponentException e) {
+			} catch (ControlException e) {
 				logger.error("Error while reloading TH-E Control component \"{}\": {}", component.getId(), e.getMessage());
 			}
 		}
@@ -363,7 +364,7 @@ public final class Control extends Thread implements ControlService, ControlChan
 					try {
 						newComponentEntry.getValue().bind(this);
 						
-					} catch (ComponentException e) {
+					} catch (ControlException e) {
 						logger.warn("Error while activating component \"{}\": ", id, e);
 					}
 				}

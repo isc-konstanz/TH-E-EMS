@@ -3,7 +3,7 @@ package de.thebox.control.feature.circulation.pump;
 import java.util.prefs.Preferences;
 
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
@@ -24,7 +24,7 @@ public class CirculationPump extends Circulation {
 	private final Double referenceTemperatureMin;
 	private final double deltaTemperatureMin;
 
-	public CirculationPump(ControlService control, Preferences prefs) throws ComponentConfigException {
+	public CirculationPump(ControlService control, Preferences prefs) throws ConfigurationException {
 		super(control, prefs);
 		
 		CirculationPumpConfig config = new CirculationPumpConfig(prefs);
@@ -39,7 +39,7 @@ public class CirculationPump extends Circulation {
 			this.stateListener = registerStateListener(state);
 			
 		} catch (UnknownChannelException e) {
-			throw new ComponentConfigException("Invalid circulation pump configuration: " + e.getMessage());
+			throw new ConfigurationException("Invalid circulation pump configuration: " + e.getMessage());
 		}
 	}
 

@@ -2,10 +2,10 @@ package de.thebox.control.feature.circulation;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class CirculationConfig extends ComponentConfig {
+public class CirculationConfig extends Configuration {
 
 	protected final static String SECTION = "Circulation";
 
@@ -22,15 +22,15 @@ public class CirculationConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getDeltaTemperature() throws ComponentConfigException {
+	public String getDeltaTemperature() throws ConfigurationException {
 		return getKey(DELTA_TEMPERATURE_KEY);
 	}
 
-	public String getInTemperature() throws ComponentConfigException {
+	public String getInTemperature() throws ConfigurationException {
 		return getKey(IN_TEMPERATURE_KEY);
 	}
 
-	public String getOutTemperature() throws ComponentConfigException {
+	public String getOutTemperature() throws ConfigurationException {
 		return getKey(OUT_TEMPERATURE_KEY);
 	}
 

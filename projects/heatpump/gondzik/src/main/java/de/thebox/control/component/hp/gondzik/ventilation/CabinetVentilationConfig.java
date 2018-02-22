@@ -2,10 +2,10 @@ package de.thebox.control.component.hp.gondzik.ventilation;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class CabinetVentilationConfig extends ComponentConfig {
+public class CabinetVentilationConfig extends Configuration {
 
 	public final static String SECTION = "Ventilation";
 
@@ -33,19 +33,19 @@ public class CabinetVentilationConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getStateKey() throws ComponentConfigException {
+	public String getStateKey() throws ConfigurationException {
 		return getKey(VEMNTILATION_STATE_KEY);
 	}
 
-	public String getTopTemperatureKey() throws ComponentConfigException {
+	public String getTopTemperatureKey() throws ConfigurationException {
 		return getKey(TOP_TEMPERATURE_KEY);
 	}
 
-	public String getCenterTemperatureKey() throws ComponentConfigException {
+	public String getCenterTemperatureKey() throws ConfigurationException {
 		return getKey(CENTER_TEMPERATURE_KEY);
 	}
 
-	public String getBottomTemperatureKey() throws ComponentConfigException {
+	public String getBottomTemperatureKey() throws ConfigurationException {
 		return getKey(BOTTOM_TEMPERATURE_KEY);
 	}
 

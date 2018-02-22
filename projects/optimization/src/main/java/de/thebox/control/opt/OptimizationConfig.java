@@ -2,10 +2,10 @@ package de.thebox.control.opt;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class OptimizationConfig extends ComponentConfig {
+public class OptimizationConfig extends Configuration {
 
 	public final static String SECTION = "Optimization";
 
@@ -21,7 +21,7 @@ public class OptimizationConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public int getInterval() throws ComponentConfigException {
+	public int getInterval() throws ConfigurationException {
 		return config.getInt(INTERVAL_KEY, INTERVAL_DEFAULT)*60000;
 	}
 

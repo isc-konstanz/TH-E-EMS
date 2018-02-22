@@ -2,10 +2,10 @@ package de.thebox.control.component.inv.energydepot.objective;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class ObjectiveConfig extends ComponentConfig {
+public class ObjectiveConfig extends Configuration {
 
 	public final static String SECTION = "Inverter";
 
@@ -29,15 +29,15 @@ public class ObjectiveConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getVirtualObjective() throws ComponentConfigException {
+	public String getVirtualObjective() throws ConfigurationException {
 		return getKey(OBJECTIVE_VIRTUAL_KEY);
 	}
 
-	public String getObjective() throws ComponentConfigException {
+	public String getObjective() throws ConfigurationException {
 		return getKey(OBJECTIVE_KEY);
 	}
 
-	public String getBatterySoC() throws ComponentConfigException {
+	public String getBatterySoC() throws ConfigurationException {
 		return getKey(BATTERY_SOC_KEY);
 	}
 

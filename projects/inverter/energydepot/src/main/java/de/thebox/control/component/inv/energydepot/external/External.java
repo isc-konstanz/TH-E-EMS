@@ -6,8 +6,7 @@ import java.util.prefs.Preferences;
 import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.component.ComponentConfigException;
-import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
@@ -31,28 +30,24 @@ public class External {
 
 	private Emoncms emoncms;
 
-	public External(ControlService control, Preferences prefs) throws ComponentException {
+	public External(ControlService control, Preferences prefs) throws ControlException {
 		ExternalConfig externalConfig = new ExternalConfig(prefs);
 		try {
 			if (prefs.nodeExists(ExternalConfig.SECTION) && prefs.nodeExists(EmoncmsConfig.SECTION)) {
-				try {
-					emoncms = new Emoncms(prefs);
-					
-					enabled = true;
-					enabledListener = registerEnabledListener(control.getChannel(externalConfig.getEnabled()));
-					enabledListener.getChannel().setLatestValue(new BooleanValue(enabled));
-					
-					pvFeed = externalConfig.getPvFeed();
-					registerPvListener(pvFeed);
-					
-				} catch (ControlException e) {
-					throw new ComponentException("Error while activating emoncms listeners: " + e.getMessage());
-				}
+				emoncms = new Emoncms(prefs);
+				
+				enabled = true;
+				enabledListener = registerEnabledListener(control.getChannel(externalConfig.getEnabled()));
+				enabledListener.getChannel().setLatestValue(new BooleanValue(enabled));
+				
+				pvFeed = externalConfig.getPvFeed();
+				registerPvListener(pvFeed);
+				
 				actualPower = control.getChannel(externalConfig.getActualPower());
 				virtualPower = control.getChannel(externalConfig.getVirtualPower());
 			}
 		} catch (BackingStoreException | UnknownChannelException e) {
-			throw new ComponentConfigException("Invalid external configuration: " + e.getMessage());
+			throw new ConfigurationException("Invalid external configuration: " + e.getMessage());
 		}
 	}
 

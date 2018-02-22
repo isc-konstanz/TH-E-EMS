@@ -6,6 +6,7 @@ import org.osgi.service.component.annotations.Component;
 
 import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.component.inv.energydepot.objective.Objective;
+import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.component.ScheduleComponent;
@@ -25,7 +26,7 @@ public class EnergyDepotComponent extends ScheduleComponent implements InverterS
 	}
 
 	@Override
-	public void activate(Preferences config) throws ComponentException {
+	public void activate(Preferences config) throws ControlException {
 		consumption = new Consumption(control, config);
 		objective = new Objective(control, consumption, config);
 	}

@@ -4,6 +4,7 @@ import java.util.prefs.Preferences;
 
 import org.osgi.service.component.annotations.Component;
 
+import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ScheduleComponent;
@@ -21,7 +22,7 @@ public class SerenergyComponent extends ScheduleComponent implements Cogenerator
 	}
 
 	@Override
-	public void activate(Preferences config) throws ComponentException {
+	public void activate(Preferences config) throws ControlException {
 		circulation = new CirculationPump(control, config);
 	}
 

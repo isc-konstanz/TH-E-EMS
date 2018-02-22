@@ -2,10 +2,10 @@ package de.thebox.control.opt.service;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class GridServiceConfig extends ComponentConfig {
+public class GridServiceConfig extends Configuration {
 
 	public final static String SECTION = "External";
 
@@ -21,11 +21,11 @@ public class GridServiceConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getGridService() throws ComponentConfigException {
+	public String getGridService() throws ConfigurationException {
 		return getKey(GRID_SERVICE_KEY);
 	}
 
-	public String getExternalServiceFeed() throws ComponentConfigException {
+	public String getExternalServiceFeed() throws ConfigurationException {
 		return config.get(FEED_EXTERNAL_KEY, null);
 	}
 

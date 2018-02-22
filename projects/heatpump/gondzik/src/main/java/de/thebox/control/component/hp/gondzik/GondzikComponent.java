@@ -5,6 +5,7 @@ import java.util.prefs.Preferences;
 import org.osgi.service.component.annotations.Component;
 
 import de.thebox.control.component.hp.gondzik.ventilation.CabinetVentilation;
+import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.HeatPumpService;
@@ -24,7 +25,7 @@ public class GondzikComponent extends ScheduleComponent implements CabinetServic
 	}
 
 	@Override
-	public void activate(Preferences config) throws ComponentException {
+	public void activate(Preferences config) throws ControlException {
 		ventilation = new CabinetVentilation(control, config);
 		circulation = new Circulation(control, config);
 	}

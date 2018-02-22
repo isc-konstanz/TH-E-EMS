@@ -2,10 +2,10 @@ package de.thebox.control.component.inv.energydepot.consumption;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class ConsumptionConfig extends ComponentConfig {
+public class ConsumptionConfig extends Configuration {
 
 	public final static String SECTION = "Consumption";
 
@@ -23,19 +23,19 @@ public class ConsumptionConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getConsumptionPower() throws ComponentConfigException {
+	public String getConsumptionPower() throws ConfigurationException {
 		return getKey(CONSUMPTION_POWER_KEY);
 	}
 
-	public String getBatteryPower() throws ComponentConfigException {
+	public String getBatteryPower() throws ConfigurationException {
 		return getKey(BATTERY_POWER_KEY);
 	}
 
-	public String getAcPower() throws ComponentConfigException {
+	public String getAcPower() throws ConfigurationException {
 		return getKey(AC_POWER_KEY);
 	}
 
-	public String getDcPower() throws ComponentConfigException {
+	public String getDcPower() throws ConfigurationException {
 		return getKey(DC_POWER_KEY);
 	}
 

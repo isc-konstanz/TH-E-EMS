@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import de.thebox.control.component.hp.gondzik.ventilation.CabinetTemperatureListener.CabinetTemperatureCallbacks;
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
@@ -31,7 +31,7 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 	private final List<CabinetTemperatureListener> temperatureListeners = new ArrayList<CabinetTemperatureListener>();
 	private final List<CabinetTemperature> temperatureHighFlags = new ArrayList<CabinetTemperature>(CabinetTemperature.values().length);
 
-	public CabinetVentilation(ControlService control, Preferences prefs) throws ComponentConfigException {
+	public CabinetVentilation(ControlService control, Preferences prefs) throws ConfigurationException {
 		logger.info("Activating TH-E Control cabinet ventilation management");
 		CabinetVentilationConfig config = new CabinetVentilationConfig(prefs);
 		this.intervalMin = config.getIntervalMin();
@@ -45,7 +45,7 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 			this.state = control.getChannel(config.getStateKey());
 			this.stateListener = registerStateListener(state);
 		} catch (UnknownChannelException e) {
-			throw new ComponentConfigException("Invalid ventilation configuration: " + e.getMessage());
+			throw new ConfigurationException("Invalid ventilation configuration: " + e.getMessage());
 		}
 	}
 

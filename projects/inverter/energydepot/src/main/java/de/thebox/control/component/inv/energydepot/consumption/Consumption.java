@@ -6,8 +6,7 @@ import java.util.prefs.Preferences;
 
 import de.thebox.control.component.inv.energydepot.consumption.PowerListener.PowerCallbacks;
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.component.ComponentConfigException;
-import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.UnknownChannelException;
@@ -23,7 +22,7 @@ public class Consumption implements PowerCallbacks {
 	protected final List<PowerListener> powerListeners = new ArrayList<PowerListener>();
 	protected final List<ValueListener> consListeners = new ArrayList<ValueListener>();
 
-	public Consumption(ControlService control, Preferences prefs) throws ComponentException {
+	public Consumption(ControlService control, Preferences prefs) throws ConfigurationException {
 		ConsumptionConfig config = new ConsumptionConfig(prefs);
 		try {
 			this.consumption = control.getChannel(config.getConsumptionPower());
@@ -32,7 +31,7 @@ public class Consumption implements PowerCallbacks {
 			registerPowerValueListener(control.getChannel(config.getDcPower()), PowerType.DC);
 			
 		} catch (UnknownChannelException e) {
-			throw new ComponentConfigException("Invalid consumption configuration: " + e.getMessage());
+			throw new ConfigurationException("Invalid consumption configuration: " + e.getMessage());
 		}
 	}
 

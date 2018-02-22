@@ -7,9 +7,10 @@ import org.slf4j.LoggerFactory;
 
 import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.component.inv.energydepot.external.External;
+import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
-import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.DoubleValue;
@@ -32,7 +33,7 @@ public class Objective {
 	private ChannelListener virtualObjectiveListener;
 	private External external;
 
-	public Objective(ControlService control, Consumption consumption, Preferences prefs) throws ComponentException {
+	public Objective(ControlService control, Consumption consumption, Preferences prefs) throws ControlException {
 		ObjectiveConfig config = new ObjectiveConfig(prefs);
 		try {
 			objective = control.getChannel(config.getObjective());
@@ -47,7 +48,7 @@ public class Objective {
 			external = new External(control, prefs);
 			
 		} catch (UnknownChannelException e) {
-			throw new ComponentConfigException("Invalid objective configuration: " + e.getMessage());
+			throw new ConfigurationException("Invalid objective configuration: " + e.getMessage());
 		}
 	}
 

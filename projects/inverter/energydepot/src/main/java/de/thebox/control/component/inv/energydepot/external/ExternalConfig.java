@@ -2,10 +2,10 @@ package de.thebox.control.component.inv.energydepot.external;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.ComponentConfig;
-import de.thebox.control.core.component.ComponentConfigException;
+import de.thebox.control.core.config.Configuration;
+import de.thebox.control.core.config.ConfigurationException;
 
-public class ExternalConfig extends ComponentConfig {
+public class ExternalConfig extends Configuration {
 
 	public final static String SECTION = "External";
 
@@ -25,19 +25,19 @@ public class ExternalConfig extends ComponentConfig {
 		return SECTION;
 	}
 
-	public String getEnabled() throws ComponentConfigException {
+	public String getEnabled() throws ConfigurationException {
 		return getKey(ENABLE_KEY);
 	}
 
-	public String getVirtualPower() throws ComponentConfigException {
+	public String getVirtualPower() throws ConfigurationException {
 		return getKey(POWER_VIRTUAL_KEY);
 	}
 
-	public String getActualPower() throws ComponentConfigException {
+	public String getActualPower() throws ConfigurationException {
 		return getKey(POWER_ACTUAL_KEY);
 	}
 
-	public String getPvFeed() throws ComponentConfigException {
+	public String getPvFeed() throws ConfigurationException {
 		return config.get(FEED_PV_KEY, null);
 	}
 

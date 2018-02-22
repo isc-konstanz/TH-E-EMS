@@ -1,13 +1,12 @@
 package de.thebox.control.component.inv.energydepot.objective;
 
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.thebox.control.component.inv.energydepot.consumption.Consumption;
-import de.thebox.control.core.ControlException;
+import de.thebox.control.component.inv.energydepot.external.External;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentConfigException;
 import de.thebox.control.core.component.ComponentException;
@@ -17,9 +16,6 @@ import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
-import de.thebox.control.feature.emoncms.Emoncms;
-import de.thebox.control.feature.emoncms.EmoncmsConfig;
-
 
 public class Objective {
 	private final static Logger logger = LoggerFactory.getLogger(Objective.class);
@@ -32,15 +28,9 @@ public class Objective {
 	private ValueListener consumptionListener;
 	private Value consumption = DoubleValue.emptyValue();
 
-	private Emoncms emoncms = null;
-	private boolean externalPvEnabled = false;
-	private String externalPvFeed = null;
-	private double externalPv = 0;
-
-	private Channel actualPower = null;
-	private Channel virtualPower = null;
-	private Channel virtualObjective = null;
-	private ChannelListener virtualObjectiveListener = null;
+	private Channel virtualObjective;
+	private ChannelListener virtualObjectiveListener;
+	private External external;
 
 	public Objective(ControlService control, Consumption consumption, Preferences prefs) throws ComponentException {
 		ObjectiveConfig config = new ObjectiveConfig(prefs);
@@ -54,22 +44,9 @@ public class Objective {
 			
 			consumptionListener = registerConsumptionListener(consumption);
 			
-			if (prefs.nodeExists(ExternalObjectiveConfig.SECTION) && prefs.nodeExists(EmoncmsConfig.SECTION)) {
-				ExternalObjectiveConfig externalConfig = new ExternalObjectiveConfig(prefs);
-				try {
-					emoncms = new Emoncms(prefs);
-					
-					externalPvEnabled = true;
-					externalPvFeed = externalConfig.getPvFeed();
-					registerExternalPvListener(externalPvFeed);
-					
-				} catch (ControlException e) {
-					throw new ComponentException("Error while activating emoncms listeners: " + e.getMessage());
-				}
-				actualPower = control.getChannel(externalConfig.getActualPower());
-				virtualPower = control.getChannel(externalConfig.getVirtualPower());
-			}
-		} catch (BackingStoreException | UnknownChannelException e) {
+			external = new External(control, prefs);
+			
+		} catch (UnknownChannelException e) {
 			throw new ComponentConfigException("Invalid objective configuration: " + e.getMessage());
 		}
 	}
@@ -104,32 +81,12 @@ public class Objective {
 		return listener;
 	}
 
-	private ValueListener registerExternalPvListener(String id) throws ControlException {
-		ValueListener listener = new ValueListener() {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				if (value != null) {
-					externalPv = value.doubleValue();
-					onObjectiveUpdate();
-				}
-			}
-		};
-		emoncms.registerFeedListener(id, listener);
-		
-		return listener;
-	}
-
 	public void deactivate(Consumption consumption) {
 		if (virtualObjectiveListener != null) {
 			virtualObjectiveListener.deregister();
 		}
 		if (consumption != null && consumptionListener != null) {
 			consumption.deregister(consumptionListener);
-		}
-		if (emoncms != null) {
-			emoncms.deregisterFeedListener(externalPvFeed);
-			emoncms.deactivate();
 		}
 	}
 
@@ -157,14 +114,9 @@ public class Objective {
 	private void onObjectiveUpdate() {
 		double objective = setpoint;
 		
-		if (externalPvEnabled) {
-			objective += (consumption.doubleValue() - externalPv);
-			
-			Value actualValue = actualPower.getLatestValue();
-			if (actualValue != null && actualValue.getTimestamp() == consumption.getTimestamp()) {
-				Value virtualValue = new DoubleValue(actualValue.doubleValue() - externalPv, actualValue.getTimestamp());
-				virtualPower.setLatestValue(virtualValue);
-			}
+		if (external.isEnabled()) {
+			external.update(consumption.getTimestamp());
+			objective += (consumption.doubleValue() - external.getPv().doubleValue());
 		}
 		else if (setpoint > 0) {
 			objective += consumption.doubleValue();

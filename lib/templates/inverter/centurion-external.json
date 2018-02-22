@@ -29,6 +29,17 @@
     
     "items": [
         {
+            "id": "external",
+            "type": "Switch",
+            "label": "External PV",
+            "default": true,
+            "mapping": {
+                "ON": { "channel": "inv_external_enable", "value": true },
+                "OFF": { "channel": "inv_external_enable", "value": false }
+            },
+            "input": "inv_external_enable"
+        },
+        {
             "id": "objective",
             "type": "Slider",
             "label": "Import/Export",
@@ -38,7 +49,7 @@
             "step": 500,
             "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_virtual_objective", "write":false }
+                "SET": { "channel": "inv_virtual_objective", "write": false }
             },
             "input": "inv_virtual_objective"
         }
@@ -232,6 +243,14 @@
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_energy"}
                 }
             ]
+        },
+        {
+            "name": "inv_external_enable",
+            "description": "inv_external_enable",
+            "node": "Virtual",
+            "device": "Inverter",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"valueType":"BOOLEAN"}
         },
         {
             "name": "inv_virtual_objective",

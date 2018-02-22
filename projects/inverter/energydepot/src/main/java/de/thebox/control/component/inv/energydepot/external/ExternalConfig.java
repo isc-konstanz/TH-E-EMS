@@ -1,26 +1,32 @@
-package de.thebox.control.component.inv.energydepot.objective;
+package de.thebox.control.component.inv.energydepot.external;
 
 import java.util.prefs.Preferences;
 
 import de.thebox.control.core.component.ComponentConfig;
 import de.thebox.control.core.component.ComponentConfigException;
 
-public class ExternalObjectiveConfig extends ComponentConfig {
+public class ExternalConfig extends ComponentConfig {
 
 	public final static String SECTION = "External";
+
+	public final static String ENABLE_KEY = "enable";
 
 	public final static String POWER_VIRTUAL_KEY = "virtualPower";
 	public final static String POWER_ACTUAL_KEY = "actualPower";
 
-	public final static String FEED_PV_KEY = "externalPvFeed";
+	public final static String FEED_PV_KEY = "pvFeed";
 
-	public ExternalObjectiveConfig(Preferences configs) {
+	public ExternalConfig(Preferences configs) {
 		super(configs);
 	}
 
 	@Override
 	protected String getSectionKey() {
 		return SECTION;
+	}
+
+	public String getEnabled() throws ComponentConfigException {
+		return getKey(ENABLE_KEY);
 	}
 
 	public String getVirtualPower() throws ComponentConfigException {

@@ -34,6 +34,7 @@ import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.component.ScheduleComponent;
+import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.UnknownChannelException;
@@ -114,8 +115,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 			}
 		};
 		
-		Value enabledValue = enabled.getLatestValue();
-		enabledFlag =  enabledValue != null ? enabled.getLatestValue().booleanValue() : true;
+		enabledFlag = true;
+		enabled.getChannel().setLatestValue(new BooleanValue(enabledFlag));
 	}
 
 	@Deactivate

@@ -25,9 +25,9 @@
 
     "items": [
         {
-            "id": "compressor",
+            "id": "enable",
             "type": "Switch",
-            "label": "Compressor",
+            "label": "Enable",
             "mapping": {
                 "ON": { "channel": "HP100TIn", "value": "true" },
                 "OFF": { "channel": "HP100TIn", "value": "false" }

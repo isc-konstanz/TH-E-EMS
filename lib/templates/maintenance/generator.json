@@ -1,0 +1,39 @@
+{
+    "name": "Generator",
+    "category": "TH-E Box",
+    "group": "Maintenance",
+    "description": "Electrical Generator",
+    
+    "devices": [
+        {
+            "name": "GPIO_0",
+            "driver": "rpi-gpio",
+            "address": "pin:0",
+            "settings": "type:output"
+        }
+    ],
+    
+    "items": [
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "mapping": {
+                "ON": { "channel": "RLY410", "value": "true" },
+                "OFF": { "channel": "RLY410", "value": "false" }
+            },
+            "input": "RLY410"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "RLY410",
+            "description": "fc_pump_state",
+            "node": "Pins",
+            "device": "GPIO_0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"}
+        }
+    ]
+}

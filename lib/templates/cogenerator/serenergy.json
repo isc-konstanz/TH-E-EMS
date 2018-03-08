@@ -48,16 +48,6 @@
             "type": "Switch",
             "label": "Enable",
             "mapping": {
-                "ON": { "channel": "sngyh3control_enable", "value": 1 },
-                "OFF": { "channel": "sngyh3control_enable", "value": 0 }
-            },
-            "input": "sngyh3control_enable"
-        },
-        {
-            "id": "module",
-            "type": "Switch",
-            "label": "Module",
-            "mapping": {
                 "ON": { "channel": "sngyh3control_start", "value": 3 },
                 "OFF": { "channel": "sngyh3control_stop", "value": 3 }
             },

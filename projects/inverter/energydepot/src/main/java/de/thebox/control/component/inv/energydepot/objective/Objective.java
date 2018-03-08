@@ -99,11 +99,11 @@ public class Objective {
 		if (value > ObjectiveConfig.OBJECTIVE_MAX || value < ObjectiveConfig.OBJECTIVE_MIN) {
 			throw new ComponentException("Inverter objective out of bounds: " + value);
 		}
-		Value state = batteryState.getLatestValue();
-		if (state != null && state.doubleValue() < batteryStateMin) {
-			reset();
-		}
-		else if (objective.getLatestValue().doubleValue() != value) {
+		else if (value != objective.getLatestValue().doubleValue()) {
+			Value state = batteryState.getLatestValue();
+			if (value > 0 && state != null && state.doubleValue() < batteryStateMin) {
+				reset();
+			}
 			objective.writeValue(new DoubleValue(value));
 		}
 	}

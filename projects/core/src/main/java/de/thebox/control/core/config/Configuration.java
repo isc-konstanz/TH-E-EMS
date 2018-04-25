@@ -38,4 +38,11 @@ public abstract class Configuration {
 		throw new ConfigurationException("Parameter \"" + key + "\" missing");
 	}
 
+	protected boolean getBoolean(String key) throws ConfigurationException {
+		if (config.get(key, null) != null) {
+			return config.getBoolean(key, false);
+		}
+		throw new ConfigurationException("Parameter \"" + key + "\" missing");
+	}
+
 }

@@ -14,6 +14,8 @@ import de.thebox.control.feature.circulation.CirculationTemperature;
 
 public class CirculationPump extends Circulation {
 
+	private volatile boolean enabled = false;
+
 	private final Channel state;
 	private final ChannelListener stateListener;
 	private Value stateValueLast = new BooleanValue(false);
@@ -41,6 +43,7 @@ public class CirculationPump extends Circulation {
 		} catch (UnknownChannelException e) {
 			throw new ConfigurationException("Invalid circulation pump configuration: " + e.getMessage());
 		}
+		this.enabled = true;
 	}
 
 	private ChannelListener registerStateListener(Channel channel) {
@@ -69,6 +72,22 @@ public class CirculationPump extends Circulation {
 		}
 	}
 
+	public void disable() {
+		setEnabled(false);
+	}
+
+	public void enable() {
+		setEnabled(true);
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
 	public void start() {
 		state.writeValue(new BooleanValue(true));
 	}
@@ -78,18 +97,22 @@ public class CirculationPump extends Circulation {
 	}
 
 	protected  void onTemperatureReferenceUpdated(Value delta) {
-		if (!stateValueLast.booleanValue() && delta.doubleValue() > referenceTemperatureMax) {
-			start();
-		}
-		else if (delta.doubleValue() < referenceTemperatureMin) {
-			stop();
+		if (enabled) {
+			if (!stateValueLast.booleanValue() && delta.doubleValue() > referenceTemperatureMax) {
+				start();
+			}
+			else if (delta.doubleValue() < referenceTemperatureMin && 
+					System.currentTimeMillis() - startTimeLast >= intervalMin) {
+				
+				stop();
+			}
 		}
 	}
 
 	protected  void onTemperatureDeltaUpdated(Value delta) {
 		super.onTemperatureDeltaUpdated(delta);
-		
-		if (stateValueLast.booleanValue() && delta.doubleValue() <= deltaTemperatureMin && 
+		if (enabled && 
+				stateValueLast.booleanValue() && delta.doubleValue() <= deltaTemperatureMin && 
 				System.currentTimeMillis() - startTimeLast >= intervalMin) {
 			
 			stop();

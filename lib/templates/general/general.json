@@ -13,22 +13,22 @@
     
     "items": [
         {
-            "id": "service",
+            "id": "maintenance",
             "type": "Switch",
-            "label": "Enable",
-            "default": true,
+            "label": "Maintenance",
+            "default": false,
             "mapping": {
-                "ON": { "channel": "control_enable", "value": true },
-                "OFF": { "channel": "control_enable", "value": false }
+                "ON": { "channel": "control_maintenance", "value": true },
+                "OFF": { "channel": "control_maintenance", "value": false }
             },
-            "input": "control_enable"
+            "input": "control_maintenance"
         }
     ],
 
     "channels": [
         {
-            "name": "control_enable",
-            "description": "control_enable",
+            "name": "control_maintenance",
+            "description": "control_maintenance",
             "node": "Virtual",
             "device": "TH-E-Control",
             "logging": { "loggingInterval": 5000, "loggingMaxInterval": 60000 },

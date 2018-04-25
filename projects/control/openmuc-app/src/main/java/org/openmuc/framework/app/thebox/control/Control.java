@@ -31,6 +31,7 @@ import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentService;
+import de.thebox.control.core.component.ComponentStatus;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.component.ScheduleComponent;
@@ -73,8 +74,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 	private ControlSchedule schedule = new ControlSchedule();
 	private ControlSchedule newSchedule = null;
 
-	private ChannelListener enabled = null;
-	private volatile boolean enabledFlag;
+	private ChannelListener maintenance = null;
+	private volatile boolean maintenanceFlag;
 	private volatile boolean deactivateFlag;
 	private ExecutorService executor = null;
 
@@ -101,23 +102,27 @@ public final class Control extends Thread implements ControlService, ControlChan
 	}
 
 	protected void activateListeners(Preferences prefs) throws ConfigurationException, UnknownChannelException {
-		ControlConfig config = new ControlConfig(prefs);
-		
-		if (enabled != null) {
-			enabled.deregister();
+		ControlConfig configs = new ControlConfig(prefs);
+		activateMaintenanceListener(configs);
+	}
+
+	protected void activateMaintenanceListener(ControlConfig configs) throws ConfigurationException, UnknownChannelException {
+		if (maintenance != null) {
+			maintenance.deregister();
 		}
-		enabled = new ChannelListener(getChannel(config.getEnabled())) {
+		maintenance = new ChannelListener(getChannel(configs.getMaintenance())) {
 			
 			@Override
 			public void onValueReceived(Value value) {
 				if (value != null) {
-					enabledFlag = value.booleanValue();
+					maintenanceFlag = value.booleanValue();
+					interrupt();
 				}
 			}
 		};
 		
-		enabledFlag = true;
-		enabled.getChannel().setLatestValue(new BooleanValue(enabledFlag));
+		maintenanceFlag = false;
+		maintenance.getChannel().setLatestValue(new BooleanValue(maintenanceFlag));
 	}
 
 	@Deactivate
@@ -335,8 +340,7 @@ public final class Control extends Thread implements ControlService, ControlChan
 			}
 			try {
 				while (true) {
-					// TODO: implement channel flag checks, component and optimization verifications
-					
+					handleComponentEvent();
 					Thread.sleep(SLEEP_INTERVAL);
 				}
 			} catch (InterruptedException e) {
@@ -360,9 +364,12 @@ public final class Control extends Thread implements ControlService, ControlChan
 				}
 				for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
 					String id = newComponentEntry.getKey();
+					ComponentService component = newComponentEntry.getValue();
+					
 					logger.info("Activating TH-E Control component: " + id);
 					try {
-						newComponentEntry.getValue().bind(this);
+						component.bind(this);
+						component.setStatus(ComponentStatus.ENABLED);
 						
 					} catch (ControlException e) {
 						logger.warn("Error while activating component \"{}\": ", id, e);
@@ -371,23 +378,44 @@ public final class Control extends Thread implements ControlService, ControlChan
 				newComponents.clear();
 			}
 		}
+		handleComponentEvent();
+	}
+
+	private void handleComponentEvent() {
+		// TODO: implement channel flag checks, component and optimization verifications
 		
-		if (enabledFlag) {
-			if (newSchedule != null && newSchedule.getTimestamp() > schedule.getTimestamp()) {
-				// TODO: verify schedule integrity
-				synchronized (components) {
-					for (ComponentService component : components.values()) {
-						try {
-							if (component instanceof ScheduleComponent && newSchedule.contains(component)) {
-								ScheduleComponent scheduleComponent = (ScheduleComponent) component;
-								scheduleComponent.schedule(newSchedule.get(scheduleComponent.getType()));
+		boolean scheduleFlag = false;
+		if (newSchedule != null && newSchedule.getTimestamp() > schedule.getTimestamp()) {
+			// TODO: verify schedule integrity
+			scheduleFlag = true;
+			schedule = newSchedule;
+		}
+		synchronized (components) {
+			for (ComponentService component : components.values()) {
+				try {
+					if (maintenanceFlag) {
+						component.setStatus(ComponentStatus.MAINTENANCE);
+					}
+					else {
+						// TODO: check for other possible component states
+						if (component.getStatus() != ComponentStatus.ENABLED) {
+							component.setStatus(ComponentStatus.ENABLED);
+						}
+						
+						if (scheduleFlag) {
+							try {
+								if (component instanceof ScheduleComponent && newSchedule.contains(component)) {
+									ScheduleComponent scheduleComponent = (ScheduleComponent) component;
+									scheduleComponent.schedule(newSchedule.get(scheduleComponent.getType()));
+								}
+							} catch (ComponentException e) {
+								logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);
 							}
-						} catch (ComponentException e) {
-							logger.warn("Error while scheduling: ", e);
 						}
 					}
+				} catch (ControlException e) {
+					logger.warn("Error while handling event for component \"{}\": ", component.getId(), e);
 				}
-				schedule = newSchedule;
 			}
 		}
 	}

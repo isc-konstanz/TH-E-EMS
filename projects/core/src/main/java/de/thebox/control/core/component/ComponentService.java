@@ -13,6 +13,10 @@ public interface ComponentService {
 		return Component.NONE;
 	};
 
+	public ComponentStatus getStatus();
+
+	public void setStatus(ComponentStatus status) throws ControlException;
+
 	public void bind(ControlService control) throws ControlException;
 
 	public void activate(Preferences config) throws ControlException;

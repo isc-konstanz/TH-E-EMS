@@ -9,7 +9,7 @@ public class ControlConfig extends Configuration {
 
 	public final static String SECTION = "Control";
 
-	public final static String ENABLE_KEY = "enable";
+	public final static String MAINTENANCE_KEY = "maintenance";
 
 	public ControlConfig(Preferences config) {
 		super(config);
@@ -20,8 +20,8 @@ public class ControlConfig extends Configuration {
 		return SECTION;
 	}
 
-	public String getEnabled() throws ConfigurationException {
-		return getKey(ENABLE_KEY);
+	public String getMaintenance() throws ConfigurationException {
+		return getKey(MAINTENANCE_KEY);
 	}
 
 }

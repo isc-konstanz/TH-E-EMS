@@ -1,12 +1,6 @@
-repositories {
-  flatDir {
-    dirs 'dependencies/TH-E-Control', rootDir.getPath() + "/dependencies/TH-E-Control"
-  }
-}
-
 dependencies {
   compile project(':th-e-core')
-  compile group: 'de.konstanz.isc', name: 'th-e-feature-circulation', version: '0.3.2'
+  compile project(':th-e-feature-circulation')
 }
 
 jar {

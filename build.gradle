@@ -91,6 +91,8 @@ configure(javaProjects) {
         from configurations.default
       }
       into rootDir.getPath() + "/build/libs"
+      exclude "**/th-e-core-*.jar"
+      exclude "**/th-e-feature-*.jar"
     }
     else {
 	  if (cfgCopyDependencies) {
@@ -98,6 +100,8 @@ configure(javaProjects) {
         from configurations.default
       }
       into "build/libs"
+      exclude "**/th-e-core-*.jar"
+      exclude "**/th-e-feature-*.jar"
     }
   }
 

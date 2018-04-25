@@ -1,9 +1,12 @@
-include "th-e-core", "th-e-optimization", "th-e-component-energydepot", "th-e-component-serenergy", "th-e-component-gondzik"
+include "th-e-core", "th-e-feature-emoncms", "th-e-feature-circulation", "th-e-component-energydepot", "th-e-component-serenergy", "th-e-component-gondzik", "th-e-optimization"
 
 project(":th-e-core").projectDir = file("../TH-E-Control/projects/core")
 
-project(":th-e-optimization").projectDir = file("projects/optimization")
+project(":th-e-feature-emoncms").projectDir = file("../TH-E-Control/projects/feature/emoncms")
+project(":th-e-feature-circulation").projectDir = file("../TH-E-Control/projects/feature/circulation")
 
 project(":th-e-component-energydepot").projectDir = file("projects/inverter/energydepot")
 project(":th-e-component-serenergy").projectDir = file("projects/cogenerator/serenergy")
 project(":th-e-component-gondzik").projectDir = file("projects/heatpump/gondzik")
+
+project(":th-e-optimization").projectDir = file("projects/optimization")

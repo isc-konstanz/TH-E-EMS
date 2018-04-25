@@ -1,12 +1,12 @@
 repositories {
   flatDir {
-    dirs rootDir.getPath() + "/dependencies/TH-E-Control", rootDir.getPath() + "/dependencies/emonjava"
+    dirs rootDir.getPath() + "/dependencies/emonjava"
   }
 }
 
 dependencies {
   compile project(':th-e-core')
-  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.3.2'
+  compile project(':th-e-feature-emoncms')
 }
 
 jar {

@@ -4,14 +4,13 @@ def ini4jVersion = '0.5.4'
 
 repositories {
   flatDir {
-    dirs rootDir.getPath() + "/dependencies/TH-E-Control", rootDir.getPath() + "/dependencies/emonjava"
+    dirs rootDir.getPath() + "/dependencies/emonjava"
   }
 }
 
 dependencies {
   compile project(':th-e-core')
-  
-  compile group: 'de.konstanz.isc', name: 'th-e-feature-emoncms', version: '0.3.2'
+  compile project(':th-e-feature-emoncms')
   
   compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
   embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion

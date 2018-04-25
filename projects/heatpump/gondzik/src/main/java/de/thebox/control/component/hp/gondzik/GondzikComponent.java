@@ -41,6 +41,11 @@ public class GondzikComponent extends ScheduleComponent implements CabinetServic
 	}
 
 	@Override
+	protected void maintenance(boolean enabled) throws ControlException {
+		ventilation.setEnabled(!enabled);
+	}
+
+	@Override
 	public void startVentilation() throws ComponentException {
 		ventilation.start();
 	}

@@ -34,6 +34,11 @@ public class SerenergyComponent extends ScheduleComponent implements Cogenerator
 	}
 
 	@Override
+	protected void maintenance(boolean enabled) throws ControlException {
+		circulation.setEnabled(!enabled);
+	}
+
+	@Override
 	public void start(double value) throws ComponentException {
 		// TODO Auto-generated method stub
 		

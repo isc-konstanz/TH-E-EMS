@@ -19,6 +19,8 @@ import de.thebox.control.core.data.Value;
 public class CabinetVentilation implements CabinetTemperatureCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(CabinetVentilation.class);
 
+	private volatile boolean enabled = false;
+
 	private final Channel state;
 	private final ChannelListener stateListener;
 
@@ -47,6 +49,7 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 		} catch (UnknownChannelException e) {
 			throw new ConfigurationException("Invalid ventilation configuration: " + e.getMessage());
 		}
+		this.enabled = true;
 	}
 
 	private ChannelListener registerStateListener(Channel channel) {
@@ -85,6 +88,22 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 		}
 	}
 
+	public void disable() {
+		setEnabled(false);
+	}
+
+	public void enable() {
+		setEnabled(true);
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
 	public void start() {
 		state.writeValue(new BooleanValue(true));
 	}
@@ -95,17 +114,19 @@ public class CabinetVentilation implements CabinetTemperatureCallbacks {
 
 	@Override
 	public synchronized void onTemperatureReceived(CabinetTemperature type, Double temperature) {
-		if (temperature > temperatureMax + temperatureTolerance && !temperatureHighFlags.contains(type)) {
-			temperatureHighFlags.add(type);
-			start();
-		}
-		else if (temperature < temperatureMax - temperatureTolerance &&
-				System.currentTimeMillis() - startTimeLast >= intervalMin) {
-			
-			if (stateValueLast != null && stateValueLast.booleanValue()) {
-				temperatureHighFlags.remove(type);
-				if (temperatureHighFlags.size() == 0) {
-					stop();
+		if (enabled) {
+			if (temperature > temperatureMax + temperatureTolerance && !temperatureHighFlags.contains(type)) {
+				temperatureHighFlags.add(type);
+				start();
+			}
+			else if (temperature < temperatureMax - temperatureTolerance &&
+					System.currentTimeMillis() - startTimeLast >= intervalMin) {
+				
+				if (stateValueLast != null && stateValueLast.booleanValue()) {
+					temperatureHighFlags.remove(type);
+					if (temperatureHighFlags.size() == 0) {
+						stop();
+					}
 				}
 			}
 		}

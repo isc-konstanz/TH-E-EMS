@@ -1,9 +1,7 @@
 package de.thebox.control.component.inv.energydepot.external;
 
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import de.thebox.control.component.inv.energydepot.consumption.Consumption;
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.config.ConfigurationException;
@@ -15,7 +13,6 @@ import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
 import de.thebox.control.feature.emoncms.Emoncms;
-import de.thebox.control.feature.emoncms.EmoncmsConfig;
 
 
 public class External {
@@ -33,20 +30,18 @@ public class External {
 	public External(ControlService control, Preferences prefs) throws ControlException {
 		ExternalConfig externalConfig = new ExternalConfig(prefs);
 		try {
-			if (prefs.nodeExists(ExternalConfig.SECTION) && prefs.nodeExists(EmoncmsConfig.SECTION)) {
-				emoncms = new Emoncms(prefs);
-				
-				enabled = true;
-				enabledListener = registerEnabledListener(control.getChannel(externalConfig.getEnabled()));
-				enabledListener.getChannel().setLatestValue(new BooleanValue(enabled));
-				
-				pvFeed = externalConfig.getPvFeed();
-				registerPvListener(pvFeed);
-				
-				actualPower = control.getChannel(externalConfig.getActualPower());
-				virtualPower = control.getChannel(externalConfig.getVirtualPower());
-			}
-		} catch (BackingStoreException | UnknownChannelException e) {
+			emoncms = new Emoncms(prefs);
+			
+			enabled = true;
+			enabledListener = registerEnabledListener(control.getChannel(externalConfig.getEnabled()));
+			enabledListener.getChannel().setLatestValue(new BooleanValue(enabled));
+			
+			pvFeed = externalConfig.getPvFeed();
+			registerPvListener(pvFeed);
+			
+			actualPower = control.getChannel(externalConfig.getActualPower());
+			virtualPower = control.getChannel(externalConfig.getVirtualPower());
+		} catch (UnknownChannelException e) {
 			throw new ConfigurationException("Invalid external configuration: " + e.getMessage());
 		}
 	}
@@ -79,7 +74,7 @@ public class External {
 		return listener;
 	}
 
-	public void deactivate(Consumption consumption) {
+	public void deactivate() {
 		if (enabledListener != null) {
 			enabledListener.deregister();
 		}
@@ -87,6 +82,19 @@ public class External {
 			emoncms.deregisterFeedListener(pvFeed);
 			emoncms.deactivate();
 		}
+	}
+
+	public void disable() {
+		setEnabled(false);
+	}
+
+	public void enable() {
+		setEnabled(true);
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+		enabledListener.getChannel().setLatestValue(new BooleanValue(enabled));
 	}
 
 	public boolean isEnabled() {

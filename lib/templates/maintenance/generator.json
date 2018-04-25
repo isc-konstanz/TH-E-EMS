@@ -6,9 +6,9 @@
     
     "devices": [
         {
-            "name": "GPIO_0",
+            "name": "GPIO_1",
             "driver": "rpi-gpio",
-            "address": "pin:0",
+            "address": "pin:1",
             "settings": "type:output"
         }
     ],
@@ -19,8 +19,8 @@
             "type": "Switch",
             "label": "Enable",
             "mapping": {
-                "ON": { "channel": "RLY410", "value": "true" },
-                "OFF": { "channel": "RLY410", "value": "false" }
+                "ON": { "channel": "RLY450", "value": "true" },
+                "OFF": { "channel": "RLY450", "value": "false" }
             },
             "input": "RLY410"
         }
@@ -28,10 +28,9 @@
 
     "channels": [
         {
-            "name": "RLY410",
-            "description": "fc_pump_state",
+            "name": "RLY450",
             "node": "Pins",
-            "device": "GPIO_0",
+            "device": "GPIO_1",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"}
         }

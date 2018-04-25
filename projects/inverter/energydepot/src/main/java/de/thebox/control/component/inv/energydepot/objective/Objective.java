@@ -31,9 +31,11 @@ public class Objective {
 
 	private Channel virtualObjective;
 	private ChannelListener virtualObjectiveListener;
-	private External external;
+	private final External external;
 
-	public Objective(ControlService control, Consumption consumption, Preferences prefs) throws ControlException {
+	public Objective(ControlService control, External external, Consumption consumption, Preferences prefs) throws ControlException {
+		this.external = external;
+		
 		ObjectiveConfig config = new ObjectiveConfig(prefs);
 		try {
 			objective = control.getChannel(config.getObjective());
@@ -44,8 +46,6 @@ public class Objective {
 			batteryStateMin = config.getBatteryStateMin();
 			
 			consumptionListener = registerConsumptionListener(consumption);
-			
-			external = new External(control, prefs);
 			
 		} catch (UnknownChannelException e) {
 			throw new ConfigurationException("Invalid objective configuration: " + e.getMessage());
@@ -109,7 +109,10 @@ public class Objective {
 	}
 
 	public void reset() throws ComponentException {
-		objective.writeValue(new DoubleValue(ObjectiveConfig.OBJECTIVE_DEFAULT));
+		Value defaultValue = new DoubleValue(ObjectiveConfig.OBJECTIVE_DEFAULT);
+		
+		virtualObjective.writeValue(defaultValue);
+		objective.writeValue(defaultValue);
 	}
 
 	private void onObjectiveUpdate() {

@@ -1,6 +1,7 @@
 package org.openmuc.framework.app.thebox.control;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.openmuc.framework.data.Flag;
@@ -17,6 +18,7 @@ import de.thebox.control.core.data.LongValue;
 import de.thebox.control.core.data.ShortValue;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
+import de.thebox.control.core.schedule.Schedule;
 
 public class ControlChannel implements Channel, RecordListener {
 
@@ -87,9 +89,22 @@ public class ControlChannel implements Channel, RecordListener {
 	}
 
 	@Override
-	public void writeValue(Value value) {
+	public void write(Value value) {
+        if (value.getTimestamp() > System.currentTimeMillis()) {
+			schedule(new Schedule(value));
+			return;
+        }
+        
 		Runnable task = () -> {
 			channel.write(ControlChannel.encodeValue(value));
+		};
+		callbacks.execute(task);
+	}
+
+	@Override
+	public void schedule(Schedule schedule) {
+		Runnable task = () -> {
+			channel.writeFuture(ControlChannel.encodeFutureValues(schedule));
 		};
 		callbacks.execute(task);
 	}
@@ -140,6 +155,17 @@ public class ControlChannel implements Channel, RecordListener {
 	public static org.openmuc.framework.data.Record encodeRecord(Value value) {
 		org.openmuc.framework.data.Value recordValue = ControlChannel.encodeValue(value);
 		return new org.openmuc.framework.data.Record(recordValue, value.getTimestamp(), Flag.VALID);
+	}
+
+	public static List<org.openmuc.framework.data.FutureValue> encodeFutureValues(Schedule schedule) {
+		List<org.openmuc.framework.data.FutureValue> futures = new LinkedList<>();
+		for (Value value : schedule) {
+			org.openmuc.framework.data.Value future = encodeValue(value);
+			if (future != null) {
+				futures.add(new org.openmuc.framework.data.FutureValue(future, value.getTimestamp()));
+			}
+		}
+		return futures;
 	}
 
 	public static org.openmuc.framework.data.Value encodeValue(Value value) {

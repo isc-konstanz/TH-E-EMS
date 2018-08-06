@@ -1,5 +1,7 @@
 package de.thebox.control.core.data;
 
+import de.thebox.control.core.schedule.Schedule;
+
 public interface Channel {
 
 	public void registerValueListener(ValueListener listener);
@@ -12,6 +14,8 @@ public interface Channel {
 
 	public void setLatestValue(Value value);
 
-	public void writeValue(Value value);
+	public void write(Value value);
+
+	public void schedule(Schedule schedule);
 
 }

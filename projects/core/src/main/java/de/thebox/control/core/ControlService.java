@@ -7,6 +7,7 @@ import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
+import de.thebox.control.core.schedule.Schedule;
 
 public interface ControlService {
 
@@ -24,6 +25,8 @@ public interface ControlService {
 
 	public void setLatestValue(String id, Value value) throws UnknownChannelException;
 
-	public void writeValue(String id, Value value) throws UnknownChannelException;
+	public void write(String id, Value value) throws UnknownChannelException;
+
+	public void schedule(String id, Schedule schedule) throws UnknownChannelException;
 
 }

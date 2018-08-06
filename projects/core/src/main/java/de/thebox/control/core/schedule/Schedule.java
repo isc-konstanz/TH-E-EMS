@@ -11,11 +11,18 @@ public class Schedule extends LinkedList<Value> {
 
 	private final Integer interval;
 
+	public Schedule(Value value) {
+		this();
+		super.add(value);
+	}
+
 	public Schedule(int interval) {
+		super();
 		this.interval = interval;
 	}
 
 	public Schedule() {
+		super();
 		this.interval = null;
 	}
 

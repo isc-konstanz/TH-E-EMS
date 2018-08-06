@@ -89,11 +89,11 @@ public class CirculationPump extends Circulation {
 	}
 
 	public void start() {
-		state.writeValue(new BooleanValue(true));
+		state.write(new BooleanValue(true));
 	}
 
 	public void stop() {
-		state.writeValue(new BooleanValue(false));
+		state.write(new BooleanValue(false));
 	}
 
 	protected  void onTemperatureReferenceUpdated(Value delta) {

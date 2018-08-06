@@ -44,6 +44,7 @@ import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
 import de.thebox.control.core.schedule.ControlSchedule;
 import de.thebox.control.core.schedule.NamedThreadFactory;
+import de.thebox.control.core.schedule.Schedule;
 import de.thebox.control.core.schedule.ScheduleListener;
 import de.thebox.control.core.schedule.ScheduleService;
 
@@ -308,9 +309,15 @@ public final class Control extends Thread implements ControlService, ControlChan
 	}
 
 	@Override
-	public void writeValue(String id, Value value) throws UnknownChannelException {
+	public void write(String id, Value value) throws UnknownChannelException {
 		logger.debug("Writing value for channel \"{}\": {}", id, value);
-		getChannel(id).writeValue(value);
+		getChannel(id).write(value);
+	}
+
+	@Override
+	public void schedule(String id, Schedule schedule) throws UnknownChannelException {
+		logger.debug("Scheduling values for channel \"{}\": {}", id, schedule);
+		getChannel(id).schedule(schedule);
 	}
 
 	@Override
@@ -411,4 +418,5 @@ public final class Control extends Thread implements ControlService, ControlChan
 			}
 		}
 	}
+
 }

@@ -14,7 +14,7 @@ dependencies {
 
   compile group: 'org.openmuc.framework', name: 'openmuc-core-api', version: openmucVersion
   compile group: 'org.openmuc.framework', name: 'openmuc-core-spi', version: openmucVersion
-  compile group: 'org.apache.felix', name: 'org.apache.felix.gogo.runtime', version:'1.0.10'
+  compile group:'org.apache.felix',name:'org.apache.felix.gogo.runtime', version:'0.16.2'
 
   compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
   embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion

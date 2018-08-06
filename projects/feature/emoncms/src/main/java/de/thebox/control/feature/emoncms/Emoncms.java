@@ -68,6 +68,7 @@ public class Emoncms extends Thread {
 			for (Feed feed : feeds) {
 				if (feed.getName().equals(name)) {
 					feedListener = new FeedListener(feed, listener);
+					break;
 				}
 			}
 			if (feedListener == null) {

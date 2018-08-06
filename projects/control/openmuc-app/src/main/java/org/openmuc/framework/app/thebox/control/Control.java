@@ -69,6 +69,7 @@ public final class Control extends Thread implements ControlService, ControlChan
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
 	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
 
+	@Reference
 	private DataAccessService access;
 
 	private ControlSchedule schedule = new ControlSchedule();
@@ -226,15 +227,6 @@ public final class Control extends Thread implements ControlService, ControlChan
 			newComponents.remove(id);
 		}
 		logger.debug("Component deregistered: " + id);
-	}
-
-	@Reference
-	protected void bindDataAccessService(DataAccessService dataAccessService) {
-		this.access = dataAccessService;
-	}
-
-	protected void unbindDataAccessService(DataAccessService dataAccessService) {
-		this.access = null;
 	}
 
 	public void reload() {

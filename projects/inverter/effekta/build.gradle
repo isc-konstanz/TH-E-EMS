@@ -1,0 +1,22 @@
+
+def projectName = 'TH-E Box Inverter - Effekta'
+
+def theCoreVersion = '0.4.0'
+
+repositories {
+  flatDir {
+    dirs rootDir.getPath() + '/dependencies/th-e-control', rootDir.getPath() + '/dependencies/emonjava'
+  }
+}
+
+dependencies {
+  compile group: 'de.konstanz.isc', name: 'th-e-core-api', version: theCoreVersion
+  compile group: 'de.konstanz.isc', name: 'th-e-core-components', version: theCoreVersion
+}
+
+jar {
+  manifest {
+    name = projectName
+    instruction 'Export-Package', ''
+  }
+}

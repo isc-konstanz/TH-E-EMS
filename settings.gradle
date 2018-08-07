@@ -1,7 +1,10 @@
-include "th-e-component-energydepot", "th-e-component-serenergy", "th-e-component-gondzik", "th-e-optimization"
+include "th-e-component-energydepot", "th-e-component-effekta", "th-e-component-serenergy", "th-e-component-gondzik", "th-e-optimization"
 
 project(":th-e-component-energydepot").projectDir = file("projects/inverter/energydepot")
+project(":th-e-component-effekta").projectDir = file("projects/inverter/effekta")
+
 project(":th-e-component-serenergy").projectDir = file("projects/cogenerator/serenergy")
+
 project(":th-e-component-gondzik").projectDir = file("projects/heatpump/gondzik")
 
 project(":th-e-optimization").projectDir = file("projects/optimization")

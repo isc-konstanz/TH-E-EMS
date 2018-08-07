@@ -1,11 +1,22 @@
+
+def projectName = 'TH-E Box Heat Pump - Gondzik'
+
+def theCoreVersion = '0.4.0'
+
+repositories {
+  flatDir {
+    dirs rootDir.getPath() + '/dependencies/th-e-control', rootDir.getPath() + '/dependencies/emonjava'
+  }
+}
+
 dependencies {
-  compile project(':th-e-core')
-  compile project(':th-e-feature-circulation')
+  compile group: 'de.konstanz.isc', name: 'th-e-core-api', version: theCoreVersion
+  compile group: 'de.konstanz.isc', name: 'th-e-core-components', version: theCoreVersion
 }
 
 jar {
   manifest {
-    name = "TH-E Box Heat Pump - Gondzik"
+    name = projectName
     instruction 'Export-Package', ''
   }
 }

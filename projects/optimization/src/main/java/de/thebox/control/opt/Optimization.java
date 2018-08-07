@@ -2,10 +2,15 @@ package de.thebox.control.opt;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -20,42 +25,46 @@ import org.slf4j.LoggerFactory;
 
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.component.remote.RemoteConfig;
+import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.ControlSchedule;
 import de.thebox.control.core.schedule.NamedThreadFactory;
 import de.thebox.control.core.schedule.Schedule;
 import de.thebox.control.core.schedule.ScheduleListener;
 import de.thebox.control.core.schedule.ScheduleService;
-import de.thebox.control.feature.emoncms.EmoncmsConfig;
 import de.thebox.control.opt.service.GridService;
 import de.thebox.control.opt.service.GridService.GridServiceCallbacks;
 import de.thebox.control.opt.service.GridServiceConfig;
 
-@Component
-public class Optimization extends Thread implements ScheduleService, GridServiceCallbacks {
+@Component(
+	immediate = true,
+	service = {
+		Optimization.class
+	}
+)
+public class Optimization implements ScheduleService, GridServiceCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(Optimization.class);
 
-	private final static int SLEEP_INTERVAL = 60000;
 	private final static String CONFIG_OPTIMIZATION = "de.thebox.control.config.optimization";
 
 	private final List<ScheduleListener> listeners = new ArrayList<ScheduleListener>();
 
 	private GridService gridService = null;
 
-	private volatile boolean deactivateFlag;
-	private ExecutorService executor = null;
-
-	private Preferences config = null;
-//	private int interval;
+	private ScheduledExecutorService executor;
+	private Preferences config;
 
 	private ControlSchedule schedule;
+
+	private int interval;
 
 	@Activate
 	protected void activate(ComponentContext context) {
 		logger.info("Activating TH-E Optimization");
 		
 		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E Optimization Pool - thread-");
-		executor = Executors.newCachedThreadPool(namedThreadFactory);
+		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
 		
 		String fileName = System.getProperty(CONFIG_OPTIMIZATION);
 		if (fileName == null) {
@@ -65,36 +74,34 @@ public class Optimization extends Thread implements ScheduleService, GridService
 			Ini ini = new Ini(new File(fileName));
 			config = new IniPreferences(ini);
 			
-//			OptimizationConfig config = new OptimizationConfig(this.config);
-//			
-//			interval = config.getInterval();
+			OptimizationConfig config = new OptimizationConfig(this.config);
+			interval = config.getInterval();
+			LocalTime time = LocalTime.now();
+			LocalTime next = time.with(next(interval)).minusMinutes(5);
+			logger.debug("Starting TH-E-Optimization at {}", next);
 			
-		} catch (IOException e) {
+		    executor.scheduleAtFixedRate(new OptimizationTask(config.getPython(), config.getScript()), 
+		    		time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
+			
+		} catch (IOException | ConfigurationException e) {
 			logger.error("Error while reading optimization configuration: {}", e.getMessage());
 		}
-		
-		start();
 	}
 
 	@Deactivate
 	protected void deactivate(ComponentContext context) {
 		logger.info("Deactivating TH-E Optimization");
-		deactivateFlag = true;
 		
 		if (gridService != null) {
 			gridService.deactivate();
 		}
-		interrupt();
-		try {
-			this.join();
-		} catch (InterruptedException e) {
-		}
+		executor.shutdown();
 	}
 
 	@Override
 	public void registerScheduleListener(ScheduleListener listener) {
 		try {
-			if (config.nodeExists(GridServiceConfig.SECTION) && config.nodeExists(EmoncmsConfig.SECTION)) {
+			if (config.nodeExists(GridServiceConfig.SECTION) && config.nodeExists(RemoteConfig.SECTION)) {
 				gridService = new GridService(this, (ControlService) listener, config);
 			}
 		} catch (ComponentException | BackingStoreException e) {
@@ -121,8 +128,7 @@ public class Optimization extends Thread implements ScheduleService, GridService
 
 	@Override
 	public void onGridServiceRequest(Value power) {
-		Schedule inverterSchedule = new Schedule();
-		inverterSchedule.add(power);
+		Schedule inverterSchedule = new Schedule(interval, power);
 		schedule = new ControlSchedule();
 		schedule.addInverterSchedule(inverterSchedule);
 		
@@ -131,37 +137,12 @@ public class Optimization extends Thread implements ScheduleService, GridService
 		}
 	}
 
-	@Override
-	public void run() {
-		logger.info("Starting TH-E Optimization");
-		
-		setName("TH-E Optimization");
-		handleInterruptEvent();
-		
-		while (!deactivateFlag) {
-			if (interrupted()) {
-				handleInterruptEvent();
-				continue;
-			}
-			try {
-				while (true) {
-					// TODO: implement channel flag checks, component and optimization verifications
-					
-					Thread.sleep(SLEEP_INTERVAL);
-				}
-			} catch (InterruptedException e) {
-				handleInterruptEvent();
-				continue;
-			}
-		}
-	}
-
-	private void handleInterruptEvent() {
-		if (deactivateFlag) {
-			logger.info("TH-E Optimization thread interrupted and will stop");
-			executor.shutdown();
-			return;
-		}
+	private TemporalAdjuster next(int interval) {
+		return (temporal) -> {
+			int minute = temporal.get(ChronoField.MINUTE_OF_DAY);
+		    int next = (minute / interval + 1) * interval;
+		    return temporal.with(ChronoField.NANO_OF_DAY, 0).plus(next, ChronoUnit.MINUTES);
+		};
 	}
 
 }

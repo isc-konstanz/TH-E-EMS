@@ -1,17 +1,22 @@
+
+def projectName = 'TH-E Box Inverter - EnergyDepot'
+
+def theCoreVersion = '0.4.0'
+
 repositories {
   flatDir {
-    dirs rootDir.getPath() + "/dependencies/emonjava"
+    dirs rootDir.getPath() + '/dependencies/th-e-control', rootDir.getPath() + '/dependencies/emonjava'
   }
 }
 
 dependencies {
-  compile project(':th-e-core')
-  compile project(':th-e-feature-emoncms')
+  compile group: 'de.konstanz.isc', name: 'th-e-core-api', version: theCoreVersion
+  compile group: 'de.konstanz.isc', name: 'th-e-core-components', version: theCoreVersion
 }
 
 jar {
   manifest {
-    name = "TH-E Box Inverter - EnergyDepot"
+    name = projectName
     instruction 'Export-Package', ''
   }
 }

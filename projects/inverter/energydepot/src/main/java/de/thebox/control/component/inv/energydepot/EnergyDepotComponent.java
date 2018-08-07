@@ -1,32 +1,29 @@
 package de.thebox.control.component.inv.energydepot;
 
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.osgi.service.component.annotations.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import de.thebox.control.component.inv.energydepot.consumption.Consumption;
-import de.thebox.control.component.inv.energydepot.external.External;
-import de.thebox.control.component.inv.energydepot.external.ExternalConfig;
-import de.thebox.control.component.inv.energydepot.objective.Objective;
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.InverterService;
-import de.thebox.control.core.component.ScheduleComponent;
-import de.thebox.control.core.config.ConfigurationException;
+import de.thebox.control.core.component.MaintenanceException;
+import de.thebox.control.core.component.inv.InverterComponent;
+import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.ChannelListener;
+import de.thebox.control.core.data.ChannelValues;
+import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
-import de.thebox.control.core.schedule.Schedule;
-import de.thebox.control.feature.emoncms.EmoncmsConfig;
 
 @Component
-public class EnergyDepotComponent extends ScheduleComponent implements InverterService {
+public class EnergyDepotComponent extends InverterComponent {
+	private final static Logger logger = LoggerFactory.getLogger(EnergyDepotComponent.class);
+
 	private final static String ID = "EnergyDepot";
 
-	private External external;
-	private Consumption consumption;
-	private Objective objective;
-
-	private volatile boolean maintenance = false;
+	protected Channel objective;
+	protected ChannelListener objectiveControl;
 
 	@Override
 	public String getId() {
@@ -34,57 +31,68 @@ public class EnergyDepotComponent extends ScheduleComponent implements InverterS
 	}
 
 	@Override
-	public void activate(Preferences config) throws ControlException {
-		try {
-			if (config.nodeExists(ExternalConfig.SECTION) && config.nodeExists(EmoncmsConfig.SECTION)) {
-				external = new External(control, config);
-			}
-			else {
-				external = null;
-			}
-		} catch (BackingStoreException e) {
-			throw new ConfigurationException("Error while reading configuration: " + e.getMessage());
-		}
-		consumption = new Consumption(control, config);
-		objective = new Objective(control, external, consumption, config);
+	public void activate(Preferences prefs) throws ControlException {
+		super.activate(prefs);
+		
+		EnergyDepotConfig config = new EnergyDepotConfig(prefs);
+		objective = control.getChannel(config.getObjective());
+		objectiveControl = new ObjectiveControlListener(control.getChannel(config.getObjectiveControl()));
 	}
 
 	@Override
 	public void deactivate() {
-		if (objective != null) {
-			objective.deactivate(consumption);
-		}
-		if (consumption != null) {
-			consumption.deactivate();
-		}
-		if (external != null) {
-			external.deactivate();
+		super.deactivate();
+		
+		objectiveControl.deregister();
+	}
+
+	@Override
+	public void set(Value value) throws ControlException {
+		objectiveControl.getChannel().write(value);
+	}
+
+	@Override
+	protected void update() throws ControlException {
+		Value value = objectiveControl.getLatestValue();
+		try {
+			ChannelValues channels = build(value);
+			for (Channel channel : channels.keySet()) {
+				channel.write(channels.get(channel));
+			}
+		} catch (MaintenanceException e) {
+			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
 		}
 	}
 
 	@Override
-	protected void maintenance(boolean enabled) throws ControlException {
-		if (external != null) {
-			external.setEnabled(!enabled);
+	public ChannelValues objective(Value value) throws ComponentException {
+		return new ChannelValues(objective, value);
+	}
+
+	@Override
+	protected Value process(Value value) throws ComponentException {
+		double result = value.doubleValue() + consumptionLast.doubleValue();
+		
+		if (external.isEnabled()) {
+			result -= external.getPv().doubleValue();
 		}
-		maintenance = enabled;
+		return new DoubleValue(result, value.getTime());
 	}
 
-	@Override
-	public void setObjective(double value) throws ComponentException {
-		objective.set(value);
-	}
+	private class ObjectiveControlListener extends ChannelListener {
 
-	@Override
-	public void resetObjective() throws ComponentException {
-		objective.reset();
-	}
+		public ObjectiveControlListener(Channel channel) {
+			super(channel);
+		}
 
-	@Override
-	public void schedule(Schedule schedule) throws ComponentException {
-		Value value = schedule.pollFirst();
-		if (value != null && !maintenance) {
-			objective.setSetpoint(value);
+		@Override
+		public void onValueReceived(Value value) {
+			try {
+				update();
+				
+			} catch (ControlException e) {
+				logger.debug("Unable to updating inverter objective: {}", e.getMessage());
+			}
 		}
 	}
 

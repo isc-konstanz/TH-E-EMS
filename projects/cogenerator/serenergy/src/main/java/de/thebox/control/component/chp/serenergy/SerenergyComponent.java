@@ -5,16 +5,14 @@ import java.util.prefs.Preferences;
 import org.osgi.service.component.annotations.Component;
 
 import de.thebox.control.core.ControlException;
-import de.thebox.control.core.component.CogeneratorService;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.ScheduleComponent;
-import de.thebox.control.feature.circulation.pump.CirculationPump;
+import de.thebox.control.core.component.chp.CogeneratorComponent;
+import de.thebox.control.core.data.ChannelValues;
+import de.thebox.control.core.data.Value;
 
 @Component
-public class SerenergyComponent extends ScheduleComponent implements CogeneratorService {
+public class SerenergyComponent extends CogeneratorComponent {
 	private final static String ID = "Serenergy";
-
-	private CirculationPump circulation;
 
 	@Override
 	public String getId() {
@@ -23,31 +21,26 @@ public class SerenergyComponent extends ScheduleComponent implements Cogenerator
 
 	@Override
 	public void activate(Preferences config) throws ControlException {
-		circulation = new CirculationPump(control, config);
+		super.activate(config);
+		
 	}
 
 	@Override
 	public void deactivate() {
-		if (circulation != null) {
-			circulation.deactivate();
-		}
-	}
-
-	@Override
-	protected void maintenance(boolean enabled) throws ControlException {
-		circulation.setEnabled(!enabled);
-	}
-
-	@Override
-	public void start(double value) throws ComponentException {
-		// TODO Auto-generated method stub
+		super.deactivate();
 		
 	}
 
 	@Override
-	public void stop() throws ComponentException {
+	public ChannelValues start(Value value) throws ComponentException {
 		// TODO Auto-generated method stub
-		
+		return new ChannelValues();
+	}
+
+	@Override
+	public ChannelValues stop() throws ComponentException {
+		// TODO Auto-generated method stub
+		return new ChannelValues();
 	}
 
 }

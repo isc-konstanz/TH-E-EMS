@@ -5,10 +5,10 @@ import java.util.prefs.Preferences;
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.component.remote.Remote;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.data.ValueListener;
-import de.thebox.control.feature.emoncms.Emoncms;
 import de.thebox.control.opt.Optimization;
 
 public class GridService {
@@ -28,8 +28,8 @@ public class GridService {
 
 	private final Channel gridService;
 
-	private final Emoncms emoncms;
-	private final String externalServiceFeed;
+	private final Remote remote;
+	private final String externalService;
 
 	public GridService(GridServiceCallbacks callbacks, ControlService control, Preferences prefs) throws ComponentException {
 		this.callbacks = callbacks;
@@ -38,10 +38,10 @@ public class GridService {
 		try {
 			gridService = control.getChannel(config.getGridService());
 			
-			emoncms = new Emoncms(prefs);
+			remote = new Remote(prefs);
 			
-			externalServiceFeed = config.getExternalServiceFeed();
-			registerExternalServiceListener(externalServiceFeed);
+			externalService = config.getExternalServiceFeed();
+			registerExternalServiceListener(externalService);
 			
 		} catch (ControlException e) {
 			throw new ComponentException("Error while activating emoncms listeners: " + e.getMessage());
@@ -53,21 +53,19 @@ public class GridService {
 			
 			@Override
 			public void onValueReceived(Value value) {
-				if (value != null) {
-					gridService.setLatestValue(value);
-					callbacks.onGridServiceRequest(value);
-				}
+				gridService.setLatestValue(value);
+				callbacks.onGridServiceRequest(value);
 			}
 		};
-		emoncms.registerFeedListener(id, listener);
+		remote.registerListener(id, listener);
 		
 		return listener;
 	}
 
 	public void deactivate() {
-		if (emoncms != null) {
-			emoncms.deregisterFeedListener(externalServiceFeed);
-			emoncms.deactivate();
+		if (remote != null) {
+			remote.deregisterListener(externalService);
+			remote.deactivate();
 		}
 	}
 }

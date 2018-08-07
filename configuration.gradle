@@ -13,16 +13,14 @@ project.ext {
   jarDefaultImportPackageVersion=";version=0"
 
   distributionProjects = subprojects.findAll {
-    it.getPath() == ":th-e-core" ||
-    it.getPath() == ":th-e-ctrl" ||
-    it.getPath() == ":th-e-feature-emoncms" ||
-    it.getPath() == ":th-e-feature-circulation"
+    it.getPath() == ":th-e-core-api" ||
+    it.getPath() == ":th-e-core-components" ||
+    it.getPath() == ":th-e-ctrl"
   }
 
   docProjects = distributionProjects.findAll {
-    it.getPath() == ":th-e-core" ||
-    it.getPath() == ":th-e-feature-emoncms" ||
-    it.getPath() == ":th-e-feature-circulation"
+    it.getPath() == ":th-e-core-api" ||
+    it.getPath() == ":th-e-core-components"
   }
 
 }

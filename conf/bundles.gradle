@@ -9,11 +9,10 @@ configurations.core.transitive = false;
 configurations.bundle.transitive = false;
 
 dependencies {
-  core project(":th-e-core")
-  bundle project(":th-e-ctrl")
+  core project(":th-e-core-api")
+  bundle project(":th-e-core-components")
   
-  bundle project(":th-e-feature-emoncms")
-  bundle project(":th-e-feature-circulation")
+  bundle project(":th-e-ctrl")
   
   //--------------------------------------------------------------------------------------------------
   // ini4j is a simple Java API for handling configuration files in the .ini format.

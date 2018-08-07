@@ -3,6 +3,8 @@ package org.openmuc.framework.app.thebox.control;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Objects;
 
 import org.openmuc.framework.data.Flag;
 import org.openmuc.framework.data.Record;
@@ -17,8 +19,8 @@ import de.thebox.control.core.data.IntValue;
 import de.thebox.control.core.data.LongValue;
 import de.thebox.control.core.data.ShortValue;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueList;
 import de.thebox.control.core.data.ValueListener;
-import de.thebox.control.core.schedule.Schedule;
 
 public class ControlChannel implements Channel, RecordListener {
 
@@ -90,21 +92,32 @@ public class ControlChannel implements Channel, RecordListener {
 
 	@Override
 	public void write(Value value) {
-        if (value.getTimestamp() > System.currentTimeMillis()) {
-			schedule(new Schedule(value));
-			return;
-        }
-        
 		Runnable task = () -> {
-			channel.write(ControlChannel.encodeValue(value));
+			if (value.getTime() <= System.currentTimeMillis()) {
+				channel.write(ControlChannel.encodeValue(value));
+			}
+			else {
+				channel.writeFuture(ControlChannel.encodeFutureValueList(new ValueList(value)));
+			}
 		};
 		callbacks.execute(task);
 	}
 
 	@Override
-	public void schedule(Schedule schedule) {
+	public void write(ValueList values) {
 		Runnable task = () -> {
-			channel.writeFuture(ControlChannel.encodeFutureValues(schedule));
+			long time = System.currentTimeMillis();
+			
+			ListIterator<Value> iter = values.sort().listIterator();
+			while(iter.hasNext()) {
+				Value value = iter.next();
+				if(value.getTime() <= time) {
+					iter.remove();
+					
+					channel.write(ControlChannel.encodeValue(value));
+				}
+			}
+			channel.writeFuture(ControlChannel.encodeFutureValueList(values));
 		};
 		callbacks.execute(task);
 	}
@@ -145,7 +158,6 @@ public class ControlChannel implements Channel, RecordListener {
 					}
 				}
 				catch (ClassCastException e) {
-					return null;
 				}
 			}
 		}
@@ -154,18 +166,26 @@ public class ControlChannel implements Channel, RecordListener {
 
 	public static org.openmuc.framework.data.Record encodeRecord(Value value) {
 		org.openmuc.framework.data.Value recordValue = ControlChannel.encodeValue(value);
-		return new org.openmuc.framework.data.Record(recordValue, value.getTimestamp(), Flag.VALID);
+		return new org.openmuc.framework.data.Record(recordValue, value.getTime(), Flag.VALID);
 	}
 
-	public static List<org.openmuc.framework.data.FutureValue> encodeFutureValues(Schedule schedule) {
+	public static List<org.openmuc.framework.data.FutureValue> encodeFutureValueList(ValueList values) {
 		List<org.openmuc.framework.data.FutureValue> futures = new LinkedList<>();
-		for (Value value : schedule) {
-			org.openmuc.framework.data.Value future = encodeValue(value);
+		for (Value value : values) {
+			org.openmuc.framework.data.FutureValue future = encodeFutureValue(value);
 			if (future != null) {
-				futures.add(new org.openmuc.framework.data.FutureValue(future, value.getTimestamp()));
+				futures.add(future);
 			}
 		}
 		return futures;
+	}
+
+	public static org.openmuc.framework.data.FutureValue encodeFutureValue(Value value) {
+		org.openmuc.framework.data.Value future = encodeValue(value);
+		if (future != null) {
+			return new org.openmuc.framework.data.FutureValue(future, value.getTime());
+		}
+		return null;
 	}
 
 	public static org.openmuc.framework.data.Value encodeValue(Value value) {
@@ -193,6 +213,21 @@ public class ControlChannel implements Channel, RecordListener {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof ControlChannel)) {
+			return false;
+		}
+		ControlChannel user = (ControlChannel) o;
+		return Objects.equals(channel.getId(), user.channel.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(channel.getId());
 	}
 
 }

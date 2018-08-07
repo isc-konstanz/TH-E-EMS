@@ -34,17 +34,16 @@ import de.thebox.control.core.component.ComponentService;
 import de.thebox.control.core.component.ComponentStatus;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.InverterService;
-import de.thebox.control.core.component.ScheduleComponent;
 import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.BooleanValue;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.UnknownChannelException;
 import de.thebox.control.core.data.Value;
+import de.thebox.control.core.data.ValueList;
 import de.thebox.control.core.data.ValueListener;
 import de.thebox.control.core.schedule.ControlSchedule;
 import de.thebox.control.core.schedule.NamedThreadFactory;
-import de.thebox.control.core.schedule.Schedule;
 import de.thebox.control.core.schedule.ScheduleListener;
 import de.thebox.control.core.schedule.ScheduleService;
 
@@ -116,10 +115,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 			
 			@Override
 			public void onValueReceived(Value value) {
-				if (value != null) {
-					maintenanceFlag = value.booleanValue();
-					interrupt();
-				}
+				maintenanceFlag = value.booleanValue();
+				interrupt();
 			}
 		};
 		
@@ -315,9 +312,9 @@ public final class Control extends Thread implements ControlService, ControlChan
 	}
 
 	@Override
-	public void schedule(String id, Schedule schedule) throws UnknownChannelException {
-		logger.debug("Scheduling values for channel \"{}\": {}", id, schedule);
-		getChannel(id).schedule(schedule);
+	public void write(String id, ValueList values) throws UnknownChannelException {
+		logger.debug("Writing values for channel \"{}\": {}", id, values);
+		getChannel(id).write(values);
 	}
 
 	@Override
@@ -403,9 +400,8 @@ public final class Control extends Thread implements ControlService, ControlChan
 						
 						if (scheduleFlag) {
 							try {
-								if (component instanceof ScheduleComponent && newSchedule.contains(component)) {
-									ScheduleComponent scheduleComponent = (ScheduleComponent) component;
-									scheduleComponent.schedule(newSchedule.get(scheduleComponent.getType()));
+								if (newSchedule.contains(component)) {
+									component.schedule(newSchedule.get(component));
 								}
 							} catch (ComponentException e) {
 								logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);

@@ -1,6 +1,7 @@
-configurations.create('embed')
 
-def openmucVersion = '1.0.0'
+def projectName = 'TH-E Box Control - OpenMUC Application'
+
+def openmucVersion = '2.0.0'
 def ini4jVersion = '0.5.4'
 
 repositories {
@@ -10,27 +11,18 @@ repositories {
 }
 
 dependencies {
-  compile project(':th-e-core')
+  compile project(':th-e-core-api')
 
   compile group: 'org.openmuc.framework', name: 'openmuc-core-api', version: openmucVersion
   compile group: 'org.openmuc.framework', name: 'openmuc-core-spi', version: openmucVersion
   compile group:'org.apache.felix',name:'org.apache.felix.gogo.runtime', version:'0.16.2'
 
   compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
-  embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
 }
 
 jar {
   manifest {
-    name = "TH-E Box Control - OpenMUC Application"
-    instruction 'Bundle-ClassPath', '.,lib/ini4j-' + ini4jVersion + '.jar'
-    instruction 'Import-Package', '!org.ini4j.*,*'
-    instruction 'Export-Package', ''
-  }
-}
-
-jar {
-  into('lib') {
-    from configurations.embed
+    name = projectName
+    instruction 'Export-Package', '!*.internal.*,*'
   }
 }

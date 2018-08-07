@@ -1,8 +1,6 @@
-include "th-e-core", "th-e-ctrl", "th-e-feature-emoncms", "th-e-feature-circulation"
+include "th-e-core-api", "th-e-core-components", "th-e-ctrl"
 
-project(":th-e-core").projectDir = file("projects/core")
+project(":th-e-core-api").projectDir = file("projects/core/api")
+project(":th-e-core-components").projectDir = file("projects/core/components")
 
 project(":th-e-ctrl").projectDir = file("projects/control/openmuc-app")
-
-project(":th-e-feature-emoncms").projectDir = file("projects/feature/emoncms")
-project(":th-e-feature-circulation").projectDir = file("projects/feature/circulation")

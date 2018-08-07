@@ -1,8 +1,8 @@
 {
-    "name": "Centurion (External PV)",
+    "name": "Centurion",
     "category": "TH-E Box",
     "group": "Inverter",
-    "description": "EnergyDepot GmbH Centurion inverter with external PV",
+    "description": "EnergyDepot GmbH Centurion inverter",
     
     "devices": [
         {
@@ -29,17 +29,6 @@
     
     "items": [
         {
-            "id": "external",
-            "type": "Switch",
-            "label": "External PV",
-            "default": true,
-            "mapping": {
-                "ON": { "channel": "inv_external_enable", "value": true },
-                "OFF": { "channel": "inv_external_enable", "value": false }
-            },
-            "input": "inv_external_enable"
-        },
-        {
             "id": "objective",
             "type": "Slider",
             "label": "Import/Export",
@@ -49,18 +38,35 @@
             "step": 500,
             "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_virtual_objective", "write": false }
+                "SET": { "channel": "inv_objective_control", "write":false }
             },
-            "input": "inv_virtual_objective"
+            "input": "inv_objective_control"
+        },
+        {
+            "id": "soc",
+            "type": "Text",
+            "label": "State of Charge",
+            "format": "%i %",
+            "max": 100,
+            "min": 0,
+            "input": "inv_bat_soc"
         }
     ],
     
     "channels": [
         {
+            "name": "inv_objective_control",
+            "description": "inv_objective_control",
+            "node": "Virtual",
+            "device": "Inverter",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"valueType":"DOUBLE"}
+        },
+        {
             "name": "inv_objective",
             "description": "inv_objective",
             "device": "Centurion",
-            "address": "INV_OBJECTIVE",
+            "address": "inv_objective",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"}
         },
@@ -182,7 +188,45 @@
             "device": "Centurion",
             "address": "GRID_ACTIVE_POWER",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
-            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"}
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_active_power"}
+                },
+                {
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_import_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_import_energy"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "allownegative",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "scale",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_energy"}
+                }
+            ]
         },
         {
             "name": "inv_ac_reactive_power",
@@ -241,68 +285,6 @@
                 {
                     "process": "power_to_kwh",
                     "arguments": {"type": "ProcessArg::FEEDID", "value": "consumption_energy"}
-                }
-            ]
-        },
-        {
-            "name": "inv_external_enable",
-            "description": "inv_external_enable",
-            "node": "Virtual",
-            "device": "Inverter",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
-            "configs": {"valueType":"BOOLEAN"}
-        },
-        {
-            "name": "inv_virtual_objective",
-            "description": "inv_virtual_objective",
-            "node": "Virtual",
-            "device": "Inverter",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
-            "configs": {"valueType":"DOUBLE"}
-        },
-        {
-            "name": "inv_ac_virtual_power",
-            "description": "grid_active_power",
-            "node": "Virtual",
-            "device": "Inverter",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
-            "configs": {"valueType":"DOUBLE"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_active_power"}
-                },
-                {
-                    "process": "allowpositive",
-                    "arguments": {"type": "ProcessArg::NONE"}
-                },
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_import_power"}
-                },
-                {
-                    "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_import_energy"}
-                },
-                {
-                    "process": "reset2original",
-                    "arguments": {"type": "ProcessArg::NONE"}
-                },
-                {
-                    "process": "allownegative",
-                    "arguments": {"type": "ProcessArg::NONE"}
-                },
-                {
-                    "process": "scale",
-                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
-                },
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_power"}
-                },
-                {
-                    "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "grid_export_energy"}
                 }
             ]
         }

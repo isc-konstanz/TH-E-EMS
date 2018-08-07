@@ -22,7 +22,7 @@
                 "ON": { "channel": "RLY450", "value": "true" },
                 "OFF": { "channel": "RLY450", "value": "false" }
             },
-            "input": "RLY410"
+            "input": "RLY450"
         }
     ],
 

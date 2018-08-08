@@ -38,9 +38,9 @@
             "step": 500,
             "scale": -0.001,
             "mapping": {
-                "SET": { "channel": "inv_objective_control", "write":false }
+                "SET": { "channel": "inv_objective", "write":false }
             },
-            "input": "inv_objective_control"
+            "input": "inv_objective"
         },
         {
             "id": "soc",
@@ -55,18 +55,18 @@
     
     "channels": [
         {
-            "name": "inv_objective_control",
-            "description": "inv_objective_control",
+            "name": "inv_objective",
+            "description": "inv_objective",
             "node": "Virtual",
             "device": "Inverter",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"valueType":"DOUBLE"}
         },
         {
-            "name": "inv_objective",
-            "description": "inv_objective",
+            "name": "inv_objective_local",
+            "description": "inv_objective_local",
             "device": "Centurion",
-            "address": "inv_objective",
+            "address": "inv_objective_local",
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE"}
         },

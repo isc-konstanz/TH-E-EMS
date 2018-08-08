@@ -3,12 +3,9 @@ package de.thebox.control.component.inv.energydepot;
 import java.util.prefs.Preferences;
 
 import org.osgi.service.component.annotations.Component;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.MaintenanceException;
 import de.thebox.control.core.component.inv.InverterComponent;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
@@ -18,8 +15,6 @@ import de.thebox.control.core.data.Value;
 
 @Component
 public class EnergyDepotComponent extends InverterComponent {
-	private final static Logger logger = LoggerFactory.getLogger(EnergyDepotComponent.class);
-
 	private final static String ID = "EnergyDepot";
 
 	protected Channel objective;
@@ -48,20 +43,7 @@ public class EnergyDepotComponent extends InverterComponent {
 
 	@Override
 	public void set(Value value) throws ControlException {
-		objectiveControl.getChannel().write(value);
-	}
-
-	@Override
-	protected void update() throws ControlException {
-		Value value = objectiveControl.getLatestValue();
-		try {
-			ChannelValues channels = build(value);
-			for (Channel channel : channels.keySet()) {
-				channel.write(channels.get(channel));
-			}
-		} catch (MaintenanceException e) {
-			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
-		}
+		objectiveControl.getChannel().setLatestValue(value);
 	}
 
 	@Override
@@ -87,12 +69,7 @@ public class EnergyDepotComponent extends InverterComponent {
 
 		@Override
 		public void onValueReceived(Value value) {
-			try {
-				update();
-				
-			} catch (ControlException e) {
-				logger.debug("Unable to updating inverter objective: {}", e.getMessage());
-			}
+			update();
 		}
 	}
 

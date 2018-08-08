@@ -2,7 +2,7 @@
 def projectName = 'TH-E Box Optimization'
 
 def ini4jVersion = '0.5.4'
-def theCoreVersion = '0.4.0'
+def theCoreVersion = '0.4.1'
 
 repositories {
   flatDir {

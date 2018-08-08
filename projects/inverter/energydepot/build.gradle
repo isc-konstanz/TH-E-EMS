@@ -1,7 +1,7 @@
 
 def projectName = 'TH-E Box Inverter - EnergyDepot'
 
-def theCoreVersion = '0.4.0'
+def theCoreVersion = '0.4.1'
 
 repositories {
   flatDir {

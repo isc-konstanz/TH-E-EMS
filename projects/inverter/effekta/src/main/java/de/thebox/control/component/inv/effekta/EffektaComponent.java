@@ -8,12 +8,10 @@ import org.slf4j.LoggerFactory;
 
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
-import de.thebox.control.core.component.MaintenanceException;
 import de.thebox.control.core.component.inv.InverterComponent;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.ChannelValues;
-import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
 
 @Component
@@ -46,36 +44,13 @@ public class EffektaComponent extends InverterComponent {
 
 	@Override
 	public void set(Value value) throws ControlException {
-		objective.getChannel().write(value);
-	}
-
-	@Override
-	protected void update() throws ControlException {
-		Value value = objective.getLatestValue();
-		try {
-			ChannelValues channels = build(value);
-			for (Channel channel : channels.keySet()) {
-				channel.write(channels.get(channel));
-			}
-		} catch (MaintenanceException e) {
-			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
-		}
+		objective.getChannel().setLatestValue(value);
 	}
 
 	@Override
 	public ChannelValues objective(Value value) throws ComponentException {
 		// TODO: Implement different channels and choices here
 		return new ChannelValues();
-	}
-
-	@Override
-	protected Value process(Value value) throws ComponentException {
-		double result = value.doubleValue() + consumptionLast.doubleValue();
-		
-		if (external.isEnabled()) {
-			result -= external.getPv().doubleValue();
-		}
-		return new DoubleValue(result, value.getTime());
 	}
 
 	private class ObjectiveControlListener extends ChannelListener {
@@ -86,12 +61,7 @@ public class EffektaComponent extends InverterComponent {
 
 		@Override
 		public void onValueReceived(Value value) {
-			try {
-				update();
-				
-			} catch (ControlException e) {
-				logger.debug("Unable to updating inverter objective: {}", e.getMessage());
-			}
+			update();
 		}
 	}
 

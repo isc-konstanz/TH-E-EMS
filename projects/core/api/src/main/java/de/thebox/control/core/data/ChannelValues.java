@@ -22,6 +22,9 @@ public class ChannelValues extends HashMap<Channel, ValueList> {
 	}
 
 	public void add(ChannelValues channels) {
+		if (channels == null) {
+			return;
+		}
 		for (Channel channel : channels.keySet()) {
 			for (Value value : channels.get(channel)) {
 				add(channel, value);

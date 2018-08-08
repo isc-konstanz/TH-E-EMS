@@ -67,28 +67,35 @@ public abstract class ComponentImpl implements ComponentService {
 
 	@Override
 	public void set(Value value) throws ControlException {
+		ChannelValues channels = null;
 		try {
-			ChannelValues channels = build(value);
-			for (Channel channel : channels.keySet()) {
-				channel.write(channels.get(channel));
-			}
+			channels = build(value);
+			
 		} catch (MaintenanceException e) {
 			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
+		}
+		if (channels == null) {
+			return;
+		}
+		
+		for (Channel channel : channels.keySet()) {
+			channel.write(channels.get(channel));
 		}
 	}
 
 	@Override
 	public void schedule(Schedule schedule) throws ControlException {
+		ChannelValues channels = new ChannelValues();
 		try {
-			ChannelValues channels = new ChannelValues();
 			for (Value value : schedule) {
 				channels.add(build(value));
 			}
-			for (Channel channel : channels.keySet()) {
-				channel.write(channels.get(channel));
-			}
 		} catch (MaintenanceException e) {
 			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
+		}
+
+		for (Channel channel : channels.keySet()) {
+			channel.write(channels.get(channel));
 		}
 	}
 

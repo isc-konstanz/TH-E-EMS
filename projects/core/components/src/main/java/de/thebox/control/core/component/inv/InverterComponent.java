@@ -13,6 +13,7 @@ import de.thebox.control.core.component.MaintenanceException;
 import de.thebox.control.core.component.inv.consumption.Consumption;
 import de.thebox.control.core.component.inv.external.External;
 import de.thebox.control.core.data.Channel;
+import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
@@ -23,35 +24,48 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 
 	protected External external;
 	protected Consumption consumption;
-	protected Value consumptionLast = DoubleValue.emptyValue();
 
+	protected ChannelListener objective;
 	protected int objectiveMax;
 	protected int objectiveMin;
 	protected Value objectiveLast = DoubleValue.emptyValue();
 
-	protected double batteryStateMin;
 	protected Channel batteryState;
+	protected double batteryStateMin;
 
 	protected volatile boolean maintenance = false;
 
+	protected class ObjectiveListener extends ChannelListener {
+		public ObjectiveListener(Channel channel) {
+			super(channel);
+		}
+
+		@Override
+		public void onValueReceived(Value objective) {
+			update();
+		}
+	}
+
 	@Override
-	public void activate(Preferences config) throws ControlException {
-		external = new External(control, config);
-		consumption = new Consumption(control, config);
+	public void activate(Preferences prefs) throws ControlException {
+		InverterConfig config = new InverterConfig(prefs);
+		objective = new ObjectiveListener(control.getChannel(config.getObjective()));
+		consumption = new Consumption(control, config, prefs);
 		consumption.register(new ValueListener() {
 			
 			@Override
 			public void onValueReceived(Value value) {
-				consumptionLast = value;
 				update();
 			}
 		});
+		external = new External(control, prefs);
 	}
 
 	@Override
 	public void deactivate() {
-		consumption.deactivate();
 		external.deactivate();
+		consumption.deactivate();
+		objective.deregister();
 	}
 
 	@Override
@@ -65,20 +79,34 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 	}
 
 	@Override
+	public void set(Value value) throws ControlException {
+		objective.getChannel().setLatestValue(value);
+	}
+
+	@Override
 	public ChannelValues build(Value value) throws ComponentException {
 		if (maintenance) {
 			throw new MaintenanceException();
 		}
-		value = process(value);
-		
 		if (value.doubleValue() > objectiveMax || value.doubleValue() < objectiveMin) {
 			throw new ComponentException("Inverter objective out of bounds: " + value);
 		}
-		else if (value.doubleValue() == objectiveLast.doubleValue()) {
-			// Do Nothing
-			return new ChannelValues();
+		double objective = value.doubleValue();
+		if (external.isEnabled()) {
+			objective -= external.getPv().doubleValue();
 		}
-		else if (value.doubleValue() > 0) {
+		
+		if (objective > objectiveMax) {
+			objective = objectiveMax;
+		}
+		else if (objective < objectiveMin) {
+			objective = objectiveMin;
+		}
+		if (objective == objectiveLast.doubleValue()) {
+			// Do Nothing
+			return null;
+		}
+		else if (objective > 0) {
 			Value state = batteryState.getLatestValue();
 			if (state != null && state.doubleValue() < batteryStateMin) {
 				try {
@@ -89,9 +117,9 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 				throw new ComponentException("Battery State of Charge below boundaries. Export temporarily disabled.");
 			}
 		}
-		objectiveLast = value;
+		objectiveLast = new DoubleValue(objective, value.getTime());
 		
-		return objective(value);
+		return objective(objectiveLast);
 	}
 
 	protected void update() {
@@ -105,14 +133,6 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 		} catch (ControlException e) {
 			logger.debug("Unable to updating inverter objective: {}", e.getMessage());
 		}
-	}
-
-	protected Value process(Value value) throws ComponentException {
-		double result = value.doubleValue();
-		if (external.isEnabled()) {
-			result -= external.getPv().doubleValue();
-		}
-		return new DoubleValue(result, value.getTime());
 	}
 
 }

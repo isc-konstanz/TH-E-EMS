@@ -11,6 +11,7 @@ public class InverterConfig extends Configuration {
 
 	public final static String SECTION = "Inverter";
 
+	public final static String OBJECTIVE = "objective";
 	public final static String OBJECTIVE_MAX_KEY = "powerMax";
 	public final static String OBJECTIVE_MIN_KEY = "powerMin";
 	public final static Value OBJECTIVE_DEFAULT = DoubleValue.emptyValue();
@@ -28,6 +29,10 @@ public class InverterConfig extends Configuration {
 	@Override
 	protected String getSectionKey() {
 		return SECTION;
+	}
+
+	public String getObjective() throws ConfigurationException {
+		return getKey(OBJECTIVE);
 	}
 
 	public int getPowerMax() throws ConfigurationException {

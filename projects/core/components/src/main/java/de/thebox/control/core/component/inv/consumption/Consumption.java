@@ -25,10 +25,9 @@ public class Consumption implements PowerCallbacks {
 
 	protected final List<ValueListener> listeners = new ArrayList<ValueListener>();
 
-	public Consumption(ControlService control, Preferences prefs) throws ConfigurationException {
-		InverterConfig inv = new InverterConfig(prefs);
+	public Consumption(ControlService control, InverterConfig inverter, Preferences prefs) throws ConfigurationException {
 		try {
-			this.consumption = control.getChannel(inv.getConsumptionPower());
+			this.consumption = control.getChannel(inverter.getConsumptionPower());
 			
 			if (prefs.nodeExists(ConsumptionConfig.SECTION)) {
 				ConsumptionConfig config = new ConsumptionConfig(prefs);

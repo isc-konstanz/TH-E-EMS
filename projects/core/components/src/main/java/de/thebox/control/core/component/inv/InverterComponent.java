@@ -42,13 +42,8 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 			
 			@Override
 			public void onValueReceived(Value value) {
-				try {
-					consumptionLast = value;
-					update();
-					
-				} catch (ControlException e) {
-					logger.debug("Unable to updating inverter objective: {}", e.getMessage());
-				}
+				consumptionLast = value;
+				update();
 			}
 		});
 	}
@@ -99,7 +94,18 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 		return objective(value);
 	}
 
-	protected abstract void update() throws ControlException;
+	protected void update() {
+		try {
+			ChannelValues channels = build(objectiveLast);
+			for (Channel channel : channels.keySet()) {
+				channel.write(channels.get(channel));
+			}
+		} catch (MaintenanceException e) {
+			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
+		} catch (ControlException e) {
+			logger.debug("Unable to updating inverter objective: {}", e.getMessage());
+		}
+	}
 
 	protected Value process(Value value) throws ComponentException {
 		double result = value.doubleValue();

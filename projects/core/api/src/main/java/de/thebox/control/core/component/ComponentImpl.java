@@ -10,11 +10,10 @@ import de.thebox.control.core.ControlException;
 import de.thebox.control.core.ControlService;
 import de.thebox.control.core.config.ConfigurationException;
 import de.thebox.control.core.data.Channel;
-import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.Value;
 import de.thebox.control.core.schedule.Schedule;
 
-public abstract class ComponentImpl implements ComponentService {
+public abstract class ComponentImpl implements ComponentService, ComponentCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(ComponentImpl.class);
 
 	protected ComponentStatus status = ComponentStatus.DISABLED;
@@ -67,38 +66,38 @@ public abstract class ComponentImpl implements ComponentService {
 
 	@Override
 	public void set(Value value) throws ControlException {
-		ChannelValues channels = null;
+		ComponentWriteContainer container = new ComponentWriteContainer();
 		try {
-			channels = build(value);
+			build(container, value);
 			
 		} catch (MaintenanceException e) {
 			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
 		}
-		if (channels == null) {
+		if (container.size() < 1) {
 			return;
 		}
 		
-		for (Channel channel : channels.keySet()) {
-			channel.write(channels.get(channel));
+		for (Channel channel : container.keySet()) {
+			channel.write(container.get(channel));
 		}
 	}
 
 	@Override
 	public void schedule(Schedule schedule) throws ControlException {
-		ChannelValues channels = new ChannelValues();
+		ComponentWriteContainer container = new ComponentWriteContainer();
 		try {
 			for (Value value : schedule) {
-				channels.add(build(value));
+				build(container, value);
 			}
 		} catch (MaintenanceException e) {
 			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
 		}
 
-		for (Channel channel : channels.keySet()) {
-			channel.write(channels.get(channel));
+		for (Channel channel : container.keySet()) {
+			channel.write(container.get(channel));
 		}
 	}
 
-	protected abstract ChannelValues build(Value value) throws ControlException;
+	protected abstract void build(ComponentWriteContainer container, Value value) throws ControlException;
 
 }

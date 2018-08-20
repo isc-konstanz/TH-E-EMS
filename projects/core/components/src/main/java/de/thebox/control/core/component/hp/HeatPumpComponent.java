@@ -6,11 +6,11 @@ import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.CabinetService;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentImpl;
+import de.thebox.control.core.component.ComponentWriteContainer;
 import de.thebox.control.core.component.HeatPumpService;
 import de.thebox.control.core.component.circ.Circulation;
 import de.thebox.control.core.component.circ.pump.CirculationPump;
 import de.thebox.control.core.component.vent.CabinetVentilation;
-import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.Value;
 
 public abstract class HeatPumpComponent extends ComponentImpl implements CabinetService, HeatPumpService {
@@ -52,14 +52,19 @@ public abstract class HeatPumpComponent extends ComponentImpl implements Cabinet
 	}
 
 	@Override
-	protected ChannelValues build(Value value) throws ControlException {
-		if (value.doubleValue() < 0) {
-			
+	protected void build(ComponentWriteContainer container, Value value) throws ControlException {
+		if (value.doubleValue() == 0) {
+			stop(container);
 		}
-		else if (value.doubleValue() == 0) {
-			return stop();
+		else if (value.doubleValue() > 0) {
+			start(container, value);
 		}
-		return start(value);
+		throw new ComponentException("Invalid negative power values passed to set component");
+	}
+
+	@Override
+	public void onUpdate() {
+		// Do nothing for now
 	}
 
 }

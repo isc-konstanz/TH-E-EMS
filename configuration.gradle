@@ -1,6 +1,6 @@
 project.ext {
 
-  cfgVersion = '0.4.1'
+  cfgVersion = '0.4.2'
 
   cfgGroup = 'de.konstanz.isc'
 

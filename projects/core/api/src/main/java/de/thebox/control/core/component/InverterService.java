@@ -1,6 +1,5 @@
 package de.thebox.control.core.component;
 
-import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.Value;
 
 public interface InverterService extends ComponentService {
@@ -10,6 +9,6 @@ public interface InverterService extends ComponentService {
 		return Component.INVERTER;
 	};
 
-	public ChannelValues objective(Value value) throws ComponentException;
+	public void objective(ComponentWriteContainer container, Value value) throws ComponentException;
 
 }

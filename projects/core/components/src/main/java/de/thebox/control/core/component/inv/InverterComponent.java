@@ -8,16 +8,15 @@ import org.slf4j.LoggerFactory;
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.ComponentImpl;
+import de.thebox.control.core.component.ComponentWriteContainer;
 import de.thebox.control.core.component.InverterService;
 import de.thebox.control.core.component.MaintenanceException;
 import de.thebox.control.core.component.inv.consumption.Consumption;
 import de.thebox.control.core.component.inv.external.External;
 import de.thebox.control.core.data.Channel;
 import de.thebox.control.core.data.ChannelListener;
-import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
-import de.thebox.control.core.data.ValueListener;
 
 public abstract class InverterComponent extends ComponentImpl implements InverterService {
 	private final static Logger logger = LoggerFactory.getLogger(InverterComponent.class);
@@ -42,7 +41,7 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 
 		@Override
 		public void onValueReceived(Value objective) {
-			update();
+			onUpdate();
 		}
 	}
 
@@ -50,14 +49,7 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 	public void activate(Preferences prefs) throws ControlException {
 		InverterConfig config = new InverterConfig(prefs);
 		objective = new ObjectiveListener(control.getChannel(config.getObjective()));
-		consumption = new Consumption(control, config, prefs);
-		consumption.register(new ValueListener() {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				update();
-			}
-		});
+		consumption = new Consumption(this, control, config, prefs);
 		external = new External(control, prefs);
 	}
 
@@ -84,7 +76,7 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 	}
 
 	@Override
-	public ChannelValues build(Value value) throws ComponentException {
+	public void build(ComponentWriteContainer container, Value value) throws ComponentException {
 		if (maintenance) {
 			throw new MaintenanceException();
 		}
@@ -104,7 +96,7 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 		}
 		if (objective == objectiveLast.doubleValue()) {
 			// Do Nothing
-			return null;
+			return;
 		}
 		else if (objective > 0) {
 			Value state = batteryState.getLatestValue();
@@ -117,21 +109,26 @@ public abstract class InverterComponent extends ComponentImpl implements Inverte
 				throw new ComponentException("Battery State of Charge below boundaries. Export temporarily disabled.");
 			}
 		}
-		objectiveLast = new DoubleValue(objective, value.getTime());
-		
-		return objective(objectiveLast);
+		objective(container, new DoubleValue(objective, value.getTime()));
 	}
 
-	protected void update() {
+	@Override
+	public void onUpdate() {
+		ComponentWriteContainer container = new ComponentWriteContainer();
 		try {
-			ChannelValues channels = build(objectiveLast);
-			for (Channel channel : channels.keySet()) {
-				channel.write(channels.get(channel));
-			}
+			build(container, objectiveLast);
+			
 		} catch (MaintenanceException e) {
 			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
 		} catch (ControlException e) {
 			logger.debug("Unable to updating inverter objective: {}", e.getMessage());
+		}
+		if (container.size() < 1) {
+			return;
+		}
+		
+		for (Channel channel : container.keySet()) {
+			channel.write(container.get(channel));
 		}
 	}
 

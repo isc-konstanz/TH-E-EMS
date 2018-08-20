@@ -6,9 +6,9 @@ import org.osgi.service.component.annotations.Component;
 
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.component.ComponentWriteContainer;
 import de.thebox.control.core.component.inv.InverterComponent;
 import de.thebox.control.core.data.Channel;
-import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
 
@@ -32,7 +32,7 @@ public class EnergyDepotComponent extends InverterComponent {
 	}
 
 	@Override
-	public ChannelValues objective(Value value) throws ComponentException {
+	public void objective(ComponentWriteContainer container, Value value) throws ComponentException {
 		double objective = value.doubleValue() + consumption.getLatestValue().doubleValue();
 		
 		if (objective > objectiveMax) {
@@ -41,7 +41,7 @@ public class EnergyDepotComponent extends InverterComponent {
 		else if (objective < objectiveMin) {
 			objective = objectiveMin;
 		}
-		return new ChannelValues(inverterObjective, new DoubleValue(objective, value.getTime()));
+		container.add(inverterObjective, new DoubleValue(objective, value.getTime()));
 	}
 
 }

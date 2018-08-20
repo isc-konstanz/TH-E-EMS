@@ -1,7 +1,7 @@
 
 def projectName = 'TH-E Box Heat Pump - Gondzik'
 
-def theCoreVersion = '0.4.1'
+def theCoreVersion = '0.4.2'
 
 repositories {
   flatDir {

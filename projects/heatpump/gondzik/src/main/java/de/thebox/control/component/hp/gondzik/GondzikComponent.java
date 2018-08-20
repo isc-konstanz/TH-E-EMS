@@ -6,8 +6,8 @@ import org.osgi.service.component.annotations.Component;
 
 import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
+import de.thebox.control.core.component.ComponentWriteContainer;
 import de.thebox.control.core.component.hp.HeatPumpComponent;
-import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.Value;
 
 @Component
@@ -32,15 +32,13 @@ public class GondzikComponent extends HeatPumpComponent {
 	}
 
 	@Override
-	public ChannelValues start(Value value) throws ComponentException {
+	public void start(ComponentWriteContainer container, Value value) throws ComponentException {
 		// TODO Auto-generated method stub
-		return new ChannelValues();
 	}
 
 	@Override
-	public ChannelValues stop() throws ComponentException {
+	public void stop(ComponentWriteContainer container) throws ComponentException {
 		// TODO Auto-generated method stub
-		return new ChannelValues();
 	}
 
 }

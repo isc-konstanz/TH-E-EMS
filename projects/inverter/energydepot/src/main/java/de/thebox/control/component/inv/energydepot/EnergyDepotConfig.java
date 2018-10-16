@@ -2,24 +2,26 @@ package de.thebox.control.component.inv.energydepot;
 
 import java.util.prefs.Preferences;
 
-import de.thebox.control.core.component.inv.InverterConfig;
+import de.thebox.control.core.config.Configuration;
 import de.thebox.control.core.config.ConfigurationException;
 
-public class EnergyDepotConfig extends InverterConfig {
+public class EnergyDepotConfig extends Configuration {
 
-	public final static String OBJECTIVE = "objective";
-	public final static String OBJECTIVE_CONTROL_KEY = "control";
+	public final static String SECTION = "Inverter";
+
+	public final static String OBJECTIVE_LOCAL_KEY = "invObjective";
 
 	public EnergyDepotConfig(Preferences config) {
 		super(config);
 	}
 
-	public String getObjective() throws ConfigurationException {
-		return getKey(OBJECTIVE);
+	@Override
+	protected String getSectionKey() {
+		return SECTION;
 	}
 
-	public String getObjectiveControl() throws ConfigurationException {
-		return getKey(OBJECTIVE_CONTROL_KEY);
+	public String getInverterObjective() throws ConfigurationException {
+		return getKey(OBJECTIVE_LOCAL_KEY);
 	}
 
 }

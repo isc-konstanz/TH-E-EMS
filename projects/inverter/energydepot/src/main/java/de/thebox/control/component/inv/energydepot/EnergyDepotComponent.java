@@ -8,7 +8,6 @@ import de.thebox.control.core.ControlException;
 import de.thebox.control.core.component.ComponentException;
 import de.thebox.control.core.component.inv.InverterComponent;
 import de.thebox.control.core.data.Channel;
-import de.thebox.control.core.data.ChannelListener;
 import de.thebox.control.core.data.ChannelValues;
 import de.thebox.control.core.data.DoubleValue;
 import de.thebox.control.core.data.Value;
@@ -17,8 +16,7 @@ import de.thebox.control.core.data.Value;
 public class EnergyDepotComponent extends InverterComponent {
 	private final static String ID = "EnergyDepot";
 
-	protected Channel objective;
-	protected ChannelListener objectiveControl;
+	protected Channel inverterObjective;
 
 	@Override
 	public String getId() {
@@ -30,47 +28,20 @@ public class EnergyDepotComponent extends InverterComponent {
 		super.activate(prefs);
 		
 		EnergyDepotConfig config = new EnergyDepotConfig(prefs);
-		objective = control.getChannel(config.getObjective());
-		objectiveControl = new ObjectiveControlListener(control.getChannel(config.getObjectiveControl()));
-	}
-
-	@Override
-	public void deactivate() {
-		super.deactivate();
-		
-		objectiveControl.deregister();
-	}
-
-	@Override
-	public void set(Value value) throws ControlException {
-		objectiveControl.getChannel().setLatestValue(value);
+		inverterObjective = control.getChannel(config.getInverterObjective());
 	}
 
 	@Override
 	public ChannelValues objective(Value value) throws ComponentException {
-		return new ChannelValues(objective, value);
-	}
-
-	@Override
-	protected Value process(Value value) throws ComponentException {
-		double result = value.doubleValue() + consumptionLast.doubleValue();
+		double objective = value.doubleValue() + consumption.getLatestValue().doubleValue();
 		
-		if (external.isEnabled()) {
-			result -= external.getPv().doubleValue();
+		if (objective > objectiveMax) {
+			objective = objectiveMax;
 		}
-		return new DoubleValue(result, value.getTime());
-	}
-
-	private class ObjectiveControlListener extends ChannelListener {
-
-		public ObjectiveControlListener(Channel channel) {
-			super(channel);
+		else if (objective < objectiveMin) {
+			objective = objectiveMin;
 		}
-
-		@Override
-		public void onValueReceived(Value value) {
-			update();
-		}
+		return new ChannelValues(inverterObjective, new DoubleValue(objective, value.getTime()));
 	}
 
 }

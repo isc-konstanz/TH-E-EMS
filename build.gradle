@@ -141,26 +141,16 @@ configure(javaProjects) {
   task jarAll(type: Copy) {
     dependsOn(configurations.default.getAllArtifacts().getBuildDependencies())
 
-    //only the jar file created:
+    // Include the jar file created, as well as all artifacts:
     from configurations.default.getAllArtifacts().getFiles()
-    if (cfgCopyToRoot) {
-      //includes all artifacts for distribution:
-      from sourcesJar
-      from javadocJar
-      
-      if (cfgCopyDependencies) {
-        //includes all the dependencies:
-        from configurations.default
-      }
-      into rootDir.getPath() + "/build/libs"
+    from sourcesJar
+    from javadocJar
+
+    if (cfgCopyDependencies) {
+      // Includes all the dependencies:
+      from configurations.default
     }
-    else {
-      if (cfgCopyDependencies) {
-        //includes all the dependencies:
-        from configurations.default
-      }
-      into "build/libs-all"
-    }
+    into rootDir.getPath() + "/build/libs"
   }
 
   build.dependsOn {jarAll}
@@ -176,20 +166,24 @@ configure(javaProjects) {
   javadoc {
     exclude "**/internal/**"
     exclude "**/java-gen/**"
+    exclude "**/app/**"
   }
 }
 
-task javadocAll(type: Javadoc) {
+task javadocClean(type: Delete) {
+  delete rootDir.getPath() + "/docs/javadoc"
+}
 
+task javadocAll(type: Javadoc) {
+  dependsOn(javadocClean)
   source docProjects.collect {
     project -> project.sourceSets.main.allJava
   }
-
   exclude "**/internal/**"
   exclude "**/java-gen/**"
   exclude "**/app/**"
 
-  destinationDir = new File(buildDir, "docs/javadoc")
+  destinationDir = new File(rootDir, "docs/javadoc")
 
   classpath = files(distributionProjects.collect { project ->
     project.sourceSets.main.compileClasspath })
@@ -198,56 +192,18 @@ task javadocAll(type: Javadoc) {
     project.sourceSets.main.output })
 }
 
-task writeSettings {
-  doLast {
-    Writer out = new OutputStreamWriter(new FileOutputStream("build/settings.gradle"));
-    out.write("include ");
-    boolean first = true;
-    for (Project myproject: distributionProjects) {
-      if (myproject.getProjectDir().equals(getProjectDir())) {
-        continue;  
-      }
-      if (first) {
-        first = false;
-      }
-      else {
-        out.write ", ";
-      }
-    }
-    out .write "\n\n";
-
-    for (Project myproject: distributionProjects) {
-      if (myproject.getProjectDir().equals(getProjectDir())) {
-        continue;
-      }
-      println myproject.name
-      out.write 'project(":' + myproject.name + '").projectDir = file("' + myproject.getProjectDir().toString().substring((int)(getProjectDir().toString().size() + 1)) + '")\n';
-    }
-
-    out.close();
-  }
-}
-
-task buildDistProjects {
-  dependsOn(distributionProjects.build)
-}
-
-tasks.withType(Tar) {
-
-  dependsOn(writeSettings)
-  dependsOn(distributionProjects.build)
-  dependsOn(javadocAll)
-
+task (tar, type: Tar) {
+  archiveName = project.name + "-" + project.version + ".tar.gz"
   compression = Compression.GZIP
-  
   destinationDir = file("build/distributions/")
 }
 
-task (tar, type: Tar) {
-  archiveName = project.name + "-" + project.version + ".tgz"
+task release {
+  dependsOn(distributionProjects.build)
+  dependsOn(javadocAll)
+  dependsOn(tar)
 }
 
-task (tarFull, type: Tar) {
-  dependsOn(tar)
-  archiveName = project.name + "-" + project.version + "_full.tgz"
+subprojects {
+  task allDeps(type: DependencyReportTask) {}
 }

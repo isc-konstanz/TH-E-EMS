@@ -6,21 +6,20 @@ project.ext {
 
   cfgCopyDependencies = false
 
-  cfgCopyToRoot = false
-
   javaProjects = subprojects
 
   jarDefaultImportPackageVersion = ";version=0"
 
   distributionProjects = subprojects.findAll {
-    it.getPath() == ":th-e-core-api" ||
-    it.getPath() == ":th-e-core-components" ||
-    it.getPath() == ":th-e-ctrl"
+    it.getPath() == ":th-e-ems-core-api" ||
+    it.getPath() == ":th-e-ems-core-cmpt" ||
+    it.getPath() == ":th-e-ems-core-mgr" ||
+    it.getPath() == ":th-e-cms"
   }
 
   docProjects = distributionProjects.findAll {
-    it.getPath() == ":th-e-core-api" ||
-    it.getPath() == ":th-e-core-components"
+    it.getPath() == ":th-e-ems-core-api" ||
+    it.getPath() == ":th-e-ems-core-cmpt"
   }
 
 }

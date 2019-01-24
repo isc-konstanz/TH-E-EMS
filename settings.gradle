@@ -1,6 +1,7 @@
-include "th-e-core-api", "th-e-core-components", "th-e-ctrl"
+include "th-e-ems-core-api", "th-e-ems-core-cmpt", "th-e-ems-core-mgr", "th-e-cms"
 
-project(":th-e-core-api").projectDir = file("projects/core/api")
-project(":th-e-core-components").projectDir = file("projects/core/components")
+project(":th-e-ems-core-api").projectDir = file("projects/core/api")
+project(":th-e-ems-core-cmpt").projectDir = file("projects/core/cmpt")
+project(":th-e-ems-core-mgr").projectDir = file("projects/core/mgr")
 
-project(":th-e-ctrl").projectDir = file("projects/control/openmuc-app")
+project(":th-e-cms").projectDir = file("projects/cms/openmuc-app")

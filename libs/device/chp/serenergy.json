@@ -1,0 +1,346 @@
+{
+    "name": "H3 3000/5000",
+    "category": "Cogenerator",
+    "group": "Serenergy",
+    "description": "Serenergy Methanol fuel cell system",
+
+    "devices": [
+        {
+            "name": "chp",
+            "description": "Fuel cell",
+            "driver": "snmp",
+            "address": "<ip>/<port>",
+            "settings": "SNMPVersion=V2c:AUTHENTICATIONPASSPHRASE=private"
+        },
+        {
+            "name": "chp*circ*pump",
+            "description": "Fuel cell circulation pump",
+            "address": "pin:<pin>",
+            "driver": "rpi-gpio",
+            "settings": "mode:DIGITAL_OUTPUT"
+        },
+        {
+            "name": "chp*circ",
+            "description": "Heat pump circulation",
+            "driver": "virtual"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "ip",
+            "name": "IP address",
+            "description": "The IP address of the SNMP agent device.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "port",
+            "name": "Port",
+            "description": "The address port of the target SNMP agent device.<br>By convention, SNMP agents use the UDP-Port 161, while sending traps to 162.",
+            "type": "text",
+            "default": "161",
+            "mandatory": true
+        },
+        {
+            "id": "pin",
+            "name": "Pin",
+            "description": "The Pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "scan": true,
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "state",
+            "type": "Text",
+            "label": "State",
+            "header": true,
+            "select": {
+                "1":"Passive",
+                "2":"Standby",
+                "3":"Preheat",
+                "4":"Starting",
+                "5":"Limited operation",
+                "6":"Operation",
+                "7":"Shutdown",
+                "8":"Emergency shutdown",
+                "9":"Error",
+                "10":"Zero load mode"
+            },
+            "default": "Loading",
+            "input": "chp*state"
+        },
+        {
+            "id": "power",
+            "type": "Slider",
+            "label": "Power",
+            "format": "%.1f kW",
+            "max": 72,
+            "min": 24,
+            "step": 1,
+            "scale": 0.0666,
+            "mapping": {
+                "SET": { "channel": "chp*stack*current*limit" }
+            },
+            "input": "chp*stack*current*limit"
+        },
+        {
+            "id": "stack",
+            "type": "Text",
+            "label": "Stack",
+            "format": "%.1f °C",
+            "input": "chp*stack*temp"
+        },
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "chp*ctrl*start", "value": 3 },
+                "OFF": { "channel": "chp*ctrl*stop", "value": 3 }
+            },
+            "input": "chp*ctrl*state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Circulation",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "chp*circ*pump*state", "value": true },
+                "OFF": { "channel": "chp*circ*pump*state", "value": false }
+            },
+            "input": "chp*circ*pump*state"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "chp*state",
+            "description": "Fuel cell status",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.1.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"INTEGER"}
+        },
+        {
+            "name": "chp*ctrl*enable",
+            "description": "Fuel cell control enable",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.1.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueOffset":-1, "valueType":"INTEGER"}
+        },
+        {
+            "name": "chp*ctrl*state",
+            "description": "Fuel cell control state",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.2.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueOffset":-1, "valueType":"INTEGER"}
+        },
+        {
+            "name": "chp*ctrl*start",
+            "description": "Fuel cell control start",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.3.0",
+            "logging": "authorization:NONE",
+            "configs": {"valueType":"INTEGER"}
+        },
+        {
+            "name": "chp*ctrl*stop",
+            "description": "Fuel cell control stop",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.4.0",
+            "logging": "authorization:NONE",
+            "configs": {"valueType":"INTEGER"}
+        },
+        {
+            "name": "chp*control*reset",
+            "description": "Fuel cell control reset",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.5.0",
+            "logging": "authorization:NONE",
+            "configs": {"valueType":"INTEGER"}
+        },
+        {
+            "name": "chp*stack*current*limit",
+            "description": "Fuel cell stack current limit",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.6.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"INTEGER", "unit": "A"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell stack limit", "tag": "Current"}
+                }
+            ]
+        },
+        {
+            "name": "chp*stack*power",
+            "description": "Fuel cell stack power",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.1.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit": "W"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell stack", "tag": "Power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell stack", "tag": "Energy"}
+                }
+            ]
+        },
+        {
+            "name": "chp*stack*voltage",
+            "description": "Fuel cell stack voltage",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.2.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true},
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "V"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell stack", "tag": "Voltage"}
+                }
+            ]
+        },
+        {
+            "name": "chp*stack*current",
+            "description": "Fuel cell stack current",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.3.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true},
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "A"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell stack", "tag": "Current"}
+                }
+            ]
+        },
+        {
+            "name": "chp*stack*temp",
+            "description": "Fuel cell stack temperature",
+            "device": "chp",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.4.0",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true},
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "°C"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell stack", "tag": "Temperature"}
+                }
+            ]
+        },
+        {
+            "name": "chp*circ*pump*state",
+            "description": "Fuel cell pump state",
+            "device": "chp*circ*pump",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell circulation", "tag": "State"}
+                }
+            ]
+        },
+        {
+            "name": "chp*circ*delta*temp",
+            "description": "Heat pump circulation temperature",
+            "device": "chp*circ",
+            "logging": {"loggingInterval": 15000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true},
+            "configs": {"valueType":"DOUBLE", "unit": "°C"}
+        },
+        {
+            "name": "chp*circ*flow*energy",
+            "description": "Heat pump circulation energy",
+            "device": "chp*circ",
+            "logging": {"loggingInterval": 15000, "loggingMaxInterval": 900000},
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"},
+            "processList": [
+                {
+                    "process": "counter_accumulator",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell flow", "tag": "Energy"}
+                },
+                {
+                    "process": "kwh_to_power",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Fuel cell flow", "tag": "Power"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Fuel cell stack",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell stack",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell stack",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell stack",
+            "tag": "Current",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell stack limit",
+            "tag": "Current",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell stack",
+            "tag": "Temperature",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell circulation",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell flow",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Fuel cell flow",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        }
+    ]
+}

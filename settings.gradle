@@ -1,7 +1,13 @@
-include "th-e-component-energydepot", "th-e-component-serenergy", "th-e-component-gondzik", "th-e-optimization"
+include "th-e-cmpt-inv-kaco-blueplanet", "th-e-cmpt-tss-basic", "th-e-cmpt-chp-serenergy", "th-e-cmpt-hp-basic", "th-e-cmpt-vnt-basic", "th-e-mpc"
 
-project(":th-e-component-energydepot").projectDir = file("projects/inverter/energydepot")
-project(":th-e-component-serenergy").projectDir = file("projects/cogenerator/serenergy")
-project(":th-e-component-gondzik").projectDir = file("projects/heatpump/gondzik")
+project(":th-e-cmpt-inv-kaco-blueplanet").projectDir = file("projects/inv/kaco-blueplanet")
 
-project(":th-e-optimization").projectDir = file("projects/optimization")
+project(":th-e-cmpt-tss-basic").projectDir = file("projects/tss/basic")
+
+project(":th-e-cmpt-chp-serenergy").projectDir = file("projects/chp/serenergy")
+
+project(":th-e-cmpt-hp-basic").projectDir = file("projects/hp/basic")
+
+project(":th-e-cmpt-vnt-basic").projectDir = file("projects/vnt/basic")
+
+project(":th-e-mpc").projectDir = file("projects/mpc")

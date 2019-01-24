@@ -1,0 +1,445 @@
+{
+    "name": "blueplanet hybrid",
+    "category": "Inverter",
+    "group": "KACO",
+    "description": "KACO blueplanet hybrid 10.0 TL3 inverter",
+
+    "devices": [
+        {
+            "name": "inv",
+            "description": "Inverter",
+            "driver": "edcom",
+            "settings": "user:ISC Konstanz"
+        },
+        {
+            "name": "inv*virtual",
+            "description": "Inverter calculations",
+            "driver": "virtual"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "ip",
+            "name": "IP address",
+            "description": "The IP address of the KACO product, a connection should be established to.",
+            "type": "text",
+            "mandatory": true,
+            "syntax": "deviceAddress"
+        }
+    ],
+
+    "items": [
+        {
+            "id": "dc",
+            "type": "Text",
+            "label": "DC power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "inv*dc*power"
+        },
+        {
+            "id": "setpoint",
+            "type": "Slider",
+            "label": "Export/Import",
+            "format": "%.1f kW",
+            "max": 10000,
+            "min": -10000,
+            "step": 500,
+            "scale": 0.001,
+            "default": 0,
+            "mapping": {
+                "SET": { "channel": "inv*ac*setpoint", "write":false }
+            },
+            "input": "inv*ac*setpoint"
+        },
+        {
+            "id": "soc",
+            "type": "Text",
+            "label": "State of Charge",
+            "header": true,
+            "format": "%i %",
+            "max": 100,
+            "min": 0,
+            "input": "ess*soc"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "ess*soc",
+            "description": "Storage state of charge",
+            "device": "inv",
+            "address": "BAT_SOC",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"%"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Storage SoC", "tag": "State"}
+                }
+            ]
+        },
+        {
+            "name": "ess*charge*setpoint",
+            "description": "Storage charge setpoint",
+            "device": "inv",
+            "address": "INV_OBJECTIVE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"}
+        },
+        {
+            "name": "ess*charge",
+            "description": "Storage charge power",
+            "device": "inv",
+            "address": "BAT_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Storage", "tag": "Power"}
+                },
+                {
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Storage charge", "tag": "Power"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "allownegative",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "scale",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Storage discharge", "tag": "Power"}
+                }
+            ]
+        },
+        {
+            "name": "ess*voltage",
+            "description": "Storage voltage",
+            "device": "inv",
+            "address": "BAT_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Storage", "tag": "Voltage"}
+                }
+            ]
+        },
+        {
+            "name": "inv*dc*power",
+            "description": "Inverter DC power",
+            "device": "inv",
+            "address": "DC_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Inverter DC", "tag": "Power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Inverter DC", "tag": "Energy"}
+                }
+            ]
+        },
+        {
+            "name": "inv*dc1*voltage",
+            "description": "Inverter DC1 voltage",
+            "device": "inv",
+            "address": "DC_1_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Inverter DC1", "tag": "Voltage"}
+                }
+            ]
+        },
+        {
+            "name": "inv*dc2*voltage",
+            "description": "Inverter DC2 voltage",
+            "device": "inv",
+            "address": "DC_2_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Inverter DC2", "tag": "Voltage"}
+                }
+            ]
+        },
+        {
+            "name": "inv*ac*setpoint",
+            "description": "Inverter control setpoint",
+            "device": "inv*virtual",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "configs": {"valueType":"DOUBLE", "unit":"W"}
+        },
+        {
+            "name": "inv*ac*cons",
+            "description": "Consumption Power",
+            "device": "inv*virtual",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"valueType":"DOUBLE", "unit":"W"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Consumption", "tag": "Power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Consumption", "tag": "Energy"}
+                }
+            ]
+        },
+        {
+            "name": "inv*ac*virtual",
+            "description": "Grid active power",
+            "device": "inv*virtual",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"valueType":"DOUBLE", "unit":"W"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid", "tag": "Power"}
+                },
+                {
+                    "process": "allowpositive",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid import", "tag": "Power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid import", "tag": "Energy"}
+                },
+                {
+                    "process": "reset2original",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "allownegative",
+                    "arguments": {"type": "ProcessArg::NONE"}
+                },
+                {
+                    "process": "scale",
+                    "arguments": {"type": "ProcessArg::VALUE", "value": "-1"}
+                },
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid export", "tag": "Power"}
+                },
+                {
+                    "process": "power_to_kwh",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid export", "tag": "Energy"}
+                }
+            ]
+        },
+        {
+            "name": "inv*ac*active",
+            "description": "Grid active power",
+            "device": "inv",
+            "address": "GRID_ACTIVE_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"}
+        },
+        {
+            "name": "inv*ac*reactive",
+            "description": "Grid reactive power",
+            "device": "inv",
+            "address": "GRID_REACTIVE_POWER",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Var"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid reactive", "tag": "Power"}
+                }
+            ]
+        },
+        {
+            "name": "inv*ac*voltage",
+            "description": "Grid voltage",
+            "device": "inv",
+            "address": "GRID_VOLTAGE",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid", "tag": "Voltage"}
+                }
+            ]
+        },
+        {
+            "name": "inv*ac*frequency",
+            "description": "Grid frequency",
+            "device": "inv",
+            "address": "GRID_FREQUENCY",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true},
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Hz"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Grid", "tag": "Frequency"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Storage SoC",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "%"
+        },
+        {
+            "name": "Storage",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Storage charge",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Storage discharge",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Storage",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "V"
+        },
+        {
+            "name": "Inverter DC",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Inverter DC",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "kWh"
+        },
+        {
+            "name": "Inverter DC1",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "V"
+        },
+        {
+            "name": "Inverter DC2",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "V"
+        },
+        {
+            "name": "Grid",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Grid reactive",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "Var"
+        },
+        {
+            "name": "Grid import",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Grid import",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "kWh"
+        },
+        {
+            "name": "Grid export",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Grid export",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "kWh"
+        },
+        {
+            "name": "Grid",
+            "tag": "Voltage",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "V"
+        },
+        {
+            "name": "Grid",
+            "tag": "Frequency",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "Hz"
+        },
+        {
+            "name": "Consumption",
+            "tag": "Power",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "W"
+        },
+        {
+            "name": "Consumption",
+            "tag": "Energy",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES",
+            "unit": "kWh"
+        }
+    ]
+}

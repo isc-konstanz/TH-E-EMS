@@ -96,29 +96,34 @@ public class BasicComponent extends HeatPumpComponent implements HeatPumpService
 			@Override
 			public void onValueReceived(Value value) {
 				temperatureValue = value;
-				if (temperatureValue.doubleValue() >= temperatureInMax) {
-					stop();
-					return;
-				}
-				if (isMaintenance()) {
-					return;
-				}
-				if (temperatureValue.doubleValue() <= temperatureMin &&
-						(stateValueLast != null && !stateValueLast.booleanValue())) {
-					
-					start();
-				}
-				else if (temperatureValue.doubleValue() >= temperatureMax &&
-						(stateValueLast != null && stateValueLast.booleanValue())) {
-					if (System.currentTimeMillis() - startTimeLast < intervalMin) {
-						logger.info("Heat pump recognized temperature threshold to switch OFF while running shorter than {}min", intervalMin/60000);
-						return;
-					}
-					stop();
-				}
+				onUpdate();
 			}
 		};
 		return listener;
+	}
+
+	@Override
+	public void onUpdate() {
+		if (temperatureValue.doubleValue() >= temperatureInMax) {
+			stop();
+			return;
+		}
+		if (isMaintenance()) {
+			return;
+		}
+		if (temperatureValue.doubleValue() <= temperatureMin &&
+				(stateValueLast != null && !stateValueLast.booleanValue())) {
+			
+			start();
+		}
+		else if (temperatureValue.doubleValue() >= temperatureMax &&
+				(stateValueLast != null && stateValueLast.booleanValue())) {
+			if (System.currentTimeMillis() - startTimeLast < intervalMin) {
+				logger.debug("Heat pump recognized temperature threshold to switch OFF while running shorter than {}min", intervalMin/60000);
+				return;
+			}
+			stop();
+		}
 	}
 
 	@Override

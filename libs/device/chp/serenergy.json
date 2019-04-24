@@ -10,7 +10,7 @@
             "description": "Fuel cell",
             "driver": "snmp",
             "address": "<ip>/<port>",
-            "settings": "SNMPVersion=V2c:AUTHENTICATIONPASSPHRASE=private"
+            "settings": "SNMP_VERSION=V2c:AUTHENTICATIONPASSPHRASE=private"
         },
         {
             "name": "chp*circ*pump",

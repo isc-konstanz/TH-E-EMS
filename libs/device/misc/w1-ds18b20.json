@@ -27,7 +27,7 @@
 
     "channels": [
         {
-            "name": "<node>*temp",
+            "name": "<node>*temperature",
             "description": "DS18B20 temperature",
             "settings": "unit:CELSIUS",
             "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true},
@@ -35,7 +35,7 @@
             "processList": [
                 {
                     "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "<name>", "tag": "Temperature"}
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Temperature", "tag": "<name>"}
                 }
             ]
         }
@@ -43,8 +43,8 @@
 
     "feeds": [
         {
-            "name": "<name>",
-            "tag": "Temperature",
+            "name": "Temperature",
+            "tag": "<name>",
             "type": "DataType::REALTIME",
             "engine": "Engine::PHPTIMESERIES",
 			"unit": "°C"

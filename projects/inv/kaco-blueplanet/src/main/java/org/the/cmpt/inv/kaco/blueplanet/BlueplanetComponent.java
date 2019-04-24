@@ -7,7 +7,6 @@ import org.the.ems.core.ElectricalStorageService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.InverterService;
 import org.the.ems.core.cmpt.inv.InverterComponent;
-import org.the.ems.core.cmpt.inv.InverterConfig;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
@@ -49,28 +48,31 @@ public class BlueplanetComponent extends InverterComponent implements InverterSe
 
 	@Override
 	public void set(ComponentWriteContainer container, Value value) throws ComponentException {
-		if (value.doubleValue() == 0 && setpoint.getChannel().getLatestValue().doubleValue() != 0) {
-			container.add(this.storage, InverterConfig.SETPOINT_DEFAULT);
-			return;
-		}
-		double setpoint = consumption.getLatestValue().doubleValue() - value.doubleValue();
+		double setpoint = value.doubleValue()*-1;
 		
+		Value consumption = this.consumption.getLatestValue();
+		if (consumption != null) {
+			setpoint += consumption.doubleValue();
+		}
 		if (setpoint == setpointLast) {
 			// Do Nothing
 			return;
 		}
-		Value state = soc.getLatestValue();
-		if (state != null && state.doubleValue() < socMin) {
-			try {
-				set(InverterConfig.SETPOINT_DEFAULT);
-				
-			} catch (EnergyManagementException e) {
-			}
-			throw new ComponentException("Battery State of Charge below boundaries. Export temporarily disabled.");
+		
+		if (setpoint > setpointMax) {
+			setpoint = setpointMax;
 		}
-		if (setpoint == 0) {
+		else if (setpoint < setpointMin) {
+			setpoint = setpointMin;
+		}
+		else {
 			// The EDCOM software will ignore possible external PV power if set 0
 			setpoint = 0.001;
+		}
+		// TODO: only check SoC if timestamp is now
+		Value state = soc.getLatestValue();
+		if (setpoint < 0 && state != null && state.doubleValue() < socMin) {
+			setpoint = 0;
 		}
 		setpointLast = setpoint;
 		

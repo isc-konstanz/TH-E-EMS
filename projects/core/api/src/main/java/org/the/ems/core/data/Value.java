@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-18 ISC Konstanz
+ * Copyright 2016-19 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -19,36 +19,77 @@
  */
 package org.the.ems.core.data;
 
+import java.util.Objects;
+
 public abstract class Value {
 
-	protected final ValueType type;
-	protected final long time;
+    protected final ValueType type;
 
-	public Value(ValueType type, long timestamp) {
-		this.time = timestamp;
-		this.type = type;
-	}
+    protected final Number value;
+    protected final long time;
 
-	public ValueType getType() {
-		return type;
-	}
+    public Value(ValueType type, Number value, long timestamp) {
+        this.value = value;
+        this.time = timestamp;
+        this.type = type;
+    }
 
-	public long getTime() {
-		return time;
-	}
+    public ValueType getType() {
+        return type;
+    }
 
-	public abstract double doubleValue();
+    public long getTime() {
+        return time;
+    }
 
-	public abstract float floatValue();
+    public double doubleValue() {
+        return this.value.doubleValue();
+    }
 
-	public abstract long longValue();
+    public float floatValue() {
+        return this.value.floatValue();
+    }
 
-	public abstract int intValue();
+    public long longValue() {
+        return this.value.longValue();
+    }
 
-	public abstract short shortValue();
+    public int intValue() {
+        return this.value.intValue();
+    }
 
-	public abstract byte byteValue();
+    public short shortValue() {
+        return this.value.shortValue();
+    }
 
-	public abstract boolean booleanValue();
+    public byte byteValue() {
+        return this.value.byteValue();
+    }
+
+    public boolean booleanValue() {
+        return this.value.intValue() != 0;
+    }
+
+    @Override
+    public String toString() {
+        return this.value.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, time, value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof Value)) {
+            return false;
+        }
+        Value eq = (Value) o;
+        return type == eq.type &&
+                Objects.equals(time, eq.time) &&
+                Objects.equals(value, eq.value);
+    }
 
 }

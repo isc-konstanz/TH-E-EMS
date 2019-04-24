@@ -19,32 +19,29 @@
  */
 package org.the.ems.core.data;
 
-import java.util.Comparator;
-import java.util.LinkedList;
+public class ValueTypeConverter {
 
-public class ValueList extends LinkedList<Value> {
-	private static final long serialVersionUID = -5725862833767844148L;
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
-	public ValueList() {
-		super();
-	}
-
-	public ValueList(Value value) {
-		super();
-		add(value);
-	}
-
-	public ValueList sort() {
-    	Comparator<Value> comparator = new SortTime();
-		sort(comparator);
-		
-		return this;
-	}
-
-	private class SortTime implements Comparator<Value> {
-		@Override
-		public int compare(Value v1, Value v2) {
-			return (int) (v1.getTime() - v2.getTime());
-		}
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
     }
+
+    public static byte[] hexToBytes(String hexStr) {
+        byte[] bytes = new byte[hexStr.length() / 2];
+        int index;
+
+        for (int i = 0; i < bytes.length; i++) {
+            index = i * 2;
+            bytes[i] = (byte) Integer.parseInt(hexStr.substring(index, index + 2), 16);
+        }
+        return bytes;
+    }
+
 }

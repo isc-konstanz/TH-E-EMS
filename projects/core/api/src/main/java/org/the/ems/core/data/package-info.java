@@ -17,10 +17,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.schedule;
-
-public interface ScheduleListener {
-
-	public void onScheduleReceived(ControlSchedule schedule);
-
-}
+/**
+ * This package contains data/value containers.
+ * 
+ * @see org.the.ems.core.data.Value
+ * @see org.the.ems.core.data.ValueType
+ */
+package org.the.ems.core.data;

@@ -52,11 +52,6 @@ public abstract class HeatPumpComponent extends GenericComponent implements Heat
 	}
 
 	@Override
-	public void onUpdate() {
-		// Do nothing for now
-	}
-
-	@Override
 	protected void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
 		if (value.doubleValue() > 0) {
 			start(container, value);

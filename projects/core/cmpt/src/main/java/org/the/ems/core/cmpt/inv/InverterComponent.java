@@ -25,7 +25,6 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.InverterService;
-import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.GenericComponent;
 import org.the.ems.core.cmpt.inv.cons.Consumption;
 import org.the.ems.core.cmpt.inv.ext.ExternalSolar;
@@ -35,7 +34,7 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public abstract class InverterComponent extends GenericComponent implements InverterService {
+public abstract class InverterComponent extends GenericComponent implements InverterService, InverterCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(InverterComponent.class);
 
 	protected ExternalSolar solar;
@@ -50,11 +49,13 @@ public abstract class InverterComponent extends GenericComponent implements Inve
 		public SetpointListener(Channel channel) {
 			super(channel);
 		}
-
+		
 		@Override
 		public void onValueReceived(Value setpoint) {
-			setpointValue = setpoint;
-			onUpdate();
+			if (setpointValue.doubleValue() != setpoint.doubleValue()) {
+				setpointValue = setpoint;
+				onSetpointUpdate();
+			}
 		}
 	}
 
@@ -86,29 +87,27 @@ public abstract class InverterComponent extends GenericComponent implements Inve
 	}
 
 	@Override
-	public void onUpdate() {
-		ComponentWriteContainer container = new ComponentWriteContainer();
+	public void onSetpointUpdate() {
 		try {
-			onSet(container, setpointValue);
+			ComponentWriteContainer container = new ComponentWriteContainer();
 			
-		} catch (MaintenanceException e) {
-			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
+			onSet(container, setpointValue);
+			if (container.size() < 1) {
+				return;
+			}
+			for (Channel channel : container.keySet()) {
+				channel.write(container.get(channel));
+			}
 		} catch (EnergyManagementException e) {
 			logger.debug("Unable to updating inverter setpoint: {}", e.getMessage());
-		}
-		if (container.size() < 1) {
-			return;
-		}
-		
-		for (Channel channel : container.keySet()) {
-			channel.write(container.get(channel));
 		}
 	}
 
 	@Override
 	public void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
-		if (isMaintenance()) {
-			throw new MaintenanceException();
+		if (value.doubleValue() != setpointValue.doubleValue()) {
+			this.setpoint.getChannel().setLatestValue(value);
+			return;
 		}
 		if (value.doubleValue() > setpointMax || value.doubleValue() < setpointMin) {
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);
@@ -117,7 +116,9 @@ public abstract class InverterComponent extends GenericComponent implements Inve
 		if (solar.isEnabled()) {
 			setpoint += solar.getSolar().doubleValue();
 		}
-
+		
+		// TODO: Reset if setpoint is 0
+		
 		if (setpoint > setpointMax) {
 			setpoint = setpointMax;
 		}
@@ -125,11 +126,6 @@ public abstract class InverterComponent extends GenericComponent implements Inve
 			setpoint = setpointMin;
 		}
 		set(container, new DoubleValue(setpoint, value.getTime()));
-	}
-
-	@Override
-	public void set(Value value) throws EnergyManagementException {
-		setpoint.getChannel().setLatestValue(value);
 	}
 
 	public abstract void set(ComponentWriteContainer container, Value value) throws ComponentException;

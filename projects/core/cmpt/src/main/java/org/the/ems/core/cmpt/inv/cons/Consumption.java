@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.the.ems.core.ComponentCallbacks;
 import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.cmpt.inv.InverterCallbacks;
 import org.the.ems.core.cmpt.inv.InverterConfig;
 import org.the.ems.core.cmpt.inv.cons.PowerListener.PowerCallbacks;
 import org.the.ems.core.config.ConfigurationException;
@@ -38,7 +38,7 @@ import org.the.ems.core.data.ValueListener;
 
 public class Consumption implements PowerCallbacks {
 
-	protected final ComponentCallbacks callbacks;
+	protected final InverterCallbacks callbacks;
 
 	private Channel consumption;
 	protected Map<PowerType, Value> powerValues;
@@ -48,12 +48,12 @@ public class Consumption implements PowerCallbacks {
 	protected class ConsumptionListener implements ValueListener {
 
 		@Override
-		public void onValueReceived(Value objective) {
-			callbacks.onUpdate();
+		public void onValueReceived(Value value) {
+			callbacks.onSetpointUpdate();
 		}
 	}
 
-	public Consumption(ComponentCallbacks callbacks, ContentManagementService control, InverterConfig inverter, Configurations configs)
+	public Consumption(InverterCallbacks callbacks, ContentManagementService control, InverterConfig inverter, Configurations configs)
 			throws ConfigurationException {
 		this.callbacks = callbacks;
 		this.listener = new ConsumptionListener();

@@ -120,7 +120,7 @@ public class Circulation implements CirculationTemperatureCallbacks {
 			// Flow since last calculation in kilogramm
 			double flowMass = (counter.doubleValue() - flowCounterLast)*flowDensity;
 			
-			double tempDelta;
+			double tempDelta = 0;
 			if (deltaTemperatureList.size() > 0) {
 				tempDelta = 0;
 				for (double temp : deltaTemperatureList) {
@@ -130,7 +130,8 @@ public class Circulation implements CirculationTemperatureCallbacks {
 				deltaTemperatureList.clear();
 			}
 			else {
-				tempDelta = deltaTemperature.getLatestValue().doubleValue();
+				Value value = deltaTemperature.getLatestValue();
+				if (value != null) tempDelta = value.doubleValue();
 			}
 			// Calculate energy in kJ = cp*m*dT
 			double energy = flowSpecificHeat*flowMass*tempDelta;

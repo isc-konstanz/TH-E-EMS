@@ -21,7 +21,6 @@ package org.the.ems.core.cmpt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.ComponentCallbacks;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
@@ -34,7 +33,7 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class GenericComponent implements ComponentService, ComponentCallbacks {
+public abstract class GenericComponent implements ComponentService {
 	private final static Logger logger = LoggerFactory.getLogger(GenericComponent.class);
 
 	protected volatile ComponentStatus status = ComponentStatus.DISABLED;

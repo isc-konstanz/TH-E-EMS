@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-18 ISC Konstanz
+ * Copyright 2016-19 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -17,10 +17,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.core.cmpt.inv;
 
-public interface ComponentCallbacks {
+public interface InverterCallbacks {
 
-	public void onUpdate();
+	public void onSetpointUpdate();
 
 }

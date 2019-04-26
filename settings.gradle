@@ -1,13 +1,19 @@
-include "th-e-cmpt-inv-kaco-blueplanet", "th-e-cmpt-tss-basic", "th-e-cmpt-chp-serenergy", "th-e-cmpt-hp-basic", "th-e-cmpt-vnt-basic", "th-e-mpc"
+include "th-e-ems-core-api", "th-e-ems-core-cmpt", "th-e-ems-inv-kaco-blueplanet", "th-e-ems-tss-basic", "th-e-ems-chp-serenergy", "th-e-ems-hp-basic", "th-e-ems-vnt-basic", "th-e-mpc"
 
-project(":th-e-cmpt-inv-kaco-blueplanet").projectDir = file("projects/inv/kaco-blueplanet")
+def coreDir = "../TH-E-EMS/projects/core/"
+project(":th-e-ems-core-api").projectDir = file(coreDir+"api")
+project(":th-e-ems-core-cmpt").projectDir = file(coreDir+"cmpt")
 
-project(":th-e-cmpt-tss-basic").projectDir = file("projects/tss/basic")
+project(":th-e-ems-inv-kaco-blueplanet").projectDir = file("projects/inv/kaco-blueplanet")
 
-project(":th-e-cmpt-chp-serenergy").projectDir = file("projects/chp/serenergy")
+project(":th-e-ems-inv-kaco-blueplanet").projectDir = file("projects/inv/kaco-blueplanet")
 
-project(":th-e-cmpt-hp-basic").projectDir = file("projects/hp/basic")
+project(":th-e-ems-tss-basic").projectDir = file("projects/tss/basic")
 
-project(":th-e-cmpt-vnt-basic").projectDir = file("projects/vnt/basic")
+project(":th-e-ems-chp-serenergy").projectDir = file("projects/chp/serenergy")
+
+project(":th-e-ems-hp-basic").projectDir = file("projects/hp/basic")
+
+project(":th-e-ems-vnt-basic").projectDir = file("projects/vnt/basic")
 
 project(":th-e-mpc").projectDir = file("projects/mpc")

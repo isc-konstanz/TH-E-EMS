@@ -17,8 +17,8 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 
-@Component
-public class BasicComponent extends HeatPumpComponent implements HeatPumpService {
+@Component(service = { HeatPumpService.class })
+public class BasicComponent extends HeatPumpComponent {
 	private final static Logger logger = LoggerFactory.getLogger(BasicComponent.class);
 
 	private final static String ID = "Basic";
@@ -96,34 +96,30 @@ public class BasicComponent extends HeatPumpComponent implements HeatPumpService
 			@Override
 			public void onValueReceived(Value value) {
 				temperatureValue = value;
-				onUpdate();
+				
+				if (temperatureValue.doubleValue() >= temperatureInMax) {
+					stop();
+					return;
+				}
+				if (isMaintenance()) {
+					return;
+				}
+				if (temperatureValue.doubleValue() <= temperatureMin &&
+						(stateValueLast != null && !stateValueLast.booleanValue())) {
+					
+					start();
+				}
+				else if (temperatureValue.doubleValue() >= temperatureMax &&
+						(stateValueLast != null && stateValueLast.booleanValue())) {
+					if (System.currentTimeMillis() - startTimeLast < intervalMin) {
+						logger.debug("Heat pump recognized temperature threshold to switch OFF while running shorter than {}min", intervalMin/60000);
+						return;
+					}
+					stop();
+				}
 			}
 		};
 		return listener;
-	}
-
-	@Override
-	public void onUpdate() {
-		if (temperatureValue.doubleValue() >= temperatureInMax) {
-			stop();
-			return;
-		}
-		if (isMaintenance()) {
-			return;
-		}
-		if (temperatureValue.doubleValue() <= temperatureMin &&
-				(stateValueLast != null && !stateValueLast.booleanValue())) {
-			
-			start();
-		}
-		else if (temperatureValue.doubleValue() >= temperatureMax &&
-				(stateValueLast != null && stateValueLast.booleanValue())) {
-			if (System.currentTimeMillis() - startTimeLast < intervalMin) {
-				logger.debug("Heat pump recognized temperature threshold to switch OFF while running shorter than {}min", intervalMin/60000);
-				return;
-			}
-			stop();
-		}
 	}
 
 	@Override

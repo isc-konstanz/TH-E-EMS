@@ -31,12 +31,6 @@ public class BasicComponent extends GenericComponent implements ThermalStorageSe
 	}
 
 	@Override
-	public void onUpdate() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	protected void onMaintenance(boolean enabled) throws EnergyManagementException {
 		// TODO Auto-generated method stub
 		

@@ -22,6 +22,7 @@ package org.the.cmpt.vnt.basic;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
 import org.the.cmpt.vnt.basic.CabinetTemperatureListener.CabinetTemperatureCallbacks;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.VentilationService;
@@ -34,6 +35,7 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 
+@Component(service = { VentilationService.class })
 public abstract class BasicComponent extends GenericComponent implements VentilationService, CabinetTemperatureCallbacks {
 
 	private double temperatureMax;

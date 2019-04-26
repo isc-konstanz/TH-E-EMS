@@ -11,11 +11,11 @@ project.ext {
   jarDefaultImportPackageVersion = ";version=0"
 
   distributionProjects = subprojects.findAll {
-    it.getPath() == ":th-e-cmpt-inv-kaco-blueplanet" ||
-    it.getPath() == ":th-e-cmpt-tss-basic" ||
-    it.getPath() == ":th-e-cmpt-chp-serenergy" ||
-    it.getPath() == ":th-e-cmpt-hp-basic" ||
-    it.getPath() == ":th-e-cmpt-vnt-basic" ||
+    it.getPath() == ":th-e-ems-inv-kaco-blueplanet" ||
+    it.getPath() == ":th-e-ems-tss-basic" ||
+    it.getPath() == ":th-e-ems-chp-serenergy" ||
+    it.getPath() == ":th-e-ems-hp-basic" ||
+    it.getPath() == ":th-e-ems-vnt-basic" ||
     it.getPath() == ":th-e-mpc"
   }
 

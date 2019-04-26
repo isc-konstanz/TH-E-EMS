@@ -12,8 +12,8 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-@Component
-public class BlueplanetComponent extends InverterComponent implements InverterService, ElectricalStorageService {
+@Component(service = { InverterService.class, ElectricalStorageService.class })
+public class BlueplanetComponent extends InverterComponent implements ElectricalStorageService {
 	private final static String ID = "KACO blueplanet";
 
 	private Channel storage;

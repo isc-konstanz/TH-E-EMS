@@ -55,6 +55,54 @@ public class SerenergyComponent extends CogeneratorComponent implements Cogenera
 	}
 
 	@Override
+	public double getMaxPower() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double getMinPower() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double getElectricalEfficiency() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double getThermalEfficiency() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public Value getElectricalEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getThermalEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getElectricalPower() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getThermalPower() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public void start(ComponentWriteContainer container, Value value) throws ComponentException {
 		// TODO Auto-generated method stub
 	}

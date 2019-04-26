@@ -3,7 +3,7 @@ package org.the.cmpt.inv.kaco.blueplanet;
 import org.osgi.service.component.annotations.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentWriteContainer;
-import org.the.ems.core.ElectricalStorageService;
+import org.the.ems.core.ElectricalEnergyStorageService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.InverterService;
 import org.the.ems.core.cmpt.inv.InverterComponent;
@@ -12,8 +12,8 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-@Component(service = { InverterService.class, ElectricalStorageService.class })
-public class BlueplanetComponent extends InverterComponent implements ElectricalStorageService {
+@Component(service = { InverterService.class, ElectricalEnergyStorageService.class })
+public class BlueplanetComponent extends InverterComponent implements ElectricalEnergyStorageService {
 	private final static String ID = "KACO blueplanet";
 
 	private Channel storage;
@@ -30,8 +30,8 @@ public class BlueplanetComponent extends InverterComponent implements Electrical
 	}
 
 	@Override
-	public org.the.ems.core.Component getType() {
-		return org.the.ems.core.Component.INVERTER;
+	public org.the.ems.core.ComponentType getType() {
+		return org.the.ems.core.ComponentType.INVERTER;
 	}
 
 	@Override
@@ -80,10 +80,80 @@ public class BlueplanetComponent extends InverterComponent implements Electrical
 	}
 
 	@Override
-	public Value getEnergy() throws ComponentException {
-		Value soc = getStateOfCharge();
-		Value value = new DoubleValue(soc.doubleValue()/100*capacity, soc.getTime());
-		return value;
+	public double getCapacity() {
+		return capacity;
+	}
+
+	@Override
+	public double getMaxPower() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public double getMinPower() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isIsland() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public Value getImportEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getExportEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getGeneratedEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getChargeEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getDischargeEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getActivePower() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getReactivePower() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getGenerationPower() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getChargePower() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override

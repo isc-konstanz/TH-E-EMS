@@ -4,13 +4,13 @@ import org.osgi.service.component.annotations.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.ThermalStorageService;
+import org.the.ems.core.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.GenericComponent;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Value;
 
 @Component
-public class BasicComponent extends GenericComponent implements ThermalStorageService {
+public class BasicComponent extends GenericComponent implements ThermalEnergyStorageService {
 	private final static String ID = "Basic";
 
 	@Override
@@ -43,7 +43,25 @@ public class BasicComponent extends GenericComponent implements ThermalStorageSe
 	}
 
 	@Override
-	public Value getEnergy() throws ComponentException {
+	public double getCapacity() {
+		// TODO Auto-generated method stub
+		return -1;
+	}
+
+	@Override
+	public Value getChargeEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getDischargeEnergy() throws ComponentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Value getThermalPower() throws ComponentException {
 		// TODO Auto-generated method stub
 		return null;
 	}

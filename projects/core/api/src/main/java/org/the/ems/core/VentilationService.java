@@ -22,12 +22,18 @@ package org.the.ems.core;
 public interface VentilationService extends ComponentService {
 
 	@Override
-	public default Component getType() {
-		return Component.VENTILATION;
+	public default ComponentType getType() {
+		return ComponentType.VENTILATION;
 	};
 
+	/*
+	 * Start the ventilation.
+	 */
 	public void start() throws EnergyManagementException;
 
+	/*
+	 * Stop the ventilation.
+	 */
 	public void stop() throws EnergyManagementException;
 
 }

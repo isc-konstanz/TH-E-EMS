@@ -24,12 +24,58 @@ import org.the.ems.core.data.Value;
 public interface CogeneratorService extends ComponentService {
 
 	@Override
-	public default Component getType() {
-		return Component.COMBINED_HEAT_POWER;
+	public default ComponentType getType() {
+		return ComponentType.COMBINED_HEAT_POWER;
 	};
 
+	/*
+	 * Get the maximum electrical power in [W].
+	 */
+	public double getMaxPower();
+
+	/*
+	 * Get the minimum electrical power in [W].
+	 */
+	public double getMinPower();
+
+	/*
+	 * Get the electrical efficiency in [%] between 0 and 100%.
+	 */
+	public double getElectricalEfficiency();
+
+	/*
+	 * Get the thermal efficiency in [%] between 0 and 100%.
+	 */
+	public double getThermalEfficiency();
+
+	/*
+	 * Get the generated electrical energy in [kWh].
+	 */
+	public Value getElectricalEnergy() throws ComponentException;
+
+	/*
+	 * Get the generated thermal energy in [kWh].
+	 */
+	public Value getThermalEnergy() throws ComponentException;
+
+	/*
+	 * Get the generated electrical power in [W].
+	 */
+	public Value getElectricalPower() throws ComponentException;
+
+	/*
+	 * Get the generated thermal power in [W].
+	 */
+	public Value getThermalPower() throws ComponentException;
+
+	/*
+	 * Start the energy generation.
+	 */
 	public void start(Value value) throws EnergyManagementException;
 
+	/*
+	 * Stop the energy generation.
+	 */
 	public void stop(Long time) throws EnergyManagementException;
 
 }

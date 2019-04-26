@@ -2,7 +2,7 @@ project.ext {
 
   cfgVersion = '0.4.2'
 
-  cfgGroup = 'de.konstanz.isc'
+  cfgGroup = 'de.the.ems'
 
   cfgCopyDependencies = false
 

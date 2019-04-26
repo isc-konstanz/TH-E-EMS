@@ -19,11 +19,58 @@
  */
 package org.the.ems.core;
 
+import org.the.ems.core.data.Value;
+
 public interface InverterService extends ComponentService {
 
 	@Override
-	public default Component getType() {
-		return Component.INVERTER;
+	public default ComponentType getType() {
+		return ComponentType.INVERTER;
 	};
+
+	/*
+	 * Get the maximum power in [W].
+	 */
+	public double getMaxPower();
+
+	/*
+	 * Get the minimum power in [W].
+	 */
+	public double getMinPower();
+
+	/*
+	 * Get if the inverter is in island mode, decoupled from the grid.
+	 */
+	public boolean isIsland();
+
+	/*
+	 * Get the imported energy in [kWh].
+	 */
+	public Value getImportEnergy() throws ComponentException;
+
+	/*
+	 * Get the exported energy in [kWh].
+	 */
+	public Value getExportEnergy() throws ComponentException;
+
+	/*
+	 * Get the generated DC input energy in [kWh].
+	 */
+	public Value getGeneratedEnergy() throws ComponentException;
+
+	/*
+	 * Get the active power in [W].
+	 */
+	public Value getActivePower() throws ComponentException;
+
+	/*
+	 * Get the reactive power in [var].
+	 */
+	public Value getReactivePower() throws ComponentException;
+
+	/*
+	 * Get the generated DC input power in [W].
+	 */
+	public Value getGenerationPower() throws ComponentException;
 
 }

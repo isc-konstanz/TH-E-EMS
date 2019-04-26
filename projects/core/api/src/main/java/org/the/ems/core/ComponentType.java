@@ -19,20 +19,22 @@
  */
 package org.the.ems.core;
 
-import org.the.ems.core.data.Value;
+public enum ComponentType {
+	NONE(null),
+    INVERTER("inv"),
+    ELECTRICAL_ENERGY_STORAGE("ees"),
+    THERMAL_ENERGY_STORAGE("tes"),
+    COMBINED_HEAT_POWER("chp"),
+    HEAT_PUMP("hp"),
+    VENTILATION("vnt");
 
-public interface ThermalStorageService extends EnergyStorageService {
+	private final String key;
 
-	@Override
-	public default Component getType() {
-		return Component.THERMAL_STORAGE_SYSTEM;
-	};
+	private ComponentType(String key) {
+		this.key = key;
+	}
 
-	@Override
-	public default EnergyStorageType getStorageType() {
-		return EnergyStorageType.ELECTRICAL;
-	};
-
-	public Value getTemperature() throws ComponentException;
-
+	public String getKey() {
+		return key;
+	}
 }

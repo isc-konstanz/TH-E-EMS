@@ -44,11 +44,11 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.ElectricalStorageService;
+import org.the.ems.core.ElectricalEnergyStorageService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatPumpService;
 import org.the.ems.core.InverterService;
-import org.the.ems.core.ThermalStorageService;
+import org.the.ems.core.ThermalEnergyStorageService;
 import org.the.ems.core.VentilationService;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -71,8 +71,8 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 	private final static Logger logger = LoggerFactory.getLogger(EnergyManager.class);
 
 	private final static int SLEEP_INTERVAL = 60000;
-	private final static String CONFIG_MANAGEMENT = "de.thebox.control.config.ems";
-	private final static String CONFIG_COMPONENTS = "de.thebox.control.config.components";
+	private final static String CONFIG_MANAGEMENT = "de.the.ems.core.config";
+	private final static String CONFIG_COMPONENTS = "de.the.ems.cmpt.config";
 
 	@Reference
 	private ContentManagementService cms;
@@ -168,11 +168,11 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindElectricalStorageService(ElectricalStorageService storageService) {
+	protected void bindElectricalStorageService(ElectricalEnergyStorageService storageService) {
 		bindComponentService(storageService);
 	}
 
-	protected void unbindElectricalStorageService(ElectricalStorageService storageService) {
+	protected void unbindElectricalStorageService(ElectricalEnergyStorageService storageService) {
 		unbindComponentService(storageService);
 	}
 
@@ -180,11 +180,11 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindThermalStorageService(ThermalStorageService storageService) {
+	protected void bindThermalStorageService(ThermalEnergyStorageService storageService) {
 		bindComponentService(storageService);
 	}
 
-	protected void unbindThermalStorageService(ThermalStorageService storageService) {
+	protected void unbindThermalStorageService(ThermalEnergyStorageService storageService) {
 		unbindComponentService(storageService);
 	}
 

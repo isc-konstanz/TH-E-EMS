@@ -21,10 +21,31 @@ package org.the.ems.core;
 
 import org.the.ems.core.data.Value;
 
-public interface EnergyStorageService extends ComponentService {
+public interface ElectricalEnergyStorageService extends ComponentService {
 
-	public EnergyStorageType getStorageType();
+	/*
+	 * Get the capacity of the storage system in [kWh] larger than 0.
+	 */
+	public double getCapacity();
 
-	public Value getEnergy() throws ComponentException;
+	/*
+	 * Get the charge energy in [kWh].
+	 */
+	public Value getChargeEnergy() throws ComponentException;
+
+	/*
+	 * Get the discharge Energy in [kWh].
+	 */
+	public Value getDischargeEnergy() throws ComponentException;
+
+	/*
+	 * Get the DC power in [W].
+	 */
+	public Value getChargePower() throws ComponentException;
+
+	/*
+	 * Get the state of charge in [%] between 0 and 100%.
+	 */
+	public Value getStateOfCharge() throws ComponentException;
 
 }

@@ -24,12 +24,53 @@ import org.the.ems.core.data.Value;
 public interface HeatPumpService extends ComponentService {
 
 	@Override
-	public default Component getType() {
-		return Component.HEAT_PUMP;
+	public default ComponentType getType() {
+		return ComponentType.HEAT_PUMP;
 	};
 
+	/*
+	 * Get the maximum consumed electrical power in [W].
+	 */
+	public double getMaxPower();
+
+	/*
+	 * Get the minimum consumed electrical power in [W].
+	 */
+	public double getMinPower();
+
+	/*
+	 * Get the coefficient of performance as a value larger than 0.
+	 */
+	public Value getCoefficientOfPerformance() throws ComponentException;
+
+	/*
+	 * Get the consumed electrical energy in [kWh].
+	 */
+	public Value getElectricalEnergy() throws ComponentException;
+
+	/*
+	 * Get the generated thermal energy in [kWh].
+	 */
+	public Value getThermalEnergy() throws ComponentException;
+
+	/*
+	 * Get the consumed electrical power in [W].
+	 */
+	public Value getElectricalPower() throws ComponentException;
+
+	/*
+	 * Get the generated thermal power in [W].
+	 */
+	public Value getThermalPower() throws ComponentException;
+
+	/*
+	 * Start the heat generation.
+	 */
 	public void start(Value value) throws EnergyManagementException;
 
+	/*
+	 * Stop the heat generation.
+	 */
 	public void stop(Long time) throws EnergyManagementException;
 
 }

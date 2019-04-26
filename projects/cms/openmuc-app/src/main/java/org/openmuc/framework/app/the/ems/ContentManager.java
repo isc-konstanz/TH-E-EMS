@@ -41,7 +41,10 @@ import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.schedule.NamedThreadFactory;
 
-@Component(immediate = true)
+@Component(
+	immediate = true,
+	service = { ContentManagementService.class }
+)
 public final class ContentManager implements ContentManagementService, ControlChannelCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(ContentManager.class);
 

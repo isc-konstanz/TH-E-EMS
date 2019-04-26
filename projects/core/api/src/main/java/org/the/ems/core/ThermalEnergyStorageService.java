@@ -19,22 +19,38 @@
  */
 package org.the.ems.core;
 
-public enum Component {
-	NONE(null),
-    INVERTER("inv"),
-    ELECTRICAL_STORAGE_SYSTEM("ess"),
-    THERMAL_STORAGE_SYSTEM("tss"),
-    COMBINED_HEAT_POWER("chp"),
-    HEAT_PUMP("hp"),
-    VENTILATION("vnt");
+import org.the.ems.core.data.Value;
 
-	private final String key;
+public interface ThermalEnergyStorageService extends ComponentService {
 
-	private Component(String key) {
-		this.key = key;
-	}
+	@Override
+	public default ComponentType getType() {
+		return ComponentType.THERMAL_ENERGY_STORAGE;
+	};
 
-	public String getKey() {
-		return key;
-	}
+	/*
+	 * Get the capacity of the storage system in [kWh] larger than 0.
+	 */
+	public double getCapacity();
+
+	/*
+	 * Get the thermal charge energy in [kWh].
+	 */
+	public Value getChargeEnergy() throws ComponentException;
+
+	/*
+	 * Get the thermal discharge energy in [kWh].
+	 */
+	public Value getDischargeEnergy() throws ComponentException;
+
+	/*
+	 * Get the thermal power in [W].
+	 */
+	public Value getThermalPower() throws ComponentException;
+
+	/*
+	 * Get the average temperature in [°C].
+	 */
+	public Value getTemperature() throws ComponentException;
+
 }

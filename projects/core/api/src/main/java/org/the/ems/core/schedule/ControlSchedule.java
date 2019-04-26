@@ -21,7 +21,7 @@ package org.the.ems.core.schedule;
 
 import java.util.HashMap;
 
-import org.the.ems.core.Component;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.ComponentService;
 
 public class ControlSchedule extends HashMap<String, Schedule> {
@@ -41,43 +41,43 @@ public class ControlSchedule extends HashMap<String, Schedule> {
 		return get(component.getType());
 	}
 
-	public Schedule get(Component type) {
+	public Schedule get(ComponentType type) {
 		return get(type.getKey());
 	}
 
 	public Schedule getInverterSchedule() {
-		return get(Component.INVERTER);
+		return get(ComponentType.INVERTER);
 	}
 
 	public Schedule getCogeneratorSchedule() {
-		return get(Component.COMBINED_HEAT_POWER);
+		return get(ComponentType.COMBINED_HEAT_POWER);
 	}
 
 	public Schedule getHeatPumpSchedule() {
-		return get(Component.HEAT_PUMP);
+		return get(ComponentType.HEAT_PUMP);
 	}
 
-	public Schedule add(Component type, Schedule schedule) {
+	public Schedule add(ComponentType type, Schedule schedule) {
 		return put(type.getKey(), schedule);
 	}
 
 	public Schedule addInverterSchedule(Schedule schedule) {
-		return add(Component.INVERTER, schedule);
+		return add(ComponentType.INVERTER, schedule);
 	}
 
 	public Schedule addCogeneratorSchedule(Schedule schedule) {
-		return add(Component.COMBINED_HEAT_POWER, schedule);
+		return add(ComponentType.COMBINED_HEAT_POWER, schedule);
 	}
 
 	public Schedule addHeatPumpSchedule(Schedule schedule) {
-		return add(Component.HEAT_PUMP, schedule);
+		return add(ComponentType.HEAT_PUMP, schedule);
 	}
 
 	public boolean contains(ComponentService component) {
 		return contains(component.getType());
 	}
 
-	public boolean contains(Component type) {
+	public boolean contains(ComponentType type) {
 		return containsKey(type.getKey());
 	}
 

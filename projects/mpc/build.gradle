@@ -7,6 +7,8 @@ def ini4jVersion = '0.5.4'
 
 dependencies {
   compile project(':th-e-ems-core-cmpt')
+
+  compile group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
   embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
 }
 

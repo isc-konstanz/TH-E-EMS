@@ -61,13 +61,13 @@
             "format": "%i %",
             "max": 100,
             "min": 0,
-            "input": "ess*soc"
+            "input": "ees*soc"
         }
     ],
 
     "channels": [
         {
-            "name": "ess*soc",
+            "name": "ees*soc",
             "description": "Storage state of charge",
             "device": "inv",
             "address": "BAT_SOC",
@@ -81,15 +81,7 @@
             ]
         },
         {
-            "name": "ess*charge*setpoint",
-            "description": "Storage charge setpoint",
-            "device": "inv",
-            "address": "INV_OBJECTIVE",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
-            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"}
-        },
-        {
-            "name": "ess*charge",
+            "name": "ees*power",
             "description": "Storage charge power",
             "device": "inv",
             "address": "BAT_POWER",
@@ -127,7 +119,7 @@
             ]
         },
         {
-            "name": "ess*voltage",
+            "name": "ees*voltage",
             "description": "Storage voltage",
             "device": "inv",
             "address": "BAT_VOLTAGE",

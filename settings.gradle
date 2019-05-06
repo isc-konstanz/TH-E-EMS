@@ -1,4 +1,4 @@
-include "th-e-ems-core-api", "th-e-ems-core-cmpt", "th-e-ems-inv-kaco-blueplanet", "th-e-ems-tss-basic", "th-e-ems-chp-serenergy", "th-e-ems-hp-basic", "th-e-ems-vnt-basic", "th-e-mpc"
+include "th-e-ems-core-api", "th-e-ems-core-cmpt", "th-e-ems-inv-kaco-blueplanet", "th-e-ems-tes-basic", "th-e-ems-chp-serenergy", "th-e-ems-hp-basic", "th-e-ems-vnt-basic", "th-e-mpc"
 
 def coreDir = "../TH-E-EMS/projects/core/"
 project(":th-e-ems-core-api").projectDir = file(coreDir+"api")
@@ -8,7 +8,7 @@ project(":th-e-ems-inv-kaco-blueplanet").projectDir = file("projects/inv/kaco-bl
 
 project(":th-e-ems-inv-kaco-blueplanet").projectDir = file("projects/inv/kaco-blueplanet")
 
-project(":th-e-ems-tss-basic").projectDir = file("projects/tss/basic")
+project(":th-e-ems-tes-basic").projectDir = file("projects/tes/basic")
 
 project(":th-e-ems-chp-serenergy").projectDir = file("projects/chp/serenergy")
 

@@ -8,13 +8,13 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.prefs.Preferences;
 
 import org.ini4j.Ini;
-import org.ini4j.IniPreferences;
+import org.ini4j.Profile.Section;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -22,11 +22,11 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.cmpt.ctrl.mpc.service.GridService;
-import org.the.cmpt.ctrl.mpc.service.GridService.GridServiceCallbacks;
-import org.the.cmpt.ctrl.mpc.service.GridServiceConfig;
+import org.the.cmpt.ctrl.mpc.Command.CommandCallbacks;
 import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.ControlSchedule;
@@ -35,27 +35,35 @@ import org.the.ems.core.schedule.Schedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
 
-@Component
-public class Control implements ScheduleService, GridServiceCallbacks {
+@Component(service = ScheduleService.class)
+public class Control extends ConfigurationHandler
+		implements ScheduleService, CommandCallbacks {
+
 	private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
 	private static final String CONFIG_FILE = System
-            .getProperty(Control.class.getPackage().getName().toLowerCase() + ".file", 
-            		"conf" + File.separator + "th-e-mpc.cfg");
+			.getProperty(Control.class.getPackage().getName().toLowerCase() + ".file", 
+					"conf" + File.separator + "th-e-mpc.cfg");
+
+	private ScheduledExecutorService executor;
 
 	@Reference
 	private ContentManagementService cms;
 
-	private final List<ScheduleListener> listeners = new ArrayList<ScheduleListener>();
+	@Configuration(mandatory=false)
+	private int interval = 15;
 
-	private GridService gridService = null;
+	@Configuration(mandatory=false)
+	private String python = "/usr/bin/python";
 
-	private ScheduledExecutorService executor;
-	private Configurations configs;
+	@Configuration(mandatory=false)
+	private String script = "/usr/bin/th-e-mpc";
+
+	private Command command = null;
 
 	private ControlSchedule schedule;
 
-	private int interval;
+	private final List<ScheduleListener> listeners = new ArrayList<ScheduleListener>();
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -65,17 +73,20 @@ public class Control implements ScheduleService, GridServiceCallbacks {
 		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
 		try {
 			Ini ini = new Ini(new File(CONFIG_FILE));
-			Preferences prefs = new IniPreferences(ini);
-			configs = new Configurations(prefs);
 			
-			ControlConfig config = configs.getSection(ControlConfig.class);
-			interval = config.getInterval();
+			Configurations configs = new Configurations();
+			for (Entry<String, Section> section : ini.entrySet()) {
+				configs.add(section.getKey(), section.getValue().entrySet());
+			}
+			super.onConfigure(configs);
+			command = new Command(configs).register(this);
+			
 			LocalTime time = LocalTime.now();
 			LocalTime next = time.with(next(interval)).minusMinutes(5);
 			logger.debug("Starting TH-E-MPC at {}", next);
 			
-		    executor.scheduleAtFixedRate(new ControlTask(config.getPython(), config.getScript()), 
-		    		time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
+			executor.scheduleAtFixedRate(new ControlTask(python, script), 
+					time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
 			
 		} catch (IOException | ConfigurationException e) {
 			logger.error("Error while reading optimization configuration: {}", e.getMessage());
@@ -86,22 +97,8 @@ public class Control implements ScheduleService, GridServiceCallbacks {
 	protected void deactivate(ComponentContext context) {
 		logger.info("Deactivating TH-E MPC");
 		
-		if (gridService != null) {
-			gridService.deactivate();
-		}
+		command.deactivate();
 		executor.shutdown();
-	}
-
-	@Override
-	public void registerScheduleListener(ScheduleListener listener) {
-		try {
-			if (configs.hasSection(GridServiceConfig.class)) {
-				gridService = new GridService(this, cms, configs);
-			}
-		} catch (ConfigurationException e) {
-			logger.error("Error while activating grid service: {}", e.getMessage());
-		}
-		listeners.add(listener);
 	}
 
 	@Override
@@ -110,8 +107,13 @@ public class Control implements ScheduleService, GridServiceCallbacks {
 	}
 
 	@Override
+	public void registerScheduleListener(ScheduleListener listener) {
+		listeners.add(listener);
+	}
+
+	@Override
 	public ControlSchedule getSchedule(ScheduleListener listener) {
-		registerScheduleListener(listener);
+		listeners.add(listener);
 		return getSchedule();
 	}
 
@@ -121,7 +123,7 @@ public class Control implements ScheduleService, GridServiceCallbacks {
 	}
 
 	@Override
-	public void onGridServiceRequest(Value power) {
+	public void onCommandReceived(Value power) {
 		Schedule inverterSchedule = new Schedule(interval, power);
 		schedule = new ControlSchedule();
 		schedule.addInverterSchedule(inverterSchedule);
@@ -134,8 +136,8 @@ public class Control implements ScheduleService, GridServiceCallbacks {
 	private TemporalAdjuster next(int interval) {
 		return (temporal) -> {
 			int minute = temporal.get(ChronoField.MINUTE_OF_DAY);
-		    int next = (minute / interval + 1) * interval;
-		    return temporal.with(ChronoField.NANO_OF_DAY, 0).plus(next, ChronoUnit.MINUTES);
+			int next = (minute / interval + 1) * interval;
+			return temporal.with(ChronoField.NANO_OF_DAY, 0).plus(next, ChronoUnit.MINUTES);
 		};
 	}
 

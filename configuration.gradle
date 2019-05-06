@@ -2,7 +2,7 @@ project.ext {
 
   cfgVersion = '0.4.0'
 
-  cfgGroup = 'de.the.ems'
+  cfgGroup = 'org.the.ems'
 
   cfgCopyDependencies = false
 
@@ -12,7 +12,7 @@ project.ext {
 
   distributionProjects = subprojects.findAll {
     it.getPath() == ":th-e-ems-inv-kaco-blueplanet" ||
-    it.getPath() == ":th-e-ems-tss-basic" ||
+    it.getPath() == ":th-e-ems-tes-basic" ||
     it.getPath() == ":th-e-ems-chp-serenergy" ||
     it.getPath() == ":th-e-ems-hp-basic" ||
     it.getPath() == ":th-e-ems-vnt-basic" ||

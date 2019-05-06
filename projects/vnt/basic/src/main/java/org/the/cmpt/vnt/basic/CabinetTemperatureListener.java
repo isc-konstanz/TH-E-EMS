@@ -22,16 +22,15 @@ package org.the.cmpt.vnt.basic;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
-public class CabinetTemperatureListener extends ChannelListener {
+public class CabinetTemperatureListener implements ValueListener {
 
 	private final static int MOVING_AVG_SIZE = 6;
 
 	/**
-	 * Interface used to notify the {@link BasicComponent} 
+	 * Interface used to notify the {@link CabinetVentilation} 
 	 * implementation about changed temperatures
 	 */
 	public interface CabinetTemperatureCallbacks {
@@ -49,9 +48,7 @@ public class CabinetTemperatureListener extends ChannelListener {
 	private List<Double> temperatures = new LinkedList<Double>();
 	private double temperatureSum = -1;
 
-	public CabinetTemperatureListener(CabinetTemperatureCallbacks callbacks, CabinetTemperature type, Channel channel) {
-		super(channel);
-		
+	public CabinetTemperatureListener(CabinetTemperatureCallbacks callbacks, CabinetTemperature type) {
 		this.callbacks = callbacks;
 		this.type = type;
 	}

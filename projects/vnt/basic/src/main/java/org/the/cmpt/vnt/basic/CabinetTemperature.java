@@ -20,7 +20,7 @@
 package org.the.cmpt.vnt.basic;
 
 public enum CabinetTemperature {
-    TOP,
-    CENTER,
-    BOTTOM;
+	TOP,
+	CENTER,
+	BOTTOM;
 }

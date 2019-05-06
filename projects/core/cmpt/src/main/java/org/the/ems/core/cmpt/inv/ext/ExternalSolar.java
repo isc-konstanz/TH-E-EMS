@@ -20,112 +20,126 @@
 package org.the.ems.core.cmpt.inv.ext;
 
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.cmpt.inv.InverterCallbacks;
+import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
-import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
+public class ExternalSolar extends ConfigurationHandler implements ValueListener {
 
-public class ExternalSolar {
+	private final static String SECTION = "External";
 
+	private volatile InverterCallbacks callbacks = null;
+
+	@Configuration
 	private Channel virtualPower;
-	private ChannelListener powerListener;
-	private ChannelListener solarListener;
-	private Value solarPower = DoubleValue.emptyValue();
-	private Value solarEnergy = null;
 
-	private volatile boolean enabled = false;
+	@Configuration
+	private ChannelListener activePower;
 
-	public ExternalSolar(ContentManagementService control, Configurations configs) throws ConfigurationException {
-		try {
-			if (configs.hasSection(ExternalSolarConfig.class)) {
-				ExternalSolarConfig config = configs.getSection(ExternalSolarConfig.class);
-				if (!config.isEnabled()) {
-					return;
-				}
-				
-				virtualPower = control.getChannel(config.getVirtualPower());
-				powerListener = registerActivePowerListener(control.getChannel(config.getActualPower()));
-				if (config.hasSolarPower()) {
-					solarListener = registerSolarPowerListener(control.getChannel(config.getSolarPower()));
-				}
-				else {
-					solarListener = registerSolarEnergyListener(control.getChannel(config.getSolarEnergy()));
-				}
-				enabled = true;
+	@Configuration
+	private ChannelListener solarPower;
+
+	@Configuration(mandatory=false)
+	private ChannelListener solarEnergy;
+	private Value solarEnergyLast = null;
+
+	private volatile boolean running = false;
+
+	public ExternalSolar(ContentManagementService context, Configurations configs) 
+			throws EnergyManagementException {
+		
+		setConfiguredSection(SECTION);
+		if (!isDisabled()) {
+			onBind(context);
+			onConfigure(configs);
+
+			activePower.registerValueListener(new ActivePowerListener());
+			solarPower.registerValueListener(this);
+			if (solarEnergy != null) {
+				solarEnergy.registerValueListener(new SolarEnergyListener());
 			}
-		} catch (UnknownChannelException e) {
-			throw new ConfigurationException("Invalid external configuration: " + e.getMessage());
+			running = true;
 		}
 	}
 
-	private ChannelListener registerActivePowerListener(Channel channel) {
-		ChannelListener listener = new ChannelListener(channel) {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				if (enabled) {
-					DoubleValue virtualValue = new DoubleValue(value.doubleValue() - solarPower.doubleValue(), value.getTime());
-					virtualPower.setLatestValue(virtualValue);
-				}
-			}
-		};
-		return listener;
+	public ExternalSolar register(InverterCallbacks callbacks) {
+		this.callbacks = callbacks;
+		return this;
 	}
 
-	private ChannelListener registerSolarPowerListener(Channel channel) {
-		ChannelListener listener = new ChannelListener(channel) {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				solarPower = value;
-			}
-		};
-		return listener;
+	public void resume() {
+		running = true;
 	}
 
-	private ChannelListener registerSolarEnergyListener(Channel channel) {
-		ChannelListener listener = new ChannelListener(channel) {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				if (solarEnergy != null) {
-					double hours = ((double) value.getTime() - (double) solarEnergy.getTime())/3600000;
-					if (hours > 0) {
-						solarPower = new DoubleValue((value.doubleValue() - solarEnergy.doubleValue())*1000/hours, value.getTime());
-					}
-				}
-				solarEnergy = value;
-			}
-		};
-		return listener;
+	public void pause() {
+		running = false;
+	}
+
+	public void deregister() {
+		this.callbacks = null;
 	}
 
 	public void deactivate() {
-		powerListener.deregister();
-		solarListener.deregister();
+		if (!isDisabled()) {
+			activePower.deregister();
+			solarPower.deregister();
+			if (solarEnergy != null) {
+				solarEnergy.deregister();
+			}
+		}
+		running = false;
 	}
 
-	public void disable() {
-		setEnabled(false);
-	}
-
-	public void enable() {
-		setEnabled(true);
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	public boolean isEnabled() {
-		return enabled;
+	public boolean isRunning() {
+		return !isDisabled() && running;
 	}
 
 	public Value getSolar() {
-		return solarPower;
+		Value value = solarPower.getLatestValue();
+		if (value == null) {
+			value = DoubleValue.emptyValue();
+		}
+		return value;
 	}
+
+	@Override
+	public void onValueReceived(Value value) {
+		if (callbacks != null) {
+			callbacks.onSetpointUpdate();
+		}
+	}
+
+	private class ActivePowerListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value value) {
+			if (isRunning()) {
+				DoubleValue virtualValue = new DoubleValue(value.doubleValue() - getSolar().doubleValue(), value.getTime());
+				virtualPower.setLatestValue(virtualValue);
+			}
+		}
+	}
+
+	private class SolarEnergyListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value value) {
+			if (solarEnergyLast != null) {
+				double hours = ((double) value.getTime() - (double) solarEnergyLast.getTime())/3600000;
+				if (hours > 0) {
+					Value power = new DoubleValue((value.doubleValue() - solarEnergyLast.doubleValue())*1000/hours, value.getTime());
+					solarPower.setLatestValue(power);
+				}
+			}
+			solarEnergyLast = value;
+		}
+	}
+
 }

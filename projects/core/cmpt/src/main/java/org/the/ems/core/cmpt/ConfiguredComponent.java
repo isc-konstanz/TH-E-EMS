@@ -21,23 +21,21 @@ package org.the.ems.core.cmpt;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
 import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
+import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class GenericComponent implements ComponentService {
-	private final static Logger logger = LoggerFactory.getLogger(GenericComponent.class);
+public abstract class ConfiguredComponent extends ConfigurationHandler implements ManagedComponent {
+	private final static Logger logger = LoggerFactory.getLogger(ConfiguredComponent.class);
 
 	protected volatile ComponentStatus status = ComponentStatus.DISABLED;
-	protected ContentManagementService manager;
 
 	@Override
 	public ComponentStatus getStatus() {
@@ -49,12 +47,12 @@ public abstract class GenericComponent implements ComponentService {
 		switch(status) {
 		case MAINTENANCE:
 			if (this.status != ComponentStatus.MAINTENANCE) {
-				onMaintenance(true);
+				onPause();
 			}
 			break;
 		default:
 			if (this.status == ComponentStatus.MAINTENANCE) {
-				onMaintenance(false);
+				onResume();
 			}
 			break;
 		}
@@ -65,21 +63,35 @@ public abstract class GenericComponent implements ComponentService {
 		return status == ComponentStatus.MAINTENANCE;
 	}
 
-	protected abstract void onMaintenance(boolean enabled) throws EnergyManagementException;
-
+	@Override
 	public void onBind(ContentManagementService context) throws EnergyManagementException {
-		this.manager = context;
+		super.onBind(context);
 	}
 
 	@Override
-	public void onReload(Configurations config) throws EnergyManagementException {
-		onDeactivate();
-		onActivate(config);
+	public void onActivate(Configurations configs) throws EnergyManagementException {
+		super.onConfigure(configs);
 	}
 
-	protected abstract void onSet(ComponentWriteContainer container, Value value) 
-			throws ComponentException, UnsupportedOperationException;
+	@Override
+	public void onResume() throws EnergyManagementException {
+	}
 
+	@Override
+	public void onPause() throws EnergyManagementException {
+	}
+
+	@Override
+	public void onDeactivate() throws EnergyManagementException {
+	}
+
+	@Override
+	public void onDestroy() throws EnergyManagementException {
+		// Clear up resources
+		this.context = null;
+	}
+
+	@Override
 	public void set(Value value) throws EnergyManagementException, UnsupportedOperationException {
 		ComponentWriteContainer container = new ComponentWriteContainer();
 		try {
@@ -97,6 +109,7 @@ public abstract class GenericComponent implements ComponentService {
 		}
 	}
 
+	@Override
 	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException {
 		ComponentWriteContainer container = new ComponentWriteContainer();
 		try {

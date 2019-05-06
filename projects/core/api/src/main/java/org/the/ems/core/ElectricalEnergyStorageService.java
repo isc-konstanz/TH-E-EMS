@@ -29,19 +29,14 @@ public interface ElectricalEnergyStorageService extends ComponentService {
 	public double getCapacity();
 
 	/*
-	 * Get the charge energy in [kWh].
-	 */
-	public Value getChargeEnergy() throws ComponentException;
-
-	/*
-	 * Get the discharge Energy in [kWh].
-	 */
-	public Value getDischargeEnergy() throws ComponentException;
-
-	/*
 	 * Get the DC power in [W].
 	 */
 	public Value getChargePower() throws ComponentException;
+
+	/*
+	 * Get the Voltage in [V].
+	 */
+	public Value getVoltage() throws ComponentException;
 
 	/*
 	 * Get the state of charge in [%] between 0 and 100%.

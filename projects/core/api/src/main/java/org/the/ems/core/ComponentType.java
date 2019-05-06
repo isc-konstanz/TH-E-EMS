@@ -21,12 +21,12 @@ package org.the.ems.core;
 
 public enum ComponentType {
 	NONE(null),
-    INVERTER("inv"),
-    ELECTRICAL_ENERGY_STORAGE("ees"),
-    THERMAL_ENERGY_STORAGE("tes"),
-    COMBINED_HEAT_POWER("chp"),
-    HEAT_PUMP("hp"),
-    VENTILATION("vnt");
+	INVERTER("inv"),
+	ELECTRICAL_ENERGY_STORAGE("ees"),
+	THERMAL_ENERGY_STORAGE("tes"),
+	COMBINED_HEAT_POWER("chp"),
+	HEAT_PUMP("hp"),
+	VENTILATION("vnt");
 
 	private final String key;
 

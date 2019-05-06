@@ -20,11 +20,11 @@
 package org.the.ems.core.data;
 
 public enum ValueType {
-    DOUBLE,
-    FLOAT,
-    LONG,
-    INTEGER,
-    SHORT,
-    BYTE,
-    BOOLEAN;
+	DOUBLE,
+	FLOAT,
+	LONG,
+	INTEGER,
+	SHORT,
+	BYTE,
+	BOOLEAN;
 }

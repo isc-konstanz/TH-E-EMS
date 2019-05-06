@@ -23,73 +23,73 @@ import java.util.Objects;
 
 public abstract class Value {
 
-    protected final ValueType type;
+	protected final ValueType type;
 
-    protected final Number value;
-    protected final long time;
+	protected final Number value;
+	protected final long time;
 
-    public Value(ValueType type, Number value, long timestamp) {
-        this.value = value;
-        this.time = timestamp;
-        this.type = type;
-    }
+	public Value(ValueType type, Number value, long timestamp) {
+		this.value = value;
+		this.time = timestamp;
+		this.type = type;
+	}
 
-    public ValueType getType() {
-        return type;
-    }
+	public ValueType getType() {
+		return type;
+	}
 
-    public long getTime() {
-        return time;
-    }
+	public long getTime() {
+		return time;
+	}
 
-    public double doubleValue() {
-        return this.value.doubleValue();
-    }
+	public double doubleValue() {
+		return this.value.doubleValue();
+	}
 
-    public float floatValue() {
-        return this.value.floatValue();
-    }
+	public float floatValue() {
+		return this.value.floatValue();
+	}
 
-    public long longValue() {
-        return this.value.longValue();
-    }
+	public long longValue() {
+		return this.value.longValue();
+	}
 
-    public int intValue() {
-        return this.value.intValue();
-    }
+	public int intValue() {
+		return this.value.intValue();
+	}
 
-    public short shortValue() {
-        return this.value.shortValue();
-    }
+	public short shortValue() {
+		return this.value.shortValue();
+	}
 
-    public byte byteValue() {
-        return this.value.byteValue();
-    }
+	public byte byteValue() {
+		return this.value.byteValue();
+	}
 
-    public boolean booleanValue() {
-        return this.value.intValue() != 0;
-    }
+	public boolean booleanValue() {
+		return this.value.intValue() != 0;
+	}
 
-    @Override
-    public String toString() {
-        return this.value.toString();
-    }
+	@Override
+	public String toString() {
+		return this.value.toString();
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(type, time, value);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, time, value);
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof Value)) {
-            return false;
-        }
-        Value eq = (Value) o;
-        return type == eq.type &&
-                Objects.equals(time, eq.time) &&
-                Objects.equals(value, eq.value);
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) return true;
+		if (!(o instanceof Value)) {
+			return false;
+		}
+		Value eq = (Value) o;
+		return type == eq.type &&
+				Objects.equals(time, eq.time) &&
+				Objects.equals(value, eq.value);
+	}
 
 }

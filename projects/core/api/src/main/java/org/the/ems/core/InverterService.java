@@ -29,6 +29,16 @@ public interface InverterService extends ComponentService {
 	};
 
 	/*
+	 * Set the inverter island mode, decoupling it from the grid.
+	 */
+	public boolean setIsland(boolean enabled) throws UnsupportedOperationException;
+
+	/*
+	 * Get if the inverter is in island mode, decoupled from the grid.
+	 */
+	public boolean isIsland() throws UnsupportedOperationException;
+
+	/*
 	 * Get the maximum power in [W].
 	 */
 	public double getMaxPower();
@@ -39,9 +49,14 @@ public interface InverterService extends ComponentService {
 	public double getMinPower();
 
 	/*
-	 * Get if the inverter is in island mode, decoupled from the grid.
+	 * Get the setpoint command to control the import/export power in [W].
 	 */
-	public boolean isIsland();
+	public Value getCommand() throws ComponentException;
+
+	/*
+	 * Get the generated DC input energy in [kWh].
+	 */
+	public Value getInputEnergy() throws ComponentException;
 
 	/*
 	 * Get the imported energy in [kWh].
@@ -54,9 +69,9 @@ public interface InverterService extends ComponentService {
 	public Value getExportEnergy() throws ComponentException;
 
 	/*
-	 * Get the generated DC input energy in [kWh].
+	 * Get the generated DC input power in [W].
 	 */
-	public Value getGeneratedEnergy() throws ComponentException;
+	public Value getInputPower() throws ComponentException;
 
 	/*
 	 * Get the active power in [W].
@@ -64,13 +79,58 @@ public interface InverterService extends ComponentService {
 	public Value getActivePower() throws ComponentException;
 
 	/*
+	 * Get the active power on L1 in [var].
+	 */
+	public Value getActivePowerL1() throws ComponentException;
+
+	/*
+	 * Get the active power on L2 in [var].
+	 */
+	public Value getActivePowerL2() throws ComponentException;
+
+	/*
+	 * Get the active power on L3 in [var].
+	 */
+	public Value getActivePowerL3() throws ComponentException;
+
+	/*
 	 * Get the reactive power in [var].
 	 */
 	public Value getReactivePower() throws ComponentException;
 
 	/*
-	 * Get the generated DC input power in [W].
+	 * Get the reactive power on L1 in [var].
 	 */
-	public Value getGenerationPower() throws ComponentException;
+	public Value getReactivePowerL1() throws ComponentException;
+
+	/*
+	 * Get the reactive power on L2 in [var].
+	 */
+	public Value getReactivePowerL2() throws ComponentException;
+
+	/*
+	 * Get the reactive power on L3 in [var].
+	 */
+	public Value getReactivePowerL3() throws ComponentException;
+
+	/*
+	 * Get the voltage on L1 in [V].
+	 */
+	public Value getVoltageL1() throws ComponentException;
+
+	/*
+	 * Get the voltage on L2 in [V].
+	 */
+	public Value getVoltageL2() throws ComponentException;
+
+	/*
+	 * Get the voltage on L3 in [V].
+	 */
+	public Value getVoltageL3() throws ComponentException;
+
+	/*
+	 * Get the frequency of the grid in [Hz].
+	 */
+	public Value getFrequency() throws ComponentException;
 
 }

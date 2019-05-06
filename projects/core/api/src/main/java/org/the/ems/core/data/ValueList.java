@@ -35,7 +35,7 @@ public class ValueList extends LinkedList<Value> {
 	}
 
 	public ValueList sort() {
-    	Comparator<Value> comparator = new SortTime();
+		Comparator<Value> comparator = new SortTime();
 		sort(comparator);
 		
 		return this;
@@ -46,5 +46,5 @@ public class ValueList extends LinkedList<Value> {
 		public int compare(Value v1, Value v2) {
 			return (int) (v1.getTime() - v2.getTime());
 		}
-    }
+	}
 }

@@ -17,39 +17,35 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.cmpt.inv.cons;
+package org.the.ems.core.cmpt.ees;
 
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ElectricalEnergyStorageService;
+import org.the.ems.core.cmpt.ConfiguredComponent;
+import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
 
-public class PowerListener implements ValueListener {
+public abstract class ElectricalEnergyStorage extends ConfiguredComponent
+		implements ElectricalEnergyStorageService {
 
-	/**
-	 * Interface used to notify the {@link Consumption} 
-	 * implementation about changed power values
-	 */
-	public interface PowerCallbacks {
-		public void onPowerValueReceived(PowerType type, Value power);
-	}
+	@Configuration
+	protected double capacity;
 
-	/**
-	 * The Listeners' current callback object, which is notified of changed power values
-	 */
-	private final PowerCallbacks callbacks;
-
-	private final PowerType type;
-
-	public PowerListener(PowerCallbacks callbacks, PowerType type) {
-		this.callbacks = callbacks;
-		this.type = type;
-	}
-
-	public PowerType getType() {
-		return type;
+	@Override
+	public double getCapacity() {
+		return capacity;
 	}
 
 	@Override
-	public void onValueReceived(Value value) {
-		callbacks.onPowerValueReceived(type, value);
-	}
+	@Configuration
+	public Value getChargePower() throws ComponentException { return getConfiguredValue("charge_power"); }
+
+	@Override
+	@Configuration
+	public Value getVoltage() throws ComponentException { return getConfiguredValue("voltage"); }
+
+	@Override
+	@Configuration("soc")
+	public Value getStateOfCharge() throws ComponentException { return getConfiguredValue("soc"); }
+
 }

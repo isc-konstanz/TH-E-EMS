@@ -30,4 +30,12 @@ public class EnergyManagementException extends Exception {
 		super(s);
 	}
 
+	public EnergyManagementException(Throwable cause) {
+		super(cause);
+	}
+
+	public EnergyManagementException(String s, Throwable cause) {
+		super(s, cause);
+	}
+
 }

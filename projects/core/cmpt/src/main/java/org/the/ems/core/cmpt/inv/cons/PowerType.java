@@ -20,8 +20,8 @@
 package org.the.ems.core.cmpt.inv.cons;
 
 public enum PowerType {
-    ESS,
-    AC,
-    DC1,
-    DC2;
+	EES,
+	AC,
+	DC1,
+	DC2;
 }

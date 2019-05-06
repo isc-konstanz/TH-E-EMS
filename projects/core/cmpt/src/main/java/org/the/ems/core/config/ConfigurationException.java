@@ -17,17 +17,27 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.openmuc.framework.app.the.ems;
+package org.the.ems.core.config;
 
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
+import org.the.ems.core.EnergyManagementException;
 
-public class EnergyManagementConfig extends Configurations {
+public final class ConfigurationException extends EnergyManagementException {
+	private static final long serialVersionUID = -450390320810928331L;
 
-	public final static String MAINTENANCE_KEY = "maintenance";
+	public ConfigurationException() {
+		super();
+	}
 
-	public String getMaintenance() throws ConfigurationException {
-		return get(MAINTENANCE_KEY);
+	public ConfigurationException(String s) {
+		super(s);
+	}
+
+	public ConfigurationException(Throwable cause) {
+		super(cause);
+	}
+
+	public ConfigurationException(String s, Throwable cause) {
+		super(s, cause);
 	}
 
 }

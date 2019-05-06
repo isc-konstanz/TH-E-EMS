@@ -25,73 +25,77 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.InverterService;
-import org.the.ems.core.cmpt.GenericComponent;
+import org.the.ems.core.cmpt.ConfiguredComponent;
 import org.the.ems.core.cmpt.inv.cons.Consumption;
 import org.the.ems.core.cmpt.inv.ext.ExternalSolar;
+import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
-public abstract class InverterComponent extends GenericComponent implements InverterService, InverterCallbacks {
-	private final static Logger logger = LoggerFactory.getLogger(InverterComponent.class);
+public abstract class InverterComponent extends ConfiguredComponent
+		implements InverterService, InverterCallbacks, ValueListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(InverterComponent.class);
+
+	@Configuration(scale=1000)
+	protected double powerMax;
+
+	@Configuration(scale=1000)
+	protected double powerMin;
+
+	@Configuration
+	protected ChannelListener command;
+	protected volatile Value commandValue = DoubleValue.emptyValue();
+
+	protected Consumption cons;
 	protected ExternalSolar solar;
-	protected Consumption consumption;
-
-	protected ChannelListener setpoint;
-	protected int setpointMax;
-	protected int setpointMin;
-	protected Value setpointValue = DoubleValue.emptyValue();
-
-	protected class SetpointListener extends ChannelListener {
-		public SetpointListener(Channel channel) {
-			super(channel);
-		}
-		
-		@Override
-		public void onValueReceived(Value setpoint) {
-			if (setpointValue.doubleValue() != setpoint.doubleValue()) {
-				setpointValue = setpoint;
-				onSetpointUpdate();
-			}
-		}
-	}
 
 	@Override
 	public void onActivate(Configurations configs) throws EnergyManagementException {
-		InverterConfig config = configs.getSection(InverterConfig.class);
+		super.onActivate(configs);
 		
-		setpointMax = config.getPowerMax();
-		setpointMin = config.getPowerMin();
-		setpoint = new SetpointListener(manager.getChannel(config.getSetpoint()));
-		
-		consumption = new Consumption(this, manager, config, configs);
-		solar = new ExternalSolar(manager, configs);
+		cons = new Consumption(context, configs).register(this);
+		solar = new ExternalSolar(context, configs).register(this);
+		command.registerValueListener(this);
+	}
+
+	@Override
+	public void onResume() throws EnergyManagementException {
+		cons.resume();
+		solar.resume();
+	}
+
+	@Override
+	public void onPause() throws EnergyManagementException {
+		cons.pause();
+		solar.pause();
 	}
 
 	@Override
 	public void onDeactivate() {
+		cons.deactivate();
 		solar.deactivate();
-		consumption.deactivate();
-		setpoint.deregister();
+		command.deregister();
 	}
 
 	@Override
-	protected void onMaintenance(boolean enabled) throws EnergyManagementException {
-		if (enabled) {
-			set(InverterConfig.SETPOINT_DEFAULT);
-		}
-		solar.setEnabled(!enabled);
-	}
+    public void onValueReceived(Value setpoint) {
+        if (commandValue.doubleValue() != setpoint.doubleValue()) {
+            commandValue = setpoint;
+            onSetpointUpdate();
+        }
+    }
 
 	@Override
 	public void onSetpointUpdate() {
 		try {
 			ComponentWriteContainer container = new ComponentWriteContainer();
 			
-			onSet(container, setpointValue);
+			onSet(container, commandValue);
 			if (container.size() < 1) {
 				return;
 			}
@@ -105,29 +109,119 @@ public abstract class InverterComponent extends GenericComponent implements Inve
 
 	@Override
 	public void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
-		if (value.doubleValue() != setpointValue.doubleValue()) {
-			this.setpoint.getChannel().setLatestValue(value);
+		if (value.doubleValue() != commandValue.doubleValue()) {
+			command.setLatestValue(value);
 			return;
 		}
-		if (value.doubleValue() > setpointMax || value.doubleValue() < setpointMin) {
+		if (value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);
 		}
 		double setpoint = value.doubleValue();
-		if (solar.isEnabled()) {
+		if (solar.isRunning()) {
 			setpoint += solar.getSolar().doubleValue();
 		}
 		
-		// TODO: Reset if setpoint is 0
-		
-		if (setpoint > setpointMax) {
-			setpoint = setpointMax;
+		if (setpoint > getMaxPower()) {
+			setpoint = getMaxPower();
 		}
-		else if (setpoint < setpointMin) {
-			setpoint = setpointMin;
+		else if (setpoint < getMinPower()) {
+			setpoint = getMinPower();
 		}
-		set(container, new DoubleValue(setpoint, value.getTime()));
+		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
 	}
 
-	public abstract void set(ComponentWriteContainer container, Value value) throws ComponentException;
+	@Override
+	public void onSetpointChanged(Value value) throws EnergyManagementException { set(value); }
+
+	protected abstract void onSetpointChanged(ComponentWriteContainer container, Value value) throws ComponentException;
+
+	@Override
+	public Value getCommand() throws ComponentException {
+		return commandValue;
+	}
+
+	@Override
+	public boolean setIsland(boolean enabled) throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean isIsland() throws UnsupportedOperationException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public double getMaxPower() {
+		return powerMax;
+	}
+
+	@Override
+	public double getMinPower() {
+		return powerMin;
+	}
+
+	@Override
+	@Configuration("dc_energy")
+	public Value getInputEnergy() throws ComponentException { return getConfiguredValue("dc_energy"); }
+
+	@Override
+	@Configuration
+	public Value getImportEnergy() throws ComponentException { return getConfiguredValue("import_energy"); }
+
+	@Override
+	@Configuration
+	public Value getExportEnergy() throws ComponentException { return getConfiguredValue("export_energy"); }
+
+	@Override
+	@Configuration("dc_power")
+	public Value getInputPower() throws ComponentException { return getConfiguredValue("dc_power"); }
+
+	@Override
+	@Configuration
+	public Value getActivePower() throws ComponentException { return getConfiguredValue("active_power"); }
+
+	@Override
+	@Configuration
+	public Value getActivePowerL1() throws ComponentException { return getConfiguredValue("active_power_l1"); }
+
+	@Override
+	@Configuration
+	public Value getActivePowerL2() throws ComponentException { return getConfiguredValue("active_power_l2"); }
+
+	@Override
+	@Configuration
+	public Value getActivePowerL3() throws ComponentException { return getConfiguredValue("active_power_l3"); }
+
+	@Override
+	@Configuration
+	public Value getReactivePower() throws ComponentException { return getConfiguredValue("reactive_power"); }
+
+	@Override
+	@Configuration
+	public Value getReactivePowerL1() throws ComponentException { return getConfiguredValue("reactive_power_l1"); }
+
+	@Override
+	@Configuration
+	public Value getReactivePowerL2() throws ComponentException { return getConfiguredValue("reactive_power_l2"); }
+
+	@Override
+	@Configuration
+	public Value getReactivePowerL3() throws ComponentException { return getConfiguredValue("reactive_power_l3"); }
+
+	@Override
+	@Configuration
+	public Value getVoltageL1() throws ComponentException { return getConfiguredValue("voltage_l1"); }
+
+	@Override
+	@Configuration
+	public Value getVoltageL2() throws ComponentException { return getConfiguredValue("voltage_l2"); }
+
+	@Override
+	@Configuration
+	public Value getVoltageL3() throws ComponentException { return getConfiguredValue("voltage_l3"); }
+
+	@Override
+	@Configuration
+	public Value getFrequency() throws ComponentException { return getConfiguredValue("frequency"); }
 
 }

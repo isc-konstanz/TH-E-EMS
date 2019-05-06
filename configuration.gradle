@@ -2,7 +2,7 @@ project.ext {
 
   cfgVersion = '0.4.2'
 
-  cfgGroup = 'de.the.ems'
+  cfgGroup = 'org.the.ems'
 
   cfgCopyDependencies = false
 

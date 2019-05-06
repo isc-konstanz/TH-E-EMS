@@ -17,37 +17,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.cmpt.inv;
+package org.the.ems.core.mgr.config;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Map.Entry;
+
+import org.ini4j.Ini;
+import org.ini4j.Profile.Section;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.DoubleValue;
-import org.the.ems.core.data.Value;
 
-public class InverterConfig extends Configurations {
+public class IniConfigurations extends Configurations {
 
-	public final static Value SETPOINT_DEFAULT = DoubleValue.emptyValue();
-	protected final static String SETPOINT = "setpoint";
-
-	protected final static String SETPOINT_MAX_KEY = "power_max";
-	protected final static String SETPOINT_MIN_KEY = "power_min";
-
-	protected final static String CONSUMPTION_POWER_KEY = "cons_power";
-
-	public String getSetpoint() throws ConfigurationException {
-		return get(SETPOINT);
-	}
-
-	public int getPowerMax() throws ConfigurationException {
-		return (int) (getDouble(SETPOINT_MAX_KEY)*1000);
-	}
-
-	public int getPowerMin() throws ConfigurationException {
-		return (int) (getDouble(SETPOINT_MIN_KEY)*1000);
-	}
-
-	public String getConsumptionPower() throws ConfigurationException {
-		return get(CONSUMPTION_POWER_KEY);
+	public IniConfigurations(String fileName) throws ConfigurationException {
+		try {
+			Ini ini = new Ini(new File(fileName));
+			
+			for (Entry<String, Section> section : ini.entrySet()) {
+				add(section.getKey(), section.getValue().entrySet());
+			}
+		} catch (IOException e) {
+			throw new ConfigurationException("Error while reading configuration: " + e.getMessage());
+		}
 	}
 
 }

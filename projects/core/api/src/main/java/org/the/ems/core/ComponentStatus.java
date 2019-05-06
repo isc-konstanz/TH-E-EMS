@@ -21,6 +21,6 @@ package org.the.ems.core;
 
 public enum ComponentStatus {
 	ENABLED,
-    DISABLED,
-    MAINTENANCE;
+	DISABLED,
+	MAINTENANCE;
 }

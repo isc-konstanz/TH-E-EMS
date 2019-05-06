@@ -19,18 +19,17 @@
  */
 package org.the.ems.core.cmpt.circ;
 
-import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
-public class CirculationTemperatureListener extends ChannelListener {
+public class FlowTemperatureListener implements ValueListener {
 
 	/**
 	 * Interface used to notify the {@link Circulation} 
 	 * implementation about changed temperatures
 	 */
 	public interface CirculationTemperatureCallbacks {
-		public void onTemperatureReceived(CirculationTemperature type, Value temperature);
+		public void onTemperatureReceived(FlowTemperature type, Value temperature);
 	}
 
 	/**
@@ -38,16 +37,14 @@ public class CirculationTemperatureListener extends ChannelListener {
 	 */
 	private final CirculationTemperatureCallbacks callbacks;
 
-	private final CirculationTemperature type;
+	private final FlowTemperature type;
 
-	public CirculationTemperatureListener(CirculationTemperatureCallbacks callbacks, CirculationTemperature type, Channel channel) {
-		super(channel);
-		
+	public FlowTemperatureListener(CirculationTemperatureCallbacks callbacks, FlowTemperature type) {
 		this.callbacks = callbacks;
 		this.type = type;
 	}
 
-	public CirculationTemperature getType() {
+	public FlowTemperature getType() {
 		return type;
 	}
 
@@ -55,4 +52,5 @@ public class CirculationTemperatureListener extends ChannelListener {
 	public void onValueReceived(Value value) {
 		callbacks.onTemperatureReceived(type, value);
 	}
+
 }

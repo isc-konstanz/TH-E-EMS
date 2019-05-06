@@ -19,51 +19,115 @@
  */
 package org.the.ems.core.cmpt.hp;
 
+import java.text.MessageFormat;
+
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatPumpService;
-import org.the.ems.core.cmpt.GenericComponent;
+import org.the.ems.core.cmpt.ConfiguredComponent;
 import org.the.ems.core.cmpt.circ.Circulation;
-import org.the.ems.core.cmpt.circ.pump.CirculationPump;
+import org.the.ems.core.cmpt.circ.CirculationPump;
+import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public abstract class HeatPumpComponent extends GenericComponent implements HeatPumpService {
+public abstract class HeatPumpComponent extends ConfiguredComponent implements HeatPumpService {
+
+	@Configuration(scale=1000)
+	protected double powerMax;
+
+	@Configuration(scale=1000, mandatory=false)
+	protected double powerMin = -1;
+
+	@Configuration
+	protected double cop;
 
 	protected Circulation circulation;
 	protected CirculationPump circulationPump;
 
 	@Override
 	public void onActivate(Configurations configs) throws EnergyManagementException {
-		circulation = new Circulation(manager, configs);
-		circulationPump = new CirculationPump(manager, circulation, configs);
+		super.onActivate(configs);
+		
+		circulation = new Circulation(context, configs);
+		circulationPump = new CirculationPump(context, configs, circulation);
 	}
 
 	@Override
-	public void onDeactivate() {
-		circulationPump.deactivate();
+	public void onResume() throws EnergyManagementException {
+		circulationPump.resume();
+	}
+
+	@Override
+	public void onPause() throws EnergyManagementException {
+		circulationPump.pause();
+	}
+
+	@Override
+	public void onDeactivate() throws EnergyManagementException {
 		circulation.deactivate();
+		circulationPump.deactivate();
 	}
 
 	@Override
-	protected void onMaintenance(boolean enabled) throws EnergyManagementException {
-		circulationPump.setEnabled(!enabled);
+	public void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
+		if (value.doubleValue() == 0) {
+			onStop(container, value.getTime());
+		}
+		else if (value.doubleValue() <= getMaxPower() && value.doubleValue() >= getMinPower()) {
+			onStart(container, value);
+		}
+		throw new ComponentException(MessageFormat.format("Invalid power values passed to set component: {0}", value));
+	}
+
+	protected abstract void onStart(ComponentWriteContainer container, Value value) throws ComponentException;
+
+	protected abstract void onStop(ComponentWriteContainer container, Long time) throws ComponentException;
+
+	@Override
+	public void start(Value value) throws EnergyManagementException {
+		set(value);
 	}
 
 	@Override
-	protected void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
-		if (value.doubleValue() > 0) {
-			start(container, value);
-		}
-		else if (value.doubleValue() == 0) {
-			stop(container, value.getTime());
-		}
-		throw new ComponentException("Invalid negative power values passed to set component");
+	public void onStop(Long time) throws EnergyManagementException {
+		set(new DoubleValue(0, time));
 	}
 
-	public abstract void start(ComponentWriteContainer container, Value value) throws ComponentException;
+	@Override
+	public double getMaxPower() {
+		return powerMax;
+	}
 
-	public abstract void stop(ComponentWriteContainer container, Long time) throws ComponentException;
+	@Override
+	public double getMinPower() {
+		if (powerMin > 0) {
+			return powerMin;
+		}
+		return getMaxPower();
+	}
+
+	@Override
+	public Value getCoefficientOfPerformance() throws ComponentException {
+		return new DoubleValue(cop);
+	}
+
+	@Override
+	@Configuration("el_energy")
+	public Value getElectricalEnergy() throws ComponentException { return getConfiguredValue("el_energy"); }
+
+	@Override
+	@Configuration("th_energy")
+	public Value getThermalEnergy() throws ComponentException { return getConfiguredValue("th_energy"); }
+
+	@Override
+	@Configuration("el_power")
+	public Value getElectricalPower() throws ComponentException { return getConfiguredValue("el_power"); }
+
+	@Override
+	@Configuration("th_power")
+	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
 
 }

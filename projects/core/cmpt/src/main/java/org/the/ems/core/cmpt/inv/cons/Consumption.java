@@ -19,84 +19,104 @@
  */
 package org.the.ems.core.cmpt.inv.cons;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.inv.InverterCallbacks;
-import org.the.ems.core.cmpt.inv.InverterConfig;
 import org.the.ems.core.cmpt.inv.cons.PowerListener.PowerCallbacks;
-import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
-import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Consumption implements PowerCallbacks {
+public class Consumption extends ConfigurationHandler implements PowerCallbacks, ValueListener {
 
-	protected final InverterCallbacks callbacks;
+	private final static String SECTION = "Consumption";
 
-	private Channel consumption;
-	protected Map<PowerType, Value> powerValues;
-	protected List<PowerListener> powerListeners;
-	protected final ConsumptionListener listener;
+	private volatile InverterCallbacks callbacks = null;
 
-	protected class ConsumptionListener implements ValueListener {
+	@Configuration(section=ConfigurationHandler.SECTION_DEFAULT)
+	private ChannelListener consPower;
 
-		@Override
-		public void onValueReceived(Value value) {
-			callbacks.onSetpointUpdate();
-		}
-	}
+	@Configuration
+	private ChannelListener acPower;
 
-	public Consumption(InverterCallbacks callbacks, ContentManagementService control, InverterConfig inverter, Configurations configs)
-			throws ConfigurationException {
-		this.callbacks = callbacks;
-		this.listener = new ConsumptionListener();
-		try {
-			this.consumption = control.getChannel(inverter.getConsumptionPower());
-			this.consumption.registerValueListener(listener);
-			
-			if (configs.hasSection(ConsumptionConfig.class)) {
-				ConsumptionConfig config = configs.getSection(ConsumptionConfig.class);
-				
-				powerValues = new HashMap<PowerType, Value>();
-				powerListeners = new ArrayList<PowerListener>();
-				registerPowerValueListener(control.getChannel(config.getStoragePower()), PowerType.ESS);
-				registerPowerValueListener(control.getChannel(config.getAcPower()), PowerType.AC);
-				if (!config.hasDcPower2()) {
-					registerPowerValueListener(control.getChannel(config.getDcPower()), PowerType.DC1);
-				}
-				else {
-					registerPowerValueListener(control.getChannel(config.getDcPower1()), PowerType.DC1);
-					registerPowerValueListener(control.getChannel(config.getDcPower2()), PowerType.DC2);
-				}
-			}
-		} catch (UnknownChannelException e) {
-			throw new ConfigurationException("Invalid consumption configuration: " + e.getMessage());
-		}
-	}
+	@Configuration(value= {"dc1_power", "dc_power"})
+	private ChannelListener dc1Power;
 
-	private void registerPowerValueListener(Channel channel, PowerType type) {
-		powerValues.put(type, DoubleValue.emptyValue());
+	@Configuration(mandatory=false)
+	private ChannelListener dc2Power;
+
+	@Configuration
+	private ChannelListener eesPower;
+
+	private Map<PowerType, Value> powerValues = new HashMap<PowerType, Value>();
+
+	private volatile boolean running = false;
+
+	public Consumption(ContentManagementService context, Configurations configs)
+			throws EnergyManagementException {
 		
-		PowerListener listener = new PowerListener(this, type, channel);
-		powerListeners.add(listener);
+		setConfiguredSection(SECTION);
+		if (!isDisabled()) {
+			onBind(context);
+			onConfigure(configs);
+			
+			consPower.registerValueListener(this);
+			
+			eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
+			acPower.registerValueListener(new PowerListener(this, PowerType.AC));
+			dc1Power.registerValueListener(new PowerListener(this, PowerType.DC1));
+			if (dc2Power != null) {
+				dc2Power.registerValueListener(new PowerListener(this, PowerType.DC2));
+			}
+			running = true;
+		}
+	}
+
+	public Consumption register(InverterCallbacks callbacks) {
+		this.callbacks = callbacks;
+		return this;
+	}
+
+	public void resume() {
+		running = true;
+	}
+
+	public void pause() {
+		running = false;
+	}
+
+	public void deregister() {
+		this.callbacks = null;
 	}
 
 	public void deactivate() {
-		for (PowerListener listener: powerListeners) {
-			listener.deregister();
+		consPower.deregister();
+		
+		if (!isDisabled()) {
+			eesPower.deregister();
+			acPower.deregister();
+			dc1Power.deregister();
+			if (dc2Power != null) {
+				dc2Power.deregister();
+			}
 		}
-		consumption.deregisterValueListener(listener);
+		callbacks = null;
+		running = false;
 	}
 
 	public Value getLatestValue() {
-		return consumption.getLatestValue();
+		return consPower.getLatestValue();
+	}
+
+	public boolean isRunning() {
+		return !isDisabled() && running;
 	}
 
 	@Override
@@ -104,6 +124,9 @@ public class Consumption implements PowerCallbacks {
 		long time = power.getTime();
 		
 		powerValues.put(type, power);
+		if (!isRunning()) {
+			return;
+		}
 		for (Value value : powerValues.values()) {
 			if (value.getTime() != time) {
 				return;
@@ -116,12 +139,19 @@ public class Consumption implements PowerCallbacks {
 				consumption += powerValues.get(PowerType.DC2).doubleValue();
 			}
 		}
-		consumption -= powerValues.get(PowerType.ESS).doubleValue();
+		consumption -= powerValues.get(PowerType.EES).doubleValue();
 		
 		if (consumption < 0) {
 			consumption = 0;
 		}
-		this.consumption.setLatestValue(new DoubleValue(consumption, time));
+		this.consPower.setLatestValue(new DoubleValue(consumption, time));
+	}
+
+	@Override
+	public void onValueReceived(Value value) {
+		if (callbacks != null) {
+			callbacks.onSetpointUpdate();
+		}
 	}
 
 }

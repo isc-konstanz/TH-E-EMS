@@ -17,19 +17,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.openmuc.framework.app.the.ems;
+package org.the.ems.core.mgr;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.prefs.Preferences;
 
 import org.apache.felix.service.command.CommandProcessor;
-import org.ini4j.Ini;
-import org.ini4j.IniPreferences;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -50,11 +46,16 @@ import org.the.ems.core.HeatPumpService;
 import org.the.ems.core.InverterService;
 import org.the.ems.core.ThermalEnergyStorageService;
 import org.the.ems.core.VentilationService;
+import org.the.ems.core.cmpt.ManagedComponent;
+import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
+import org.the.ems.core.mgr.config.IniConfigurations;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
@@ -67,15 +68,12 @@ import org.the.ems.core.schedule.ScheduleService;
 	},
 	service = {}
 )
-public final class EnergyManager extends Thread implements ScheduleListener {
+public final class EnergyManager extends ConfigurationHandler implements ScheduleListener, Runnable {
 	private final static Logger logger = LoggerFactory.getLogger(EnergyManager.class);
 
 	private final static int SLEEP_INTERVAL = 60000;
 	private final static String CONFIG_MANAGEMENT = "de.the.ems.core.config";
 	private final static String CONFIG_COMPONENTS = "de.the.ems.cmpt.config";
-
-	@Reference
-	private ContentManagementService cms;
 
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
 	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
@@ -83,61 +81,74 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 	private ControlSchedule schedule = new ControlSchedule();
 	private ControlSchedule newSchedule = null;
 
-	private ChannelListener maintenance = null;
+	@Configuration(mandatory = false)
+	private ChannelListener maintenance;
 	private volatile boolean maintenanceFlag;
 	private volatile boolean deactivateFlag;
+
+	private Thread manager;
+
+	@Reference
+	protected ContentManagementService context;
 
 	@Activate
 	protected void activate(ComponentContext context) {
 		logger.info("Activating TH-E Energy Management System");
-		try {
-			activateListeners(loadEnergyManagementConfig());
-			
-		} catch (EnergyManagementException e) {
-			logger.error("Error while reading ems configuration: {}", e.getMessage());
-		}
+		this.onConfigure();
 		
-		start();
-	}
-
-	protected void activateListeners(Configurations configs) throws EnergyManagementException {
-		EnergyManagementConfig config = configs.getSection(EnergyManagementConfig.class);
-		activateMaintenanceListener(config);
-	}
-
-	protected void activateMaintenanceListener(EnergyManagementConfig configs) throws EnergyManagementException {
-		if (maintenance != null) {
-			maintenance.deregister();
-		}
-		maintenance = new ChannelListener(cms.getChannel(configs.getMaintenance())) {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				maintenanceFlag = value.booleanValue();
-				interrupt();
-			}
-		};
-		
-		maintenanceFlag = false;
-		maintenance.getChannel().setLatestValue(new BooleanValue(maintenanceFlag));
+		manager = new Thread(this);
+		manager.setName("TH-E EMS");
+		manager.start();
 	}
 
 	@Deactivate
 	protected void deactivate(ComponentContext context) {
 		logger.info("Deactivating TH-E Energy Management System");
 		deactivateFlag = true;
-
-		interrupt();
+		
+		manager.interrupt();
 		try {
-			this.join();
+			manager.join();
+			
 		} catch (InterruptedException e) {
 		}
+	}
+
+	protected void onConfigure() {
+		String fileName = System.getProperty(CONFIG_MANAGEMENT);
+		if (fileName == null) {
+			fileName = "conf" + File.separator + "ems" + File.separator + "th-e-ems.cfg";
+		}
+		try {
+			super.onConfigure(new IniConfigurations(fileName));
+			
+		} catch (ConfigurationException e) {
+			logger.error("Error while reading ems configuration: {}", e.getMessage());
+		}
+		
+		if (maintenance == null) {
+			return;
+		}
+		else {
+			maintenance.deregister();
+		}
+		maintenance.registerValueListener(new ValueListener() {
+			
+			@Override
+			public void onValueReceived(Value value) {
+				maintenanceFlag = value.booleanValue();
+				manager.interrupt();
+			}
+		});
+		
+		maintenanceFlag = false;
+		maintenance.setLatestValue(new BooleanValue(maintenanceFlag));
 	}
 
 	@Override
 	public void onScheduleReceived(ControlSchedule schedule) {
 		newSchedule = schedule;
-		interrupt();
+		manager.interrupt();
 	}
 
 	@Reference(
@@ -224,6 +235,10 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 		unbindComponentService(ventilationService);
 	}
 
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
 	protected void bindComponentService(ComponentService componentService) {
 		String id = componentService.getId();
 		
@@ -232,7 +247,7 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 				logger.info("Registering TH-E EMS {}: {}", componentService.getClass().getInterfaces()[0].getSimpleName(), id);
 				
 				newComponents.put(id, componentService);
-				interrupt();
+				manager.interrupt();
 			}
 		}
 	}
@@ -245,19 +260,27 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 		synchronized (components) {
 			removedComponent = components.remove(id);
 		}
-		if (removedComponent != null) {
-			logger.info("Deregistering TH-E EMS {}: {}", componentService.getClass().getInterfaces()[0].getSimpleName(), id);
+		String removedComponentType = componentService.getClass().getInterfaces()[0].getSimpleName();
+		try {
+			if (removedComponent != null) {
+				logger.info("Deregistering TH-E EMS {}: {}", removedComponentType, id);
+				if (removedComponent instanceof ManagedComponent) {
+					((ManagedComponent) removedComponent).onDeactivate();
+				}
+			}
+			else {
+				// Component was removed before it was added to the active components
+				newComponents.remove(id);
+			}
+			logger.debug("Component deregistered: " + id);
 			
-			removedComponent.onDeactivate();
+		} catch (EnergyManagementException e) {
+			logger.warn("Error deregistering TH-E EMS {} \"{}\": {}", removedComponentType, id, 
+					e.getMessage());
 		}
-		else {
-			// Component was removed before it was added to the active components
-			newComponents.remove(id);
-		}
-		logger.debug("Component deregistered: " + id);
 	}
 
-	private Configurations loadComponentConfig(ComponentService component) throws ConfigurationException {
+	private Configurations loadComponentConfigs(ComponentService component) throws ConfigurationException {
 		String id = component.getId().toLowerCase().replaceAll("[^A-Za-z0-9]", "-");
 		
 		String fileDir = System.getProperty(CONFIG_COMPONENTS);
@@ -268,59 +291,36 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 			fileDir += File.separator;
 		}
 		String fileName = fileDir + component.getType().getKey() + File.separator + id + ".cfg";
-		try {
-			Ini ini = new Ini(new File(fileName));
-			Preferences prefs = new IniPreferences(ini);
-			return new Configurations(prefs);
-			
-		} catch (IOException e) {
-			throw new ConfigurationException("Error while reading component configuration: " + e.getMessage());
-		}
-	}
-
-	private Configurations loadEnergyManagementConfig() throws ConfigurationException {
-		String fileName = System.getProperty(CONFIG_MANAGEMENT);
-		if (fileName == null) {
-			fileName = "conf" + File.separator + "ems" + File.separator + "th-e-ems.cfg";
-		}
-		try {
-			Ini ini = new Ini(new File(fileName));
-			Preferences prefs = new IniPreferences(ini);
-			return new Configurations(prefs);
-			
-		} catch (IOException e) {
-			throw new ConfigurationException("Error while reading configuration: " + e.getMessage());
-		}
+		
+		return new IniConfigurations(fileName);
 	}
 
 	public void reload() {
 		logger.info("Reload TH-E EMS configuration.");
-		// TODO: implement reload
-		try {
-			activateListeners(loadEnergyManagementConfig());
-			
-		} catch (EnergyManagementException e) {
-			logger.error("Error while reloading TH-E EMS configuration: {}", e.getMessage());
-		}
+		this.onConfigure();
+		
 		for (ComponentService component : components.values()) {
-			try {
-				component.onReload(loadComponentConfig(component));
-				
-			} catch (EnergyManagementException e) {
-				logger.error("Error while reloading TH-E EMS component \"{}\": {}", component.getId(), e.getMessage());
+			if (component instanceof ManagedComponent) {
+				try {
+					ManagedComponent managedComponent = (ManagedComponent) component;
+					managedComponent.onDeactivate();
+					managedComponent.onActivate(loadComponentConfigs(managedComponent));
+					
+				} catch (EnergyManagementException e) {
+					logger.error("Error while reloading TH-E EMS component \"{}\": {}", 
+							component.getId(), e.getMessage());
+				}
 			}
 		}
 	}
 
 	@Override
 	public void run() {
-		setName("TH-E EMS");
-		
 		logger.info("Starting TH-E EMS");
 		
 		deactivateFlag = false;
 		while (!deactivateFlag) {
-			if (interrupted()) {
+			if (manager.isInterrupted()) {
 				handleInterruptEvent();
 				continue;
 			}
@@ -349,11 +349,14 @@ public final class EnergyManager extends Thread implements ScheduleListener {
 				for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
 					String id = newComponentEntry.getKey();
 					ComponentService component = newComponentEntry.getValue();
-
+					
 					logger.info("Activating TH-E EMS {}: {}", component.getClass().getInterfaces()[0].getSimpleName(), id);
 					try {
-						component.onBind(cms);
-						component.onActivate(loadComponentConfig(component));
+						if (component instanceof ManagedComponent) {
+							ManagedComponent managedComponent = (ManagedComponent) component;
+							managedComponent.onBind(context);
+							managedComponent.onActivate(loadComponentConfigs(managedComponent));
+						}
 						component.setStatus(ComponentStatus.ENABLED);
 						
 					} catch (EnergyManagementException e) {

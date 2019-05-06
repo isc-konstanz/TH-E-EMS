@@ -19,8 +19,13 @@
  */
 package org.the.ems.core.cmpt.inv;
 
+import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.data.Value;
+
 public interface InverterCallbacks {
 
 	public void onSetpointUpdate();
+
+	public void onSetpointChanged(Value value) throws EnergyManagementException;
 
 }

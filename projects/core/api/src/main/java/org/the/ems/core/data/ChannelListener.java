@@ -19,24 +19,72 @@
  */
 package org.the.ems.core.data;
 
-public abstract class ChannelListener implements ValueListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ChannelListener implements Channel {
+
+	private final List<ValueListener> listeners = new ArrayList<ValueListener>();
 
 	private final Channel channel;
 
 	public ChannelListener(Channel channel) {
 		this.channel = channel;
-		this.channel.registerValueListener(this);
 	}
 
-	public Channel getChannel() {
-		return channel;
+	public void deregister() {
+		synchronized(listeners) {
+			for (ValueListener listener : listeners) {
+				channel.deregisterValueListener(listener);
+			}
+			listeners.clear();
+		}
 	}
 
+	@Override
+	public void deregisterValueListener(ValueListener listener) {
+		synchronized(listeners) {
+			if (listeners.contains(listener)) {
+				listeners.remove(listener);
+				channel.deregisterValueListener(listener);
+			}
+		}
+	}
+
+	@Override
+	public void registerValueListener(ValueListener listener) {
+		synchronized(listeners) {
+			if (!listeners.contains(listener)) {
+				listeners.add(listener);
+				channel.registerValueListener(listener);
+			}
+		}
+	}
+
+	@Override
+	public Value getLatestValue(ValueListener listener) {
+		this.registerValueListener(listener);
+		return channel.getLatestValue(listener);
+	}
+
+	@Override
 	public Value getLatestValue() {
 		return channel.getLatestValue();
 	}
 
-	public void deregister() {
-		channel.deregisterValueListener(this);
+	@Override
+	public void setLatestValue(Value value) {
+		channel.setLatestValue(value);
 	}
+
+	@Override
+	public void write(Value value) {
+		channel.write(value);
+	}
+
+	@Override
+	public void write(ValueList value) {
+		channel.write(value);
+	}
+
 }

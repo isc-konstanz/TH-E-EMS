@@ -29,10 +29,10 @@ public class BooleanValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
-    @Override
-    public String toString() {
-        return Boolean.toString(booleanValue());
-    }
+	@Override
+	public String toString() {
+		return Boolean.toString(booleanValue());
+	}
 
 	public static BooleanValue emptyValue() {
 		return new BooleanValue(false);

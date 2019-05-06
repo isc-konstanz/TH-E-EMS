@@ -71,6 +71,6 @@ public interface HeatPumpService extends ComponentService {
 	/*
 	 * Stop the heat generation.
 	 */
-	public void stop(Long time) throws EnergyManagementException;
+	public void onStop(Long time) throws EnergyManagementException;
 
 }

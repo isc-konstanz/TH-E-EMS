@@ -19,7 +19,6 @@
  */
 package org.the.ems.core;
 
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.Schedule;
 
@@ -35,16 +34,8 @@ public interface ComponentService {
 
 	public void setStatus(ComponentStatus status) throws EnergyManagementException;
 
-	public void onBind(ContentManagementService control) throws EnergyManagementException;
-
-	public void onActivate(Configurations config) throws EnergyManagementException;
-
-	public void onReload(Configurations config) throws EnergyManagementException;
-
-	public void onDeactivate();
+	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException;
 
 	public void set(Value value) throws EnergyManagementException, UnsupportedOperationException;
-
-	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException;
 
 }

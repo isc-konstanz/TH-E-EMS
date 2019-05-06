@@ -34,16 +34,6 @@ public interface ThermalEnergyStorageService extends ComponentService {
 	public double getCapacity();
 
 	/*
-	 * Get the thermal charge energy in [kWh].
-	 */
-	public Value getChargeEnergy() throws ComponentException;
-
-	/*
-	 * Get the thermal discharge energy in [kWh].
-	 */
-	public Value getDischargeEnergy() throws ComponentException;
-
-	/*
 	 * Get the thermal power in [W].
 	 */
 	public Value getThermalPower() throws ComponentException;

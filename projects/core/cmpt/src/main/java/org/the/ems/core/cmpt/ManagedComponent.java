@@ -21,11 +21,12 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
-import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.schedule.Schedule;
 
 public interface ManagedComponent extends ComponentService {
 
@@ -41,7 +42,12 @@ public interface ManagedComponent extends ComponentService {
 
 	public void onDestroy() throws EnergyManagementException;
 
-	public default void onSet(ComponentWriteContainer container, Value value) 
+	public default void onSchedule(WriteContainer container, Schedule schedule) 
+			throws UnsupportedOperationException, ComponentException {
+		throw new UnsupportedOperationException();
+	}
+
+	public default void onSet(WriteContainer container, Value value) 
 			throws UnsupportedOperationException, ComponentException {
 		throw new UnsupportedOperationException();
 	}

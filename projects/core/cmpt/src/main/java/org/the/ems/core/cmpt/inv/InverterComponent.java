@@ -22,7 +22,6 @@ package org.the.ems.core.cmpt.inv;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.InverterService;
 import org.the.ems.core.cmpt.ConfiguredComponent;
@@ -32,6 +31,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -93,7 +93,7 @@ public abstract class InverterComponent extends ConfiguredComponent
 	@Override
 	public void onSetpointUpdate() {
 		try {
-			ComponentWriteContainer container = new ComponentWriteContainer();
+			WriteContainer container = new WriteContainer();
 			
 			onSet(container, commandValue);
 			if (container.size() < 1) {
@@ -108,7 +108,7 @@ public abstract class InverterComponent extends ConfiguredComponent
 	}
 
 	@Override
-	public void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
+	public void onSet(WriteContainer container, Value value) throws ComponentException {
 		if (value.doubleValue() != commandValue.doubleValue()) {
 			command.setLatestValue(value);
 			return;
@@ -133,7 +133,7 @@ public abstract class InverterComponent extends ConfiguredComponent
 	@Override
 	public void onSetpointChanged(Value value) throws EnergyManagementException { set(value); }
 
-	protected abstract void onSetpointChanged(ComponentWriteContainer container, Value value) throws ComponentException;
+	protected abstract void onSetpointChanged(WriteContainer container, Value value) throws ComponentException;
 
 	@Override
 	public Value getCommand() throws ComponentException {

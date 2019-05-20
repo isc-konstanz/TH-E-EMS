@@ -21,6 +21,7 @@
 package org.the.ems.core.config;
 
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
 public class TestHandler extends ConfigurationHandler {
@@ -51,6 +52,9 @@ public class TestHandler extends ConfigurationHandler {
 
 	@Configuration(value= {"test1","test"})
 	private String testSelection;
+
+	@Configuration(value= {"test","test_channel"})
+	private ChannelCollection testCollection;
 
 	public TestHandler(Configurations configs) throws ConfigurationException {
 		context = new TestManager();
@@ -91,6 +95,10 @@ public class TestHandler extends ConfigurationHandler {
 
 	public String getTestSelection() {
 		return testSelection;
+	}
+
+	public TestChannel getTestCollection(String key) {
+		return (TestChannel) testCollection.get(key);
 	}
 
 	@Configuration

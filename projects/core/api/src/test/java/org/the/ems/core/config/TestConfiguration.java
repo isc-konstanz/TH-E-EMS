@@ -59,6 +59,8 @@ public class TestConfiguration {
 		assertEquals("Test", handler.getTest());
 		assertEquals("Test", handler.getTestSection());
 		assertEquals("Test", handler.getTestSelection());
+		assertEquals("Test", handler.getTestCollection("test").getId());
+		assertEquals("Channel", handler.getTestCollection("test_channel").getId());
 		assertEquals("Channel", handler.getTestChannel().getId());
 	}
 

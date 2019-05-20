@@ -19,95 +19,17 @@
  */
 package org.the.ems.core.cmpt.hp;
 
-import java.text.MessageFormat;
-
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentWriteContainer;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatPumpService;
-import org.the.ems.core.cmpt.ConfiguredComponent;
-import org.the.ems.core.cmpt.circ.Circulation;
-import org.the.ems.core.cmpt.circ.CirculationPump;
+import org.the.ems.core.cmpt.GeneratorComponent;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public abstract class HeatPumpComponent extends ConfiguredComponent implements HeatPumpService {
-
-	@Configuration(scale=1000)
-	protected double powerMax;
-
-	@Configuration(scale=1000, mandatory=false)
-	protected double powerMin = -1;
+public abstract class HeatPumpComponent extends GeneratorComponent implements HeatPumpService {
 
 	@Configuration
 	protected double cop;
-
-	protected Circulation circulation;
-	protected CirculationPump circulationPump;
-
-	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
-		super.onActivate(configs);
-		
-		circulation = new Circulation(context, configs);
-		circulationPump = new CirculationPump(context, configs, circulation);
-	}
-
-	@Override
-	public void onResume() throws EnergyManagementException {
-		circulationPump.resume();
-	}
-
-	@Override
-	public void onPause() throws EnergyManagementException {
-		circulationPump.pause();
-	}
-
-	@Override
-	public void onDeactivate() throws EnergyManagementException {
-		circulation.deactivate();
-		circulationPump.deactivate();
-	}
-
-	@Override
-	public void onSet(ComponentWriteContainer container, Value value) throws ComponentException {
-		if (value.doubleValue() == 0) {
-			onStop(container, value.getTime());
-		}
-		else if (value.doubleValue() <= getMaxPower() && value.doubleValue() >= getMinPower()) {
-			onStart(container, value);
-		}
-		throw new ComponentException(MessageFormat.format("Invalid power values passed to set component: {0}", value));
-	}
-
-	protected abstract void onStart(ComponentWriteContainer container, Value value) throws ComponentException;
-
-	protected abstract void onStop(ComponentWriteContainer container, Long time) throws ComponentException;
-
-	@Override
-	public void start(Value value) throws EnergyManagementException {
-		set(value);
-	}
-
-	@Override
-	public void onStop(Long time) throws EnergyManagementException {
-		set(new DoubleValue(0, time));
-	}
-
-	@Override
-	public double getMaxPower() {
-		return powerMax;
-	}
-
-	@Override
-	public double getMinPower() {
-		if (powerMin > 0) {
-			return powerMin;
-		}
-		return getMaxPower();
-	}
 
 	@Override
 	public Value getCoefficientOfPerformance() throws ComponentException {

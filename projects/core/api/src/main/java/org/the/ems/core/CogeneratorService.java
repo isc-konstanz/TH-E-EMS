@@ -29,42 +29,42 @@ public interface CogeneratorService extends ComponentService {
 	};
 
 	/*
-	 * Get the maximum electrical power in [W].
+	 * Get the maximum electrical power in watts [W].
 	 */
 	public double getMaxPower();
 
 	/*
-	 * Get the minimum electrical power in [W].
+	 * Get the minimum electrical power in watts [W].
 	 */
 	public double getMinPower();
 
 	/*
-	 * Get the electrical efficiency in [%] between 0 and 100%.
+	 * Get the electrical efficiency in percent [%] between 0 and 100%.
 	 */
 	public double getElectricalEfficiency();
 
 	/*
-	 * Get the thermal efficiency in [%] between 0 and 100%.
+	 * Get the thermal efficiency in percent [%] between 0 and 100%.
 	 */
 	public double getThermalEfficiency();
 
 	/*
-	 * Get the generated electrical energy in [kWh].
+	 * Get the generated electrical energy in kilowatt hours [kWh].
 	 */
 	public Value getElectricalEnergy() throws ComponentException;
 
 	/*
-	 * Get the generated thermal energy in [kWh].
+	 * Get the generated thermal energy in kilowatt hours [kWh].
 	 */
 	public Value getThermalEnergy() throws ComponentException;
 
 	/*
-	 * Get the generated electrical power in [W].
+	 * Get the generated electrical power in watts [W].
 	 */
 	public Value getElectricalPower() throws ComponentException;
 
 	/*
-	 * Get the generated thermal power in [W].
+	 * Get the generated thermal power in watts [W].
 	 */
 	public Value getThermalPower() throws ComponentException;
 

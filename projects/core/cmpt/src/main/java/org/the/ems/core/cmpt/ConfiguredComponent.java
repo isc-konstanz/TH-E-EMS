@@ -19,48 +19,46 @@
  */
 package org.the.ems.core.cmpt;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentStatus;
-import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.Schedule;
 
 public abstract class ConfiguredComponent extends ConfigurationHandler implements ManagedComponent {
-	private final static Logger logger = LoggerFactory.getLogger(ConfiguredComponent.class);
 
-	protected volatile ComponentStatus status = ComponentStatus.DISABLED;
+	protected volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
 
 	@Override
 	public ComponentStatus getStatus() {
-		return status;
+		return componentStatus;
 	}
 
 	@Override
 	public void setStatus(ComponentStatus status) throws EnergyManagementException {
 		switch(status) {
 		case MAINTENANCE:
-			if (this.status != ComponentStatus.MAINTENANCE) {
+			if (this.componentStatus != ComponentStatus.MAINTENANCE) {
 				onPause();
 			}
 			break;
 		default:
-			if (this.status == ComponentStatus.MAINTENANCE) {
+			if (this.componentStatus == ComponentStatus.MAINTENANCE) {
 				onResume();
 			}
 			break;
 		}
-		this.status = status;
+		this.componentStatus = status;
 	}
 
 	public boolean isMaintenance() {
-		return status == ComponentStatus.MAINTENANCE;
+		return componentStatus == ComponentStatus.MAINTENANCE;
 	}
 
 	@Override
@@ -92,34 +90,35 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 	}
 
 	@Override
-	public void set(Value value) throws EnergyManagementException, UnsupportedOperationException {
-		ComponentWriteContainer container = new ComponentWriteContainer();
-		try {
+	public void onSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+		for (Value value : schedule) {
 			onSet(container, value);
-			
-		} catch (MaintenanceException e) {
-			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
-		}
-		if (container.size() < 1) {
-			return;
-		}
-		
-		for (Channel channel : container.keySet()) {
-			channel.write(container.get(channel));
 		}
 	}
 
 	@Override
-	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException {
-		ComponentWriteContainer container = new ComponentWriteContainer();
-		try {
-			for (Value value : schedule) {
-				onSet(container, value);
-			}
-		} catch (MaintenanceException e) {
-			logger.debug("Skipped writing values for component \"{}\" due to maintenance", getId());
+	public void schedule(Schedule schedule) throws EnergyManagementException {
+		if (getStatus() == ComponentStatus.MAINTENANCE) {
+			throw new MaintenanceException("Unable to schedule component while in maintenance");
 		}
+		WriteContainer container = new WriteContainer();
+		for (Value value : schedule) {
+			onSet(container, value);
+		}
+		onWrite(container);
+	}
 
+	@Override
+	public void set(Value value) throws EnergyManagementException {
+		WriteContainer container = new WriteContainer();
+		onSet(container, value);
+		onWrite(container);
+	}
+
+	protected void onWrite(WriteContainer container) throws EnergyManagementException {
+		if (container.size() < 1) {
+			return;
+		}
 		for (Channel channel : container.keySet()) {
 			channel.write(container.get(channel));
 		}

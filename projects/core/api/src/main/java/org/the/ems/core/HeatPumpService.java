@@ -29,12 +29,12 @@ public interface HeatPumpService extends ComponentService {
 	};
 
 	/*
-	 * Get the maximum consumed electrical power in [W].
+	 * Get the maximum consumed electrical power in watts [W].
 	 */
 	public double getMaxPower();
 
 	/*
-	 * Get the minimum consumed electrical power in [W].
+	 * Get the minimum consumed electrical power in watts [W].
 	 */
 	public double getMinPower();
 
@@ -44,22 +44,22 @@ public interface HeatPumpService extends ComponentService {
 	public Value getCoefficientOfPerformance() throws ComponentException;
 
 	/*
-	 * Get the consumed electrical energy in [kWh].
+	 * Get the consumed electrical energy in kilowatt hours [kWh].
 	 */
 	public Value getElectricalEnergy() throws ComponentException;
 
 	/*
-	 * Get the generated thermal energy in [kWh].
+	 * Get the generated thermal energy in kilowatt hours [kWh].
 	 */
 	public Value getThermalEnergy() throws ComponentException;
 
 	/*
-	 * Get the consumed electrical power in [W].
+	 * Get the consumed electrical power in watts [W].
 	 */
 	public Value getElectricalPower() throws ComponentException;
 
 	/*
-	 * Get the generated thermal power in [W].
+	 * Get the generated thermal power in watts [W].
 	 */
 	public Value getThermalPower() throws ComponentException;
 
@@ -71,6 +71,6 @@ public interface HeatPumpService extends ComponentService {
 	/*
 	 * Stop the heat generation.
 	 */
-	public void onStop(Long time) throws EnergyManagementException;
+	public void stop(Long time) throws EnergyManagementException;
 
 }

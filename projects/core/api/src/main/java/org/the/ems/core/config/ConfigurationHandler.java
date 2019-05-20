@@ -24,19 +24,14 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.ConfigurationHandler;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
@@ -49,7 +44,7 @@ public abstract class ConfigurationHandler {
 
 	private boolean disabled = true;
 
-	protected final Map<String, Channel> channels = new HashMap<String, Channel>();
+	protected final ChannelCollection channels = new ChannelCollection();
 
 	protected ContentManagementService context;
 
@@ -79,10 +74,10 @@ public abstract class ConfigurationHandler {
 			
 			boolean configured = false;
 			if (element instanceof Field) {
-				configured = onConfigure(configs, (Field) element, keys, config.scale());
+				configured = onConfigure(configs, (Field) element, section, keys, config.scale());
 			}
 			else {
-				configured = onConfigure(configs, (Method) element, keys);
+				configured = onConfigure(configs, (Method) element, section, keys);
 			}
 			if (!configured && config.mandatory()) {
 				throw newConfigException(MessageFormat.format("Mandatory configuration of section \"{0}\" not found: {1}",
@@ -94,8 +89,8 @@ public abstract class ConfigurationHandler {
 		}
 	}
 
-	private boolean onConfigure(Configurations configs, Method method, String[] keys) 
-			throws ConfigurationException {
+	private boolean onConfigure(Configurations configs, Method method,
+			String section, String[] keys) throws ConfigurationException {
 		
 		if (keys.length > 1) {
 			throw newConfigException(MessageFormat.format("Method configuration \"{0}\" with several keys not allowed",
@@ -114,24 +109,29 @@ public abstract class ConfigurationHandler {
 		return false;
 	}
 
-	private boolean onConfigure(Configurations configs, Field field, String[] keys, double scale) 
-			throws ConfigurationException {
-		
+	private boolean onConfigure(Configurations configs, Field field, 
+			String section, String[] keys, double scale) throws ConfigurationException {
 		Object value = null;
 		
-		for (String key : keys) {
-			if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-				key = Configurations.parse(field.getName());
-			}
-			if (configs.contains(section, key)) {
-				value = onConfigureField(configs, field, section, key);
-				break;
+		Class<?> type = field.getType();
+		field.setAccessible(true);
+		if (type.isAssignableFrom(ChannelCollection.class)) {
+			value = onConfigureCollection(configs, type, section, keys);
+		}
+		else {
+			for (String key : keys) {
+				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
+					key = Configurations.parse(field.getName());
+				}
+				if (configs.contains(section, key)) {
+					value = onConfigureField(configs, type, section, key);
+					break;
+				}
 			}
 		}
 		try {
 			if (value != null) {
 				if (scale != 1) {
-					Class<?> type = field.getType();
 					if (type.isAssignableFrom(short.class) || type.isAssignableFrom(Short.class)) {
 						value = (short) value*(short)scale;
 					}
@@ -150,6 +150,10 @@ public abstract class ConfigurationHandler {
 				}
 				field.set(this, value);
 				
+				if (type.isAssignableFrom(ChannelCollection.class) &&
+						keys.length > ((ChannelCollection) value).size()) {
+					return false;
+				}
 				return true;
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
@@ -158,13 +162,26 @@ public abstract class ConfigurationHandler {
 		return false;
 	}
 
-	private Object onConfigureField(Configurations configs, Field field, 
+	private ChannelCollection onConfigureCollection(Configurations configs, Class<?> type, 
+			String section, String[] keys) throws ConfigurationException {
+		
+		ChannelCollection channels = new ChannelCollection();
+		for (String key : keys) {
+			if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
+				throw new ConfigurationException("");
+			}
+			if (configs.contains(section, key)) {
+				Channel channel = onConfigureChannel(configs, section, key);
+				channels.put(key, channel);
+			}
+		}
+		return channels;
+	}
+
+	private Object onConfigureField(Configurations configs, Class<?> type, 
 			String section, String key) throws ConfigurationException {
 		
 		try {
-			field.setAccessible(true);
-			
-			Class<?> type = field.getType();
 			if (type.isAssignableFrom(Channel.class)) {
 				Channel channel = onConfigureChannel(configs, section, key);
 				

@@ -29,17 +29,17 @@ public interface ThermalEnergyStorageService extends ComponentService {
 	};
 
 	/*
-	 * Get the capacity of the storage system in [kWh] larger than 0.
+	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
 	 */
 	public double getCapacity();
 
 	/*
-	 * Get the thermal power in [W].
+	 * Get the thermal power in watts [W].
 	 */
 	public Value getThermalPower() throws ComponentException;
 
 	/*
-	 * Get the average temperature in [°C].
+	 * Get the average temperature in degree celsius [°C].
 	 */
 	public Value getTemperature() throws ComponentException;
 

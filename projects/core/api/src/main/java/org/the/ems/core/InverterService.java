@@ -39,37 +39,37 @@ public interface InverterService extends ComponentService {
 	public boolean isIsland() throws UnsupportedOperationException;
 
 	/*
-	 * Get the maximum power in [W].
+	 * Get the maximum power in watts [W].
 	 */
 	public double getMaxPower();
 
 	/*
-	 * Get the minimum power in [W].
+	 * Get the minimum power in watts [W].
 	 */
 	public double getMinPower();
 
 	/*
-	 * Get the setpoint command to control the import/export power in [W].
+	 * Get the setpoint command to control the import/export power in watts [W].
 	 */
 	public Value getCommand() throws ComponentException;
 
 	/*
-	 * Get the generated DC input energy in [kWh].
+	 * Get the generated DC input energy in kilowatt hours [kWh].
 	 */
 	public Value getInputEnergy() throws ComponentException;
 
 	/*
-	 * Get the imported energy in [kWh].
+	 * Get the imported energy in kilowatt hours [kWh].
 	 */
 	public Value getImportEnergy() throws ComponentException;
 
 	/*
-	 * Get the exported energy in [kWh].
+	 * Get the exported energy in kilowatt hours [kWh].
 	 */
 	public Value getExportEnergy() throws ComponentException;
 
 	/*
-	 * Get the generated DC input power in [W].
+	 * Get the generated DC input power in watts [W].
 	 */
 	public Value getInputPower() throws ComponentException;
 

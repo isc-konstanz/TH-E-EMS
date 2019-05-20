@@ -265,7 +265,9 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 			if (removedComponent != null) {
 				logger.info("Deregistering TH-E EMS {}: {}", removedComponentType, id);
 				if (removedComponent instanceof ManagedComponent) {
-					((ManagedComponent) removedComponent).onDeactivate();
+					ManagedComponent managedComponent = (ManagedComponent) removedComponent;
+					managedComponent.onDeactivate();
+					managedComponent.onDestroy();
 				}
 			}
 			else {

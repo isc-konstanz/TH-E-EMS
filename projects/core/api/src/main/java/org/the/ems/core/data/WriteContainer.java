@@ -17,30 +17,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.core.data;
 
-import org.the.ems.core.data.Value;
+import java.util.LinkedHashMap;
 
-public interface ElectricalEnergyStorageService extends ComponentService {
+public class WriteContainer extends LinkedHashMap<Channel, ValueList> {
+	private static final long serialVersionUID = 7352264303947891380L;
 
-	/*
-	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
-	 */
-	public double getCapacity();
+	public WriteContainer() {
+		super();
+	}
 
-	/*
-	 * Get the DC power in watts [W].
-	 */
-	public Value getChargePower() throws ComponentException;
+	public boolean add(Channel channel, Value value) {
+		if (!containsKey(channel)) {
+			put(channel, new ValueList());
+		}
+		return get(channel).add(value);
+	}
 
-	/*
-	 * Get the Voltage in volts [V].
-	 */
-	public Value getVoltage() throws ComponentException;
-
-	/*
-	 * Get the state of charge in percent [%] between 0 and 100%.
-	 */
-	public Value getStateOfCharge() throws ComponentException;
+	public void add(WriteContainer channels) {
+		if (channels == null) {
+			return;
+		}
+		for (Channel channel : channels.keySet()) {
+			for (Value value : channels.get(channel)) {
+				add(channel, value);
+			}
+		}
+	}
 
 }

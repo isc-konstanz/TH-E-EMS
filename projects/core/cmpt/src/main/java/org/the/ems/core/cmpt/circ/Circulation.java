@@ -142,7 +142,7 @@ public class Circulation extends ConfigurationHandler implements CirculationTemp
 		@Override
 		public void onValueReceived(Value counter) {
 			if (!flowCounterLast.isNaN()) {
-				// Flow since last calculation in kilogramm
+				// Flow since last calculation in kilogram
 				double flowMass = (counter.doubleValue() - flowCounterLast)*flowDensity;
 				
 				double tempDelta = 0;
@@ -158,7 +158,7 @@ public class Circulation extends ConfigurationHandler implements CirculationTemp
 					Value value = flowTempDelta.getLatestValue();
 					if (value != null) tempDelta = value.doubleValue();
 				}
-				// Calculate energy in kJ = cp*m*dT
+				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energy = flowSpecificHeat*flowMass*tempDelta;
 				flowEnergyLast += energy/3600;
 				flowEnergy.setLatestValue(new DoubleValue(flowEnergyLast, counter.getTime()));

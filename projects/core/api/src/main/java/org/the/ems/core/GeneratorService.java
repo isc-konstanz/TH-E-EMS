@@ -21,26 +21,38 @@ package org.the.ems.core;
 
 import org.the.ems.core.data.Value;
 
-public interface ElectricalEnergyStorageService extends ComponentService {
+public interface GeneratorService extends ComponentService {
+
+	public GeneratorState getState();
 
 	/*
-	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
+	 * Get the maximum power in watts [W].
 	 */
-	public double getCapacity();
+	public double getMaxPower();
 
 	/*
-	 * Get the DC power in watts [W].
+	 * Get the minimum power in watts [W].
 	 */
-	public Value getChargePower() throws ComponentException;
+	public double getMinPower();
 
 	/*
-	 * Get the Voltage in volts [V].
+	 * Get the generated thermal energy in kilowatt hours [kWh].
 	 */
-	public Value getVoltage() throws ComponentException;
+	public Value getThermalEnergy() throws ComponentException;
 
 	/*
-	 * Get the state of charge in percent [%] between 0 and 100%.
+	 * Get the generated thermal power in watts [W].
 	 */
-	public Value getStateOfCharge() throws ComponentException;
+	public Value getThermalPower() throws ComponentException;
+
+	/*
+	 * Start the generation.
+	 */
+	public void start(Value value) throws EnergyManagementException;
+
+	/*
+	 * Stop the generation.
+	 */
+	public void stop(Long time) throws EnergyManagementException;
 
 }

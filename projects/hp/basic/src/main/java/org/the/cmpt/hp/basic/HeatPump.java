@@ -4,7 +4,6 @@ import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatPumpService;
 import org.the.ems.core.cmpt.hp.HeatPumpComponent;
@@ -15,15 +14,13 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
+import org.the.ems.core.data.WriteContainer;
 
 @Component(service = HeatPumpService.class)
 public class HeatPump extends HeatPumpComponent {
 	private final static Logger logger = LoggerFactory.getLogger(HeatPump.class);
 
 	private final static String ID = "Basic";
-
-	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
-	private int intervalMin = 600000;
 
 	@Configuration("temp_min")
 	private double temperatureMin;
@@ -42,8 +39,7 @@ public class HeatPump extends HeatPumpComponent {
 	@Configuration
 	private ChannelListener state;
 
-	private Value stateValueLast = null;
-	private volatile long startTimeLast;
+	protected Value stateValueLast = null;
 
 	@Override
 	public String getId() {
@@ -67,37 +63,16 @@ public class HeatPump extends HeatPumpComponent {
 	}
 
 	@Override
-	protected void onStart(ComponentWriteContainer container, Value value) throws ComponentException {
-		if (temperatureValue.doubleValue() >= temperatureInMax) {
+	protected void onStart(WriteContainer container, Value value) throws ComponentException {
+		if (temperatureValue.doubleValue() > temperatureInMax) {
 			throw new ComponentException("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
 		}
 		container.add(state, new BooleanValue(true, value.getTime()));
 	}
 
-	protected void onStart(long time) {
-		state.write(new BooleanValue(true, time));
-	}
-
-	protected void onStart() {
-		onStart(System.currentTimeMillis());
-	}
-
 	@Override
-	protected void onStop(ComponentWriteContainer container, Long time) throws ComponentException {
+	protected void onStop(WriteContainer container, Long time) throws ComponentException {
 		container.add(state, new BooleanValue(false, time));
-	}
-
-	@Override
-	public void onStop(Long time) throws EnergyManagementException {
-		onStop(time);
-	}
-
-	protected void onStop(long time) {
-		state.write(new BooleanValue(false, time));
-	}
-
-	protected void onStop() {
-		onStop(System.currentTimeMillis());
 	}
 
 	private class StateListener implements ValueListener {
@@ -106,9 +81,11 @@ public class HeatPump extends HeatPumpComponent {
 		public void onValueReceived(Value value) {
 			if (value.booleanValue() && temperatureValue.doubleValue() > temperatureInMax) {
 				logger.warn("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
-				onStop();
+				// TODO: implement virtual start signal that does not affect relay
+				state.write(new BooleanValue(false, value.getTime()));
+				return;
 			}
-			if (value.booleanValue() && stateValueLast != null && !stateValueLast.booleanValue()) {
+			else if (value.booleanValue() && stateValueLast != null && !stateValueLast.booleanValue()) {
 				startTimeLast = value.getTime();
 			}
 			stateValueLast = value;
@@ -122,7 +99,7 @@ public class HeatPump extends HeatPumpComponent {
 			temperatureValue = value;
 			
 			if (temperatureValue.doubleValue() >= temperatureInMax) {
-				onStop();
+				state.write(new BooleanValue(false, value.getTime()));;
 				return;
 			}
 			if (isMaintenance()) {
@@ -131,17 +108,12 @@ public class HeatPump extends HeatPumpComponent {
 			if (temperatureValue.doubleValue() <= temperatureMin &&
 					(stateValueLast != null && !stateValueLast.booleanValue())) {
 				
-				onStart();
+				state.write(new BooleanValue(true, value.getTime()));
 			}
 			else if (temperatureValue.doubleValue() >= temperatureMax &&
 					(stateValueLast != null && stateValueLast.booleanValue())) {
-				if (System.currentTimeMillis() - startTimeLast < intervalMin) {
-					logger.debug("Heat pump recognized temperature threshold to switch OFF while running shorter than {}min", 
-							intervalMin/60000);
-					
-					return;
-				}
-				onStop();
+				
+				state.write(new BooleanValue(false, value.getTime()));
 			}
 		}
 	}

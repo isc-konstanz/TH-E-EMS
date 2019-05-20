@@ -23,20 +23,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
-import org.the.cmpt.vnt.basic.CabinetTemperatureListener.CabinetTemperatureCallbacks;
+import org.the.cmpt.vnt.basic.TemperatureListener.TemperatureCallbacks;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.VentilationService;
 import org.the.ems.core.cmpt.ConfiguredComponent;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
 @Component(service = VentilationService.class)
 public abstract class CabinetVentilation extends ConfiguredComponent 
-		implements VentilationService, CabinetTemperatureCallbacks {
+		implements VentilationService, TemperatureCallbacks {
 
 	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
 	private int intervalMin = 600000;
@@ -47,16 +48,10 @@ public abstract class CabinetVentilation extends ConfiguredComponent
 	@Configuration(mandatory=false, value="temp_max")
 	private double temperatureMax = 50;
 
-	@Configuration("temp_top")
-	private ChannelListener temperatureTop;
+	@Configuration({"temp_top", "temp_mid", "temp_bot"})
+	private ChannelCollection temperatures;
 
-	@Configuration("temp_mid")
-	private ChannelListener temperatureMid;
-
-	@Configuration("temp_bot")
-	private ChannelListener temperatureBot;
-
-	private final List<CabinetTemperature> temperatureHighFlags = new ArrayList<CabinetTemperature>(CabinetTemperature.values().length);
+	private final List<Temperature> temperatureHighFlags = new ArrayList<Temperature>(Temperature.values().length);
 
 	@Configuration
 	private ChannelListener state;
@@ -68,17 +63,15 @@ public abstract class CabinetVentilation extends ConfiguredComponent
 	public void onActivate(Configurations configs) throws EnergyManagementException {
 		super.onActivate(configs);
 		
-		temperatureTop.registerValueListener(new CabinetTemperatureListener(this, CabinetTemperature.TOP));
-		temperatureMid.registerValueListener(new CabinetTemperatureListener(this, CabinetTemperature.CENTER));
-		temperatureBot.registerValueListener(new CabinetTemperatureListener(this, CabinetTemperature.BOTTOM));
+		temperatures.register(Temperature.TOP, new TemperatureListener(this, Temperature.TOP));
+		temperatures.register(Temperature.CENTER, new TemperatureListener(this, Temperature.CENTER));
+		temperatures.register(Temperature.BOTTOM, new TemperatureListener(this, Temperature.BOTTOM));
 		state.registerValueListener(new StateListener());
 	}
 
 	@Override
 	public void onDeactivate() {
-		temperatureTop.deregister();
-		temperatureMid.deregister();
-		temperatureBot.deregister();
+		temperatures.deregister();
 		state.deregister();
 	}
 
@@ -91,7 +84,7 @@ public abstract class CabinetVentilation extends ConfiguredComponent
 	}
 
 	@Override
-	public synchronized void onTemperatureReceived(CabinetTemperature type, Double temperature) {
+	public synchronized void onTemperatureReceived(Temperature type, Double temperature) {
 		if (!isMaintenance()) {
 			if (temperature > temperatureMax + temperatureTolerance && !temperatureHighFlags.contains(type)) {
 				temperatureHighFlags.add(type);

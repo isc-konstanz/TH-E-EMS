@@ -17,10 +17,44 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.cmpt.vnt.basic;
+package org.the.cmpt.chp.serenergy.data;
 
-public enum CabinetTemperature {
-	TOP,
-	CENTER,
-	BOTTOM;
+import org.the.ems.core.data.IntValue;
+import org.the.ems.core.data.Value;
+
+public enum State {
+	ERROR(0),
+	OFF(1),
+	ON(2),
+	AUTO(3),
+	DISABLED(4);
+
+	private final int code;
+
+	private State(int code) {
+		this.code = code;
+	}
+
+	public Value encode() {
+		return new IntValue(code);
+	}
+
+	public Value encode(long timestamp) {
+		return new IntValue(code, timestamp);
+	}
+
+	public static State decode(Value value) {
+		switch(value.intValue()) {
+		case 1:
+			return OFF;
+		case 2:
+			return ON;
+		case 3:
+			return AUTO;
+		case 4:
+			return DISABLED;
+		default:
+			return ERROR;
+		}
+	}
 }

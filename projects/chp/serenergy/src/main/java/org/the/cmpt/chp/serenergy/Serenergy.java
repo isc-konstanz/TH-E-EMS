@@ -1,20 +1,38 @@
 package org.the.cmpt.chp.serenergy;
 
 import org.osgi.service.component.annotations.Component;
+import org.the.cmpt.chp.serenergy.data.Request;
+import org.the.cmpt.chp.serenergy.data.State;
 import org.the.ems.core.CogeneratorService;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentWriteContainer;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.chp.CogeneratorComponent;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
 @Component(service = CogeneratorService.class)
 public class Serenergy extends CogeneratorComponent {
 	private final static String ID = "Serenergy";
+
+	@Configuration
+	private Channel state;
+
+	@Configuration
+	private Channel enable;
+
+	@Configuration
+	private Channel start;
+
+	@Configuration
+	private Channel stop;
+
+	@Configuration
+	private Channel stackLimit;
 
 	@Configuration
 	private double stackTempMax;
@@ -45,15 +63,18 @@ public class Serenergy extends CogeneratorComponent {
 	}
 
 	@Override
-	protected void onStart(ComponentWriteContainer container, Value value) throws ComponentException {
-		// TODO Auto-generated method stub
+	protected void onStart(WriteContainer container, Value value) throws ComponentException {
+		long time = value.getTime();
 		
+		container.add(enable, Request.ENABLE.encode(time));
+		container.add(start, Request.START.encode(time));
+		// TODO: set stackLimit
 	}
 
 	@Override
-	protected void onStop(ComponentWriteContainer container, Long time) throws ComponentException {
-		// TODO Auto-generated method stub
-		
+	protected void onStop(WriteContainer container, Long time) throws ComponentException {
+		container.add(stop, Request.STOP.encode(time));
+		// TODO: reset stackLimit
 	}
 
 	private class StackTempListener implements ValueListener {
@@ -64,9 +85,13 @@ public class Serenergy extends CogeneratorComponent {
 				if (temp.doubleValue() > stackTempMax) {
 					circulationPump.start();
 				}
-				else if (temp.doubleValue() < stackTempMin &&
-						circulationPump.isRunInterval()) {
-					circulationPump.stop();
+				else if (temp.doubleValue() < stackTempMin) {
+					if (circulationPump.isRunInterval()) {
+						circulationPump.stop();
+					}
+					if (State.decode(state.getLatestValue()) == State.OFF) {
+						enable.write(Request.DISABLE.encode());
+					}
 				}
 			}
 		}

@@ -25,7 +25,7 @@ import java.util.List;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class CabinetTemperatureListener implements ValueListener {
+public class TemperatureListener implements ValueListener {
 
 	private final static int MOVING_AVG_SIZE = 6;
 
@@ -33,27 +33,27 @@ public class CabinetTemperatureListener implements ValueListener {
 	 * Interface used to notify the {@link CabinetVentilation} 
 	 * implementation about changed temperatures
 	 */
-	public interface CabinetTemperatureCallbacks {
+	public interface TemperatureCallbacks {
 	
-		public void onTemperatureReceived(CabinetTemperature type, Double temperature);
+		public void onTemperatureReceived(Temperature type, Double temperature);
 	}
 
 	/**
 	 * The Listeners' current callback object, which is notified of changed temperatures
 	 */
-	private final CabinetTemperatureCallbacks callbacks;
+	private final TemperatureCallbacks callbacks;
 
-	private final CabinetTemperature type;
+	private final Temperature type;
 
 	private List<Double> temperatures = new LinkedList<Double>();
 	private double temperatureSum = -1;
 
-	public CabinetTemperatureListener(CabinetTemperatureCallbacks callbacks, CabinetTemperature type) {
+	public TemperatureListener(TemperatureCallbacks callbacks, Temperature type) {
 		this.callbacks = callbacks;
 		this.type = type;
 	}
 
-	public CabinetTemperature getType() {
+	public Temperature getType() {
 		return type;
 	}
 

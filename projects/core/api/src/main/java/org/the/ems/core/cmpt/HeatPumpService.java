@@ -17,30 +17,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.core.cmpt;
 
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentType;
+import org.the.ems.core.GeneratorService;
 import org.the.ems.core.data.Value;
 
-public interface ThermalEnergyStorageService extends ComponentService {
+public interface HeatPumpService extends GeneratorService {
 
 	@Override
 	public default ComponentType getType() {
-		return ComponentType.THERMAL_ENERGY_STORAGE;
+		return ComponentType.HEAT_PUMP;
 	};
 
 	/*
-	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
+	 * Get the coefficient of performance as a value larger than 0.
 	 */
-	public double getCapacity();
+	public Value getCoefficientOfPerformance() throws ComponentException;
 
 	/*
-	 * Get the thermal power in watts [W].
+	 * Get the consumed electrical energy in kilowatt hours [kWh].
 	 */
-	public Value getThermalPower() throws ComponentException;
+	public Value getElectricalEnergy() throws ComponentException;
 
 	/*
-	 * Get the average temperature in degree celsius [°C].
+	 * Get the consumed electrical power in watts [W].
 	 */
-	public Value getTemperature() throws ComponentException;
+	public Value getElectricalPower() throws ComponentException;
 
 }

@@ -17,23 +17,33 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.core.cmpt;
 
-public interface VentilationService extends ComponentService {
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
+import org.the.ems.core.data.Value;
+
+public interface ThermalEnergyStorageService extends ComponentService {
 
 	@Override
 	public default ComponentType getType() {
-		return ComponentType.VENTILATION;
+		return ComponentType.THERMAL_ENERGY_STORAGE;
 	};
 
 	/*
-	 * Start the ventilation.
+	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
 	 */
-	public void start() throws EnergyManagementException;
+	public double getCapacity();
 
 	/*
-	 * Stop the ventilation.
+	 * Get the thermal power in watts [W].
 	 */
-	public void stop() throws EnergyManagementException;
+	public Value getThermalPower() throws ComponentException;
+
+	/*
+	 * Get the average temperature in degree celsius [°C].
+	 */
+	public Value getTemperature() throws ComponentException;
 
 }

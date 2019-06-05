@@ -20,8 +20,8 @@
 package org.the.ems.core.cmpt.hp;
 
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.HeatPumpService;
 import org.the.ems.core.cmpt.GeneratorComponent;
+import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;

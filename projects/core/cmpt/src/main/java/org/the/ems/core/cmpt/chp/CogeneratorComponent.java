@@ -19,8 +19,8 @@
  */
 package org.the.ems.core.cmpt.chp;
 
-import org.the.ems.core.CogeneratorService;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.GeneratorComponent;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Value;

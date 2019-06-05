@@ -128,9 +128,10 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 		else {
 			onSet(container, value);
 		}
-		onWrite(container);
+		doWrite(container);
 	}
 
+	@Override
 	public void start(Value value) throws EnergyManagementException {
 		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
@@ -140,9 +141,10 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 		
 		WriteContainer container = new WriteContainer();
 		onStart(container, value);
-		onWrite(container);
+		doWrite(container);
 	}
 
+	@Override
 	public void stop(Long time) throws EnergyManagementException {
 		if (time - startTimeLast < intervalMin && !isMaintenance()) {
 			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
@@ -152,7 +154,7 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 		
 		WriteContainer container = new WriteContainer();
 		onStop(container, time);
-		onWrite(container);
+		doWrite(container);
 	}
 
 	public double getMaxPower() {

@@ -105,17 +105,17 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 		for (Value value : schedule) {
 			onSet(container, value);
 		}
-		onWrite(container);
+		doWrite(container);
 	}
 
 	@Override
 	public void set(Value value) throws EnergyManagementException {
 		WriteContainer container = new WriteContainer();
 		onSet(container, value);
-		onWrite(container);
+		doWrite(container);
 	}
 
-	protected void onWrite(WriteContainer container) throws EnergyManagementException {
+	protected void doWrite(WriteContainer container) throws EnergyManagementException {
 		if (container.size() < 1) {
 			return;
 		}

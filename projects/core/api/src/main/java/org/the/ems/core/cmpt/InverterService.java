@@ -17,8 +17,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.core.cmpt;
 
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.data.Value;
 
 public interface InverterService extends ComponentService {

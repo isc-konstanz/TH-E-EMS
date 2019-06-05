@@ -17,35 +17,32 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.cmpt.ees;
+package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.cmpt.ConfiguredComponent;
-import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
-import org.the.ems.core.config.Configuration;
+import org.the.ems.core.ComponentService;
 import org.the.ems.core.data.Value;
 
-public abstract class ElectricalEnergyStorage extends ConfiguredComponent
-		implements ElectricalEnergyStorageService {
+public interface ElectricalEnergyStorageService extends ComponentService {
 
-	@Configuration
-	protected double capacity;
+	/*
+	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
+	 */
+	public double getCapacity();
 
-	@Override
-	public double getCapacity() {
-		return capacity;
-	}
+	/*
+	 * Get the DC power in watts [W].
+	 */
+	public Value getChargePower() throws ComponentException;
 
-	@Override
-	@Configuration
-	public Value getChargePower() throws ComponentException { return getConfiguredValue("charge_power"); }
+	/*
+	 * Get the Voltage in volts [V].
+	 */
+	public Value getVoltage() throws ComponentException;
 
-	@Override
-	@Configuration
-	public Value getVoltage() throws ComponentException { return getConfiguredValue("voltage"); }
-
-	@Override
-	@Configuration("soc")
-	public Value getStateOfCharge() throws ComponentException { return getConfiguredValue("soc"); }
+	/*
+	 * Get the state of charge in percent [%] between 0 and 100%.
+	 */
+	public Value getStateOfCharge() throws ComponentException;
 
 }

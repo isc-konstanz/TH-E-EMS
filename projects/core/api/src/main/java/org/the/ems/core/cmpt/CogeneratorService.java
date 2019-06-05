@@ -17,30 +17,38 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.core.cmpt;
 
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentType;
+import org.the.ems.core.GeneratorService;
 import org.the.ems.core.data.Value;
 
-public interface ElectricalEnergyStorageService extends ComponentService {
+public interface CogeneratorService extends GeneratorService {
+
+	@Override
+	public default ComponentType getType() {
+		return ComponentType.COMBINED_HEAT_POWER;
+	};
 
 	/*
-	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
+	 * Get the thermal efficiency in percent [%] between 0 and 100%.
 	 */
-	public double getCapacity();
+	public double getThermalEfficiency();
 
 	/*
-	 * Get the DC power in watts [W].
+	 * Get the electrical efficiency in percent [%] between 0 and 100%.
 	 */
-	public Value getChargePower() throws ComponentException;
+	public double getElectricalEfficiency();
 
 	/*
-	 * Get the Voltage in volts [V].
+	 * Get the generated electrical energy in kilowatt hours [kWh].
 	 */
-	public Value getVoltage() throws ComponentException;
+	public Value getElectricalEnergy() throws ComponentException;
 
 	/*
-	 * Get the state of charge in percent [%] between 0 and 100%.
+	 * Get the generated electrical power in watts [W].
 	 */
-	public Value getStateOfCharge() throws ComponentException;
+	public Value getElectricalPower() throws ComponentException;
 
 }

@@ -1,0 +1,55 @@
+/* 
+ * Copyright 2016-19 ISC Konstanz
+ * 
+ * This file is part of TH-E EMS.
+ * For more information visit https://github.com/isc-konstanz/TH-E-EMS
+ * 
+ * TH-E EMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * TH-E EMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+archivesBaseName = 'th-e-core-ems'
+def projectName = 'TH-E-Core-EMS'
+def projectFullName = 'TH-E EMS Core - Manager'
+def projectDescription = 'The Energy Management System of TH-E EMS framework'
+
+configurations.create('embed')
+
+def ini4jVersion = '0.5.4'
+
+dependencies {
+  implementation project(':cmpt')
+  implementation group:'org.apache.felix',name:'org.apache.felix.gogo.runtime', version:'1.1.0'
+  implementation group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
+
+  embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
+}
+
+eclipse {
+  project {
+    name = projectName
+  }
+}
+
+jar {
+  into('libs') {
+    from configurations.embed
+  }
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+               'Bundle-ClassPath':   '.,libs/ini4j-'+ini4jVersion+'.jar',
+               'Import-Package':     '!org.ini4j.*,*',
+	           'Export-Package':     'org.ini4j.*')
+  }
+}

@@ -18,8 +18,27 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-EMS'
+project.ext {
 
-include 'api', 'cmpt', 'ems', 'cms'
+  projectVersion = '0.5.0'
 
-project(':cms').projectDir = file('cms/openmuc')
+  projectGroup = 'org.the.ems'
+
+  projectVendor = 'ISC Konstanz e.V.'
+  projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
+
+  copyDependencies = false
+
+  distributionProjects = subprojects.findAll {
+    it.getPath() == ":api" ||
+    it.getPath() == ":cmpt" ||
+    it.getPath() == ":ems" ||
+    it.getPath() == ":cms"
+  }
+
+  javadocProjects = distributionProjects.findAll {
+    it.getPath() == ":api" ||
+    it.getPath() == ":cmpt"
+  }
+
+}

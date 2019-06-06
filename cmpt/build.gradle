@@ -18,8 +18,25 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-EMS'
+archivesBaseName = 'th-e-core-cmpt'
+def projectName = 'TH-E-Core-Components'
+def projectFullName = 'TH-E EMS Core - Components'
+def projectDescription = 'The core components of TH-E EMS framework'
 
-include 'api', 'cmpt', 'ems', 'cms'
+dependencies {
+  api project(':api')
+}
 
-project(':cms').projectDir = file('cms/openmuc')
+eclipse {
+  project {
+    name = projectName
+  }
+}
+
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     '*')
+  }
+}

@@ -31,7 +31,12 @@ project.ext {
 
   distributionProjects = subprojects.findAll {
     it.getPath() == ":api" ||
-    it.getPath() == ":cmpt" ||
+    it.getPath() == ":cmpts" ||
+    it.getPath() == ":cmpts:chp" ||
+    it.getPath() == ":cmpts:hp" ||
+    it.getPath() == ":cmpts:inv" ||
+    it.getPath() == ":cmpts:tes" ||
+    it.getPath() == ":cmpts:vnt" ||
     it.getPath() == ":ems" ||
     it.getPath() == ":cms"
   }

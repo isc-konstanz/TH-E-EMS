@@ -18,14 +18,13 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cms'
-def projectName = 'TH-E-CMS'
+archivesBaseName = 'th-e-core-cms'
+def projectName = 'TH-E-Core-CMS'
 def projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
 def projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 
 dependencies {
   implementation project(':api')
-
   implementation fileTree(dir: 'libs/openmuc', include: ['*.jar'])
 }
 

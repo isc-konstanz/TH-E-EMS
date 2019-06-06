@@ -31,6 +31,21 @@ public interface ElectricalEnergyStorageService extends ComponentService {
 	public double getCapacity();
 
 	/*
+	 * Get the maximum state of charge in percent [%] between 0 and 100% .
+	 */
+	public double getMaxStateOfCharge() throws ComponentException;
+
+	/*
+	 * Get the minimum state of charge in percent [%] between 0 and 100% .
+	 */
+	public double getMinStateOfCharge() throws ComponentException;
+
+	/*
+	 * Get the state of charge in percent [%] between 0 and 100%.
+	 */
+	public Value getStateOfCharge() throws ComponentException;
+
+	/*
 	 * Get the DC power in watts [W].
 	 */
 	public Value getChargePower() throws ComponentException;
@@ -39,10 +54,5 @@ public interface ElectricalEnergyStorageService extends ComponentService {
 	 * Get the Voltage in volts [V].
 	 */
 	public Value getVoltage() throws ComponentException;
-
-	/*
-	 * Get the state of charge in percent [%] between 0 and 100%.
-	 */
-	public Value getStateOfCharge() throws ComponentException;
 
 }

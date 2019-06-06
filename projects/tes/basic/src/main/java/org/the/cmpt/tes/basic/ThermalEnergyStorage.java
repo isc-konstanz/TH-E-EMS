@@ -17,13 +17,13 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.CogeneratorService;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.HeatPumpService;
-import org.the.ems.core.ThermalEnergyStorageService;
+import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ConfiguredComponent;
+import org.the.ems.core.cmpt.HeatPumpService;
+import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
@@ -69,7 +69,7 @@ public class ThermalEnergyStorage extends ConfiguredComponent
 	protected Channel energy;
 	protected double energyLast = 0;
 
-	protected final List<ThermalEnergy> energyValues = new ArrayList<ThermalEnergy>();
+	protected final List<GeneratorEnergy> energyValues = new ArrayList<GeneratorEnergy>();
 
 	@Override
 	public String getId() {
@@ -105,7 +105,8 @@ public class ThermalEnergyStorage extends ConfiguredComponent
 		policy = ReferencePolicy.DYNAMIC
 	)
 	protected void bindCogeneratorService(CogeneratorService service) {
-		energyValues.add(new ThermalEnergy(service));
+		GeneratorEnergy energy = new GeneratorEnergy(service);
+		energyValues.add(energy);
 	}
 
 	protected void unbindCogeneratorService(CogeneratorService service) {
@@ -117,7 +118,8 @@ public class ThermalEnergyStorage extends ConfiguredComponent
 		policy = ReferencePolicy.DYNAMIC
 	)
 	protected void bindHeatPumpService(HeatPumpService service) {
-		energyValues.add(new ThermalEnergy(service));
+		GeneratorEnergy energy = new GeneratorEnergy(service);
+		energyValues.add(energy);
 	}
 
 	protected void unbindHeatPumpService(HeatPumpService service) {
@@ -125,7 +127,7 @@ public class ThermalEnergyStorage extends ConfiguredComponent
 	}
 
 	private void unbindComponentSerivce(ComponentService service) {
-		ListIterator<ThermalEnergy> iter = energyValues.listIterator();
+		ListIterator<GeneratorEnergy> iter = energyValues.listIterator();
 		while(iter.hasNext()){
 		    if(iter.next().getService().getId().equals(service.getId())){
 		        iter.remove();
@@ -144,8 +146,8 @@ public class ThermalEnergyStorage extends ConfiguredComponent
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energyDelta = specificHeat*mass*tempDelta;
 				
-				for (ThermalEnergy energy : energyValues) {
-					energyDelta -= energy.getDelta().doubleValue();
+				for (GeneratorEnergy energy : energyValues) {
+					energyDelta -= energy.getValue().doubleValue();
 				}
 				
 				energyLast += energyDelta/3600;

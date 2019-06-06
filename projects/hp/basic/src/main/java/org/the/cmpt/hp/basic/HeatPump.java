@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.HeatPumpService;
+import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.cmpt.hp.HeatPumpComponent;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;

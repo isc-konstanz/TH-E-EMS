@@ -1,7 +1,7 @@
 package org.the.cmpt.inv.kaco.blueplanet;
 
 import org.osgi.service.component.annotations.Component;
-import org.the.ems.core.ElectricalEnergyStorageService;
+import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.core.config.Configuration;
 

@@ -24,7 +24,6 @@ import org.the.ems.cmpt.GeneratorComponent;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
@@ -38,6 +37,12 @@ public class CogeneratorComponent extends GeneratorComponent implements Cogenera
 
 	@Configuration("el_eff")
 	protected double electricEfficiency;
+
+	@Configuration(mandatory = false)
+	protected boolean starter = false;
+
+	@Configuration(mandatory = false)
+	protected int starterDelay = 2500;
 
 	@Configuration(mandatory = false)
 	protected int enableDelay = 5000;
@@ -82,15 +87,24 @@ public class CogeneratorComponent extends GeneratorComponent implements Cogenera
 	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
+		long delay = time + enableDelay;
 		
-		container.add(enable, new BooleanValue(true, time));
-		container.add(state,  new BooleanValue(true, time+enableDelay));
+		container.addBoolean(enable, true, time);
+		container.addBoolean(state, true, delay);
+		if (starter) {
+			delay += starterDelay;
+			container.addBoolean(state, false, delay);
+		}
 	}
 
 	@Override
 	protected void onStop(WriteContainer container, Long time) throws ComponentException {
-		container.add(state, new BooleanValue(false, time));
-		container.add(enable, new BooleanValue(false, time+enableDelay));
+		long delay = time;
+		if (!starter || state.getLatestValue().booleanValue()) {
+			delay += enableDelay;
+			container.addBoolean(state, false, time);
+		}
+		container.addBoolean(enable, false, delay);
 	}
 
 	@Override

@@ -115,7 +115,7 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 
 	protected void onSchedule(WriteContainer container, Schedule schedule) 
 			throws UnsupportedOperationException, ComponentException {
-		throw new UnsupportedOperationException();
+		// Default implementation to be overridden
 	}
 
 	@Override
@@ -136,6 +136,7 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 
 	protected void onSet(WriteContainer container, Value value)
 			throws UnsupportedOperationException, EnergyManagementException {
+		// Default implementation to be overridden
 		throw new UnsupportedOperationException();
 	}
 

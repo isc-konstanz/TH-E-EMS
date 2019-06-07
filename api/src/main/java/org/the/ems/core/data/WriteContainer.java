@@ -35,6 +35,34 @@ public class WriteContainer extends LinkedHashMap<Channel, ValueList> {
 		return get(channel).add(value);
 	}
 
+	public boolean addDouble(Channel channel, double value, long time) {
+		return add(channel, new DoubleValue(value, time));
+	}
+
+	public boolean addFloat(Channel channel, float value, long time) {
+		return add(channel, new FloatValue(value, time));
+	}
+
+	public boolean addLong(Channel channel, long value, long time) {
+		return add(channel, new LongValue(value, time));
+	}
+
+	public boolean addInteger(Channel channel, int value, long time) {
+		return add(channel, new IntValue(value, time));
+	}
+
+	public boolean addShort(Channel channel, short value, long time) {
+		return add(channel, new ShortValue(value, time));
+	}
+
+	public boolean addByte(Channel channel, byte value, long time) {
+		return add(channel, new ByteValue(value, time));
+	}
+
+	public boolean addBoolean(Channel channel, boolean value, long time) {
+		return add(channel, new BooleanValue(value, time));
+	}
+
 	public void add(WriteContainer channels) {
 		if (channels == null) {
 			return;

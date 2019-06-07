@@ -19,6 +19,12 @@ import org.the.ems.core.data.WriteContainer;
 public class Serenergy extends CogeneratorComponent {
 	private final static String ID = "Serenergy";
 
+	@Deprecated
+	protected boolean starter = false;
+
+	@Deprecated
+	protected int starterDelay = -1;
+
 	@Configuration
 	protected Channel start;
 
@@ -69,6 +75,11 @@ public class Serenergy extends CogeneratorComponent {
 	protected void onStop(WriteContainer container, Long time) throws ComponentException {
 		container.add(stop, Request.STOP.encode(time));
 		// TODO: reset stackLimit
+	}
+
+	@Override
+	protected void onSet(WriteContainer container, Value value) throws ComponentException {
+		// TODO: set stackLimit
 	}
 
 	@Override

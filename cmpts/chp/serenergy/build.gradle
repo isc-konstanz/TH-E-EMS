@@ -18,16 +18,25 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-CMPT'
+archivesBaseName = 'th-e-cmpt-chp-serenergy'
+def projectName = 'TH-E-Components-Serenergy'
+def projectFullName = 'TH-E EMS Components - Serenergy Fuel Cell'
+def projectDescription = 'Serenergy fuel cell component for TH-E EMS framework.'
 
-include 'api', 'cmpts', 'cmpts:chp', 'cmpts:chp:serenergy', 'cmpts:hp', 'cmpts:inv', 'cmpts:tes', 'mpc'
+dependencies {
+  implementation project(':cmpts:chp')
+}
 
-def coreDir = '../TH-E-EMS'
-project(':api').projectDir = file(coreDir+'/api')
-project(':cmpts').projectDir = file(coreDir+'/cmpts')
-project(':cmpts:chp').projectDir = file(coreDir+'/cmpts/chp')
-project(':cmpts:hp').projectDir = file(coreDir+'/cmpts/hp')
-project(':cmpts:inv').projectDir = file(coreDir+'/cmpts/inv')
-project(':cmpts:tes').projectDir = file(coreDir+'/cmpts/tes')
+eclipse {
+  project {
+    name = projectName
+  }
+}
 
-project(':cmpts:chp:serenergy').projectDir = file('cmpts/chp/serenergy')
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     '')
+  }
+}

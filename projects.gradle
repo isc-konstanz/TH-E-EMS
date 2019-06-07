@@ -18,16 +18,22 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-CMPT'
+project.ext {
 
-include 'api', 'cmpts', 'cmpts:chp', 'cmpts:chp:serenergy', 'cmpts:hp', 'cmpts:inv', 'cmpts:tes', 'mpc'
+  projectVersion = '0.5.0'
 
-def coreDir = '../TH-E-EMS'
-project(':api').projectDir = file(coreDir+'/api')
-project(':cmpts').projectDir = file(coreDir+'/cmpts')
-project(':cmpts:chp').projectDir = file(coreDir+'/cmpts/chp')
-project(':cmpts:hp').projectDir = file(coreDir+'/cmpts/hp')
-project(':cmpts:inv').projectDir = file(coreDir+'/cmpts/inv')
-project(':cmpts:tes').projectDir = file(coreDir+'/cmpts/tes')
+  projectGroup = 'org.the.ems'
 
-project(':cmpts:chp:serenergy').projectDir = file('cmpts/chp/serenergy')
+  projectVendor = 'ISC Konstanz e.V.'
+  projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
+
+  copyDependencies = false
+
+  distributionProjects = subprojects.findAll {
+    it.getPath() == ':cmpts:chp:serenergy'
+  }
+
+  javadocProjects = distributionProjects.findAll {
+  }
+
+}

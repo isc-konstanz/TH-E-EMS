@@ -55,11 +55,6 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 
 	protected Value temperatureValue = DoubleValue.emptyValue();
 
-	@Configuration
-	protected ChannelListener state;
-
-	protected Value stateValueLast = null;
-
 	@Override
 	public String getId() {
 		return ID;
@@ -93,7 +88,6 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 	public void onActivate(Configurations configs) throws EnergyManagementException {
 		super.onActivate(configs);
 
-		state.registerValueListener(new StateListener());
 		temperature.registerValueListener(new TemperatureListener());
 	}
 
@@ -101,7 +95,6 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 	public void onDeactivate() throws EnergyManagementException {
 		super.onDeactivate();
 		
-		state.deregister();
 		temperature.deregister();
 	}
 
@@ -118,20 +111,16 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 		container.add(state, new BooleanValue(false, time));
 	}
 
-	private class StateListener implements ValueListener {
-
-		@Override
-		public void onValueReceived(Value value) {
-			if (value.booleanValue() && temperatureValue.doubleValue() > temperatureInMax) {
-				logger.warn("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
-				// TODO: implement virtual start signal that does not affect relay
-				state.write(new BooleanValue(false, value.getTime()));
-				return;
-			}
-			else if (value.booleanValue() && stateValueLast != null && !stateValueLast.booleanValue()) {
-				startTimeLast = value.getTime();
-			}
-			stateValueLast = value;
+	@Override
+	protected void onStateChanged(Value value) {
+		if (value.booleanValue() && temperatureValue.doubleValue() > temperatureInMax) {
+			logger.warn("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
+			// TODO: implement virtual start signal that does not affect relay
+			state.write(new BooleanValue(false, value.getTime()));
+			return;
+		}
+		else if (value.booleanValue() && stateValueLast != null && !stateValueLast.booleanValue()) {
+			startTimeLast = value.getTime();
 		}
 	}
 

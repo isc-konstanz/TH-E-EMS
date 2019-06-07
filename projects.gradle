@@ -30,20 +30,20 @@ project.ext {
   copyDependencies = false
 
   distributionProjects = subprojects.findAll {
-    it.getPath() == ":api" ||
-    it.getPath() == ":cmpts" ||
-    it.getPath() == ":cmpts:chp" ||
-    it.getPath() == ":cmpts:hp" ||
-    it.getPath() == ":cmpts:inv" ||
-    it.getPath() == ":cmpts:tes" ||
-    it.getPath() == ":cmpts:vnt" ||
-    it.getPath() == ":ems" ||
-    it.getPath() == ":cms"
+    it.getPath() == ':api' ||
+    it.getPath() == ':cmpts' ||
+    it.getPath() == ':cmpts:chp' ||
+    it.getPath() == ':cmpts:hp' ||
+    it.getPath() == ':cmpts:inv' ||
+    it.getPath() == ':cmpts:tes' ||
+    it.getPath() == ':cmpts:vnt' ||
+    it.getPath() == ':ems' ||
+    it.getPath() == ':cms'
   }
 
   javadocProjects = distributionProjects.findAll {
-    it.getPath() == ":api" ||
-    it.getPath() == ":cmpt"
+    it.getPath() == ':api' ||
+    it.getPath() == ':cmpt'
   }
 
 }

@@ -31,7 +31,9 @@ import org.the.ems.core.GeneratorService;
 import org.the.ems.core.GeneratorState;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
@@ -47,11 +49,15 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 	@Configuration(scale=1000, mandatory=false)
 	protected double powerMin = -1;
 
+	@Configuration
+	protected ChannelListener state;
+
 	protected Circulation circulation;
 	protected CirculationPump circulationPump;
 
 	protected volatile GeneratorState generatorState = GeneratorState.STANDBY;
 
+	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
 
 	@Override
@@ -63,10 +69,21 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 		this.generatorState = state;
 	}
 
+	public double getMaxPower() {
+		return powerMax;
+	}
+
+	public double getMinPower() {
+		if (powerMin > 0) {
+			return powerMin;
+		}
+		return getMaxPower();
+	}
+
 	@Override
 	public void onActivate(Configurations configs) throws EnergyManagementException {
 		super.onActivate(configs);
-		
+		state.registerValueListener(new StateListener());
 		circulation = new Circulation(context, configs);
 		circulationPump = new CirculationPump(context, configs, circulation);
 	}
@@ -83,6 +100,8 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 
 	@Override
 	public void onDeactivate() throws EnergyManagementException {
+		super.onDeactivate();
+		state.deregister();
 		circulation.deactivate();
 		circulationPump.deactivate();
 	}
@@ -156,15 +175,17 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 
 	protected abstract void onStop(WriteContainer container, Long time) throws ComponentException;
 
-	public double getMaxPower() {
-		return powerMax;
-	}
+	protected abstract void onStateChanged(Value value);
 
-	public double getMinPower() {
-		if (powerMin > 0) {
-			return powerMin;
+	protected class StateListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value value) {
+			if (stateValueLast == null || !value.equals(stateValueLast)) {
+				onStateChanged(value);
+				stateValueLast = value;
+			}
 		}
-		return getMaxPower();
 	}
 
 }

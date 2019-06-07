@@ -22,10 +22,10 @@ package org.the.ems.cmpt.chp;
 import org.osgi.service.component.annotations.Component;
 import org.the.ems.cmpt.GeneratorComponent;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.BooleanValue;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 
@@ -38,6 +38,15 @@ public class CogeneratorComponent extends GeneratorComponent implements Cogenera
 
 	@Configuration("el_eff")
 	protected double electricEfficiency;
+
+	@Configuration(mandatory = false)
+	protected int enableDelay = 5000;
+
+	@Configuration
+	protected Channel enable;
+
+	@Configuration
+	protected Channel state;
 
 	@Override
 	public String getId() {
@@ -71,19 +80,24 @@ public class CogeneratorComponent extends GeneratorComponent implements Cogenera
 	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
 
 	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
-	}
-
-	@Override
-	public void onDeactivate() throws EnergyManagementException {
-	}
-
-	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
+		long time = value.getTime();
+		
+		container.add(enable, new BooleanValue(true, time));
+		container.add(state,  new BooleanValue(true, time+enableDelay));
 	}
 
 	@Override
 	protected void onStop(WriteContainer container, Long time) throws ComponentException {
+		container.add(state, new BooleanValue(false, time));
+		container.add(enable, new BooleanValue(false, time+enableDelay));
+	}
+
+	@Override
+	protected void onStateChanged(Value value) {
+		if (value.booleanValue() && stateValueLast != null && !stateValueLast.booleanValue()) {
+			startTimeLast = value.getTime();
+		}
 	}
 
 }

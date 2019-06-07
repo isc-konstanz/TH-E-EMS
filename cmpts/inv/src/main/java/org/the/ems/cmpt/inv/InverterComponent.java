@@ -160,9 +160,6 @@ public class InverterComponent extends ConfiguredComponent implements InverterSe
 	public Value getFrequency() throws ComponentException { return getConfiguredValue("frequency"); }
 
 	@Override
-	public void onSetpointChanged(Value value) throws EnergyManagementException { set(value); }
-
-	@Override
 	public void onActivate(Configurations configs) throws EnergyManagementException {
 		super.onActivate(configs);
 		
@@ -188,31 +185,6 @@ public class InverterComponent extends ConfiguredComponent implements InverterSe
 		cons.deactivate();
 		solar.deactivate();
 		command.deregister();
-	}
-
-	@Override
-    public void onValueReceived(Value setpoint) {
-        if (commandValue.doubleValue() != setpoint.doubleValue()) {
-            commandValue = setpoint;
-            onSetpointUpdate();
-        }
-    }
-
-	@Override
-	public void onSetpointUpdate() {
-		try {
-			WriteContainer container = new WriteContainer();
-			
-			doSet(container, commandValue);
-			if (container.size() < 1) {
-				return;
-			}
-			for (Channel channel : container.keySet()) {
-				channel.write(container.get(channel));
-			}
-		} catch (EnergyManagementException e) {
-			logger.debug("Unable to updating inverter setpoint: {}", e.getMessage());
-		}
 	}
 
 	@Override
@@ -243,8 +215,40 @@ public class InverterComponent extends ConfiguredComponent implements InverterSe
 			}
 			return;
 		}
-		// TODO: Verify setpoint import/export sign
-		container.add(this.setpoint, new DoubleValue(setpoint*-1, value.getTime()));
+		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
 	}
+
+	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
+		// TODO: Verify setpoint import/export sign
+		container.add(this.setpoint, value);
+	}
+
+	@Override
+	public void onSetpointChanged(Value value) throws EnergyManagementException { set(value); }
+
+	@Override
+	public void onSetpointUpdate() {
+		try {
+			WriteContainer container = new WriteContainer();
+			
+			doSet(container, commandValue);
+			if (container.size() < 1) {
+				return;
+			}
+			for (Channel channel : container.keySet()) {
+				channel.write(container.get(channel));
+			}
+		} catch (EnergyManagementException e) {
+			logger.debug("Unable to updating inverter setpoint: {}", e.getMessage());
+		}
+	}
+
+	@Override
+    public void onValueReceived(Value setpoint) {
+        if (commandValue.doubleValue() != setpoint.doubleValue()) {
+            commandValue = setpoint;
+            onSetpointUpdate();
+        }
+    }
 
 }

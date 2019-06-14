@@ -116,7 +116,7 @@ public abstract class ConfigurationHandler {
 		Class<?> type = field.getType();
 		field.setAccessible(true);
 		if (type.isAssignableFrom(ChannelCollection.class)) {
-			value = onConfigureCollection(configs, type, section, keys);
+			value = onConfigureCollection(configs, section, keys);
 		}
 		else {
 			for (String key : keys) {
@@ -162,7 +162,7 @@ public abstract class ConfigurationHandler {
 		return false;
 	}
 
-	private ChannelCollection onConfigureCollection(Configurations configs, Class<?> type, 
+	private ChannelCollection onConfigureCollection(Configurations configs, 
 			String section, String[] keys) throws ConfigurationException {
 		
 		ChannelCollection channels = new ChannelCollection();
@@ -182,7 +182,7 @@ public abstract class ConfigurationHandler {
 			String section, String key) throws ConfigurationException {
 		
 		try {
-			if (type.isAssignableFrom(Channel.class)) {
+			if (Channel.class.isAssignableFrom(type)) {
 				Channel channel = onConfigureChannel(configs, section, key);
 				
 				if (type.isAssignableFrom(ChannelListener.class)) {

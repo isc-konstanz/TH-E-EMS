@@ -72,8 +72,8 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	private final static Logger logger = LoggerFactory.getLogger(EnergyManager.class);
 
 	private final static int SLEEP_INTERVAL = 60000;
-	private final static String CONFIG_MANAGEMENT = "de.the.ems.core.config";
-	private final static String CONFIG_COMPONENTS = "de.the.ems.cmpt.config";
+	private final static String CONFIG_MANAGEMENT = "org.the.ems.core.config";
+	private final static String CONFIG_COMPONENTS = "org.the.ems.cmpt.config";
 
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
 	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
@@ -87,9 +87,6 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	private volatile boolean deactivateFlag;
 
 	private Thread manager;
-
-	@Reference
-	protected ContentManagementService context;
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -132,6 +129,8 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 		else {
 			maintenance.deregister();
 		}
+		maintenanceFlag = false;
+		maintenance.setLatestValue(new BooleanValue(maintenanceFlag));
 		maintenance.registerValueListener(new ValueListener() {
 			
 			@Override
@@ -140,9 +139,18 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 				manager.interrupt();
 			}
 		});
-		
-		maintenanceFlag = false;
-		maintenance.setLatestValue(new BooleanValue(maintenanceFlag));
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MANDATORY,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindContentManagementService(ContentManagementService service) {
+		context = service;
+	}
+
+	protected void unbindContentManagementService(ContentManagementService service) {
+		context = null;
 	}
 
 	@Override
@@ -283,8 +291,6 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	}
 
 	private Configurations loadComponentConfigs(ComponentService component) throws ConfigurationException {
-		String id = component.getId().toLowerCase().replaceAll("[^A-Za-z0-9]", "-");
-		
 		String fileDir = System.getProperty(CONFIG_COMPONENTS);
 		if (fileDir == null) {
 			fileDir = "conf" + File.separator + "ems" + File.separator;
@@ -292,8 +298,10 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 		if (!fileDir.endsWith(File.separator)) {
 			fileDir += File.separator;
 		}
-		String fileName = fileDir + component.getType().getKey() + File.separator + id + ".cfg";
+		String fileName = fileDir + component.getType().getKey() + ".cfg";
 		
+		// TODO: Override settings from conf.d/{type, id}
+		//String id = component.getId().toLowerCase().replaceAll("[^A-Za-z0-9]", "-");
 		return new IniConfigurations(fileName);
 	}
 

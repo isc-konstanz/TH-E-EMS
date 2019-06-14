@@ -114,7 +114,7 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	protected void onConfigure() {
 		String fileName = System.getProperty(CONFIG_MANAGEMENT);
 		if (fileName == null) {
-			fileName = "conf" + File.separator + "ems" + File.separator + "th-e-ems.cfg";
+			fileName = "conf" + File.separator + "th-e" + File.separator + "ems.cfg";
 		}
 		try {
 			super.onConfigure(new IniConfigurations(fileName));

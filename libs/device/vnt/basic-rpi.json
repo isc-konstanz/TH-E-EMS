@@ -1,7 +1,7 @@
 {
     "name": "Basic",
-    "category": "Ventilation",
     "group": "General",
+    "category": "Ventilation",
     "description": "The control configurations of TH-E EMS",
 
     "devices": [
@@ -51,7 +51,7 @@
             "name": "vnt*state",
             "description": "Ventilation control",
             "device": "vnt",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
             "processList": [
                 {
@@ -67,7 +67,8 @@
             "name": "Ventilation",
             "tag": "State",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::PHPFINA",
+            "interval": "60"
         }
     ]
 }

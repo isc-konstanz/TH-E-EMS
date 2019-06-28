@@ -1,0 +1,109 @@
+{
+    "name": "Circulation",
+    "group": "TH-E EMS",
+    "category": "Miscellaneous",
+    "description": "Basic circulation pump utilities",
+
+    "devices": [
+        {
+            "name": "<node>*pump",
+            "description": "Circulation pump",
+            "driver": "rpi-gpio",
+            "address": "pin:<pin>",
+            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+        },
+        {
+            "name": "<node>",
+            "description": "Circulation",
+            "driver": "virtual"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "pin",
+            "name": "Pin",
+            "description": "The Pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "scan": true,
+            "default": -1,
+            "mandatory": false,
+            "syntax": "deviceAddress"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*pump*state",
+            "description": "<name> pump state",
+            "device": "<node>",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "State", "tag": "<name> flow"}
+                }
+            ]
+        },
+        {
+            "name": "<node>*delta*temp",
+            "description": "<name> flow temperature",
+            "device": "<node>",
+            "logging": {"loggingInterval": 15000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true},
+            "configs": {"valueType":"DOUBLE", "unit": "°C"}
+        },
+        {
+            "name": "<node>*flow*power",
+            "description": "<name> flow power",
+            "device": "<node>",
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 10, "average": true},
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Power", "tag": "<name> flow"}
+                }
+            ]
+        },
+        {
+            "name": "<node>*flow*energy",
+            "description": "<name> flow energy",
+            "device": "<node>",
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000},
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"},
+            "processList": [
+                {
+                    "process": "counter_accumulator",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Energy", "tag": "<name> flow"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "<name> flow",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPFINA",
+            "interval": "60"
+        },
+        {
+            "name": "Power",
+            "tag": "<name> flow",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        },
+        {
+            "name": "Energy",
+            "tag": "<name> flow",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPTIMESERIES"
+        }
+    ]
+}

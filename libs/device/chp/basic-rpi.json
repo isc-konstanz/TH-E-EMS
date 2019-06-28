@@ -1,0 +1,103 @@
+{
+    "name": "GPIO (Raspberry Pi)",
+    "group": "General",
+    "category": "Cogenerator",
+    "description": "Basic domestic internal combustion engine cogenerator",
+
+    "devices": [
+        {
+            "name": "chp",
+            "description": "Cogenerator",
+            "driver": "virtual"
+        },
+        {
+            "name": "chp*ctrl",
+            "description": "Cogenerator control",
+            "driver": "rpi-gpio",
+            "address": "pin:<pin>",
+            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "pin",
+            "name": "Pin",
+            "description": "The Pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "scan": true,
+            "mandatory": true,
+            "syntax": "deviceAddress"
+        }
+    ],
+
+    "items": [
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "chp*state", "value": true },
+                "OFF": { "channel": "chp*state", "value": false }
+            },
+            "input": "chp*state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Flow",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "chp*circ*pump*state", "value": true },
+                "OFF": { "channel": "chp*circ*pump*state", "value": false }
+            },
+            "input": "chp*circ*pump*state"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "format": "%.1f kW",
+            "input": "chp*circ*flow*power"
+        },
+        {
+            "id": "temperature",
+            "type": "Text",
+            "format": "%.1f °C",
+            "input": "chp*circ*in*temp"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "chp*state",
+            "description": "Heat pump state",
+            "device": "hp",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "processList": [
+                {
+                    "process": "log_to_feed",
+                    "arguments": {"type": "ProcessArg::FEEDID", "value": "State", "tag": "Heat pump"}
+                }
+            ]
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "Cogenerator",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::PHPFINA",
+            "interval": "60"
+        }
+    ]
+}

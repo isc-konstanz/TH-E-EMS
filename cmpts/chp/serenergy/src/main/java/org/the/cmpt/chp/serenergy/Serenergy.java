@@ -1,11 +1,12 @@
 package org.the.cmpt.chp.serenergy;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.the.cmpt.chp.serenergy.data.Request;
 import org.the.cmpt.chp.serenergy.data.State;
 import org.the.ems.cmpt.chp.CogeneratorComponent;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
@@ -15,9 +16,13 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-@Component(service = CogeneratorService.class)
+@Component(
+	scope = ServiceScope.BUNDLE,
+	service = CogeneratorService.class,
+	configurationPid = CogeneratorService.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
 public class Serenergy extends CogeneratorComponent {
-	private final static String ID = "Serenergy";
 
 	@Deprecated
 	protected boolean starter = false;
@@ -44,19 +49,14 @@ public class Serenergy extends CogeneratorComponent {
 	private ChannelListener stackTemp;
 
 	@Override
-	public String getId() {
-		return ID;
-	}
-
-	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
+	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
 		stackTemp.registerValueListener(new StackTempListener());
 	}
 
 	@Override
-	public void onDeactivate() throws EnergyManagementException {
+	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		
 		stackTemp.deregister();
@@ -72,7 +72,7 @@ public class Serenergy extends CogeneratorComponent {
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, Long time) throws ComponentException {
+	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		container.add(stop, Request.STOP.encode(time));
 		// TODO: reset stackLimit
 	}
@@ -86,7 +86,7 @@ public class Serenergy extends CogeneratorComponent {
 	protected void onStateChanged(Value value) {
 		State state = State.decode(value);
 		switch(state) {
-		case ON:
+		case STARTING:
 			startTimeLast = value.getTime();
 			break;
 		default:
@@ -106,7 +106,7 @@ public class Serenergy extends CogeneratorComponent {
 					if (circulationPump.isRunInterval()) {
 						circulationPump.stop();
 					}
-					if (State.decode(state.getLatestValue()) == State.OFF) {
+					if (State.decode(state.getLatestValue()) == State.STANDBY) {
 						enable.write(Request.DISABLE.encode());
 					}
 				}

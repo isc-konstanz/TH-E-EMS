@@ -2,13 +2,13 @@ package org.the.cmpt.ctrl.mpc;
 
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.ConfigurationHandler;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Command extends ConfigurationHandler implements ValueListener {
+public class Command extends ConfiguredObject implements ValueListener {
 
 	/**
 	 * Interface used to notify the {@link Control} 
@@ -27,7 +27,7 @@ public class Command extends ConfigurationHandler implements ValueListener {
 	private ChannelListener command = null;
 
 	public Command(Configurations configs) throws ConfigurationException {
-		onConfigure(configs);
+		configure(configs);
 		if (command != null) {
 			command.registerValueListener(this);
 		}

@@ -1,7 +1,7 @@
 {
-    "name": "DS18B20",
+    "name": "DS18B20 (TH-E EMS)",
+    "group": "1-Wire (Raspberry Pi)",
     "category": "Sensor",
-    "group": "1-Wire (TH-E EMS)",
     "description": "Configuration for a 1-Wire temperature sensor for the Raspberry Pi, type DS18B20",
 
     "scan": true,
@@ -59,7 +59,7 @@
 
     "channels": [
         {
-            "name": "<node>*temperature",
+            "name": "<node>*temp",
             "description": "DS18B20 temperature",
             "settings": "unit:CELSIUS",
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true},

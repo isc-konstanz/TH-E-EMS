@@ -19,15 +19,26 @@
  */
 package org.the.cmpt.chp.serenergy.data;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.the.ems.core.data.IntValue;
 import org.the.ems.core.data.Value;
 
 public enum State {
-	ERROR(0),
-	OFF(1),
-	ON(2),
-	AUTO(3),
-	DISABLED(4);
+	UNKNOWN(0),
+	PASSIVE(1),
+	STANDBY(2),
+	PREHEAT(3),
+	STARTING(4),
+	OPERATION_LIMITED(5),
+	OPERATION(6),
+	SHUTDOWN(7),
+	SHUTDOWN_EMERGENCY(8),
+	ERROR(9),
+	ZERO_LOAD_MODE(10);
+
+	private static final Map<Integer, State> codes = new HashMap<>();
 
 	private final int code;
 
@@ -44,17 +55,18 @@ public enum State {
 	}
 
 	public static State decode(Value value) {
-		switch(value.intValue()) {
-		case 1:
-			return OFF;
-		case 2:
-			return ON;
-		case 3:
-			return AUTO;
-		case 4:
-			return DISABLED;
-		default:
-			return ERROR;
+		State enumInstance = codes.get(value.intValue());
+		if (enumInstance == null) {
+			throw new IllegalArgumentException("Unknown state code: " + value.intValue());
+		}
+		return enumInstance;
+	}
+
+	static {
+		for (State s : State.values()) {
+			if (codes.put(s.code, s) != null) {
+				throw new IllegalArgumentException("Duplicate code: " + s.code);
+			}
 		}
 	}
 }

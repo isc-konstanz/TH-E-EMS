@@ -1,33 +1,30 @@
 package org.the.cmpt.ctrl.mpc;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.cmpt.ctrl.mpc.Command.CommandCallbacks;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.NamedThreadFactory;
@@ -35,20 +32,19 @@ import org.the.ems.core.schedule.Schedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
 
-@Component(service = ScheduleService.class)
-public class Control extends ConfigurationHandler
+@Component(
+	service = ScheduleService.class,
+	configurationPid = Control.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
+public class Control extends ConfiguredObject
 		implements ScheduleService, CommandCallbacks {
 
 	private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
-	private static final String CONFIG_FILE = System
-			.getProperty(Control.class.getPackage().getName().toLowerCase() + ".file", 
-					"conf" + File.separator + "th-e-mpc.cfg");
+	public final static String PID = "org.the.ems.core.cmpt.mpc";
 
 	private ScheduledExecutorService executor;
-
-	@Reference
-	private ContentManagementService cms;
 
 	@Configuration(mandatory=false)
 	private int interval = 15;
@@ -66,20 +62,18 @@ public class Control extends ConfigurationHandler
 	private final List<ScheduleListener> listeners = new ArrayList<ScheduleListener>();
 
 	@Activate
-	protected void activate(ComponentContext context) {
-		logger.info("Activating TH-E MPC");
+	public final void activate(ComponentContext context, Configurations configs) 
+			throws org.osgi.service.component.ComponentException {
 		
-		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E MPC Pool - thread-");
-		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
+		logger.info("Activating TH-E MPC");
 		try {
-			Ini ini = new Ini(new File(CONFIG_FILE));
+			super.activate((ContentManagementService) context.getBundleContext()
+					.getServiceReference(ContentManagementService.class));
 			
-			Configurations configs = new Configurations();
-			for (Entry<String, Section> section : ini.entrySet()) {
-				configs.add(section.getKey(), section.getValue().entrySet());
-			}
-			super.onConfigure(configs);
-			command = new Command(configs).register(this);
+			configure(configs);
+			
+			NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E MPC Pool - thread-");
+			executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
 			
 			LocalTime time = LocalTime.now();
 			LocalTime next = time.with(next(interval)).minusMinutes(5);
@@ -88,8 +82,9 @@ public class Control extends ConfigurationHandler
 			executor.scheduleAtFixedRate(new ControlTask(python, script), 
 					time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
 			
-		} catch (IOException | ConfigurationException e) {
+		} catch (Exception e) {
 			logger.error("Error while reading optimization configuration: {}", e.getMessage());
+			throw new org.osgi.service.component.ComponentException(e);
 		}
 	}
 
@@ -99,6 +94,18 @@ public class Control extends ConfigurationHandler
 		
 		command.deactivate();
 		executor.shutdown();
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MANDATORY,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindContentManagementService(ContentManagementService service) {
+		content = service;
+	}
+
+	protected void unbindContentManagementService(ContentManagementService service) {
+		content = null;
 	}
 
 	@Override

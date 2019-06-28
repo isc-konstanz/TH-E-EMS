@@ -30,4 +30,12 @@ public class ComponentException extends EnergyManagementException {
 		super(s);
 	}
 
+	public ComponentException(Throwable cause) {
+		super(cause);
+	}
+
+	public ComponentException(String s, Throwable cause) {
+		super(s, cause);
+	}
+
 }

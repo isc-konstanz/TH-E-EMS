@@ -20,18 +20,19 @@
 package org.the.ems.cmpt.inv.ext;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationHandler;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class ExternalSolar extends ConfigurationHandler implements ValueListener {
+public class ExternalSolar extends ConfiguredObject implements ValueListener {
 
 	private final static String SECTION = "External";
 
@@ -52,14 +53,18 @@ public class ExternalSolar extends ConfigurationHandler implements ValueListener
 
 	private volatile boolean running = false;
 
-	public ExternalSolar(ContentManagementService context, Configurations configs) 
-			throws EnergyManagementException {
-		
-		setConfiguredSection(SECTION);
-		if (!isDisabled()) {
-			onBind(context);
-			onConfigure(configs);
+	@Override
+	@SuppressWarnings("unchecked")
+	public ExternalSolar activate(ContentManagementService content) throws ComponentException {
+		super.activate(content);
+		return setConfiguredSection(SECTION);
+	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public ExternalSolar configure(Configurations configs) throws ConfigurationException {
+		super.configure(configs);
+		if (!isDisabled()) {
 			activePower.registerValueListener(new ActivePowerListener());
 			solarPower.registerValueListener(this);
 			if (solarEnergy != null) {
@@ -67,6 +72,7 @@ public class ExternalSolar extends ConfigurationHandler implements ValueListener
 			}
 			running = true;
 		}
+		return this;
 	}
 
 	public ExternalSolar register(InverterCallbacks callbacks) {

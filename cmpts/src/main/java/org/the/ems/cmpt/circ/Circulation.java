@@ -23,18 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationHandler;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Circulation extends ConfigurationHandler implements CirculationTemperatureCallbacks {
+public class Circulation extends ConfiguredObject implements CirculationTemperatureCallbacks {
 
 	private final static String SECTION = "Circulation";
 
@@ -67,6 +68,9 @@ public class Circulation extends ConfigurationHandler implements CirculationTemp
 	private Channel flowEnergy;
 
 	@Configuration
+	private Channel flowPower;
+
+	@Configuration
 	private ChannelListener flowTempIn;
 
 	@Configuration
@@ -79,21 +83,27 @@ public class Circulation extends ConfigurationHandler implements CirculationTemp
 
 	private Value flowTempInLast = DoubleValue.emptyValue();
 	private Value flowTempOutLast = DoubleValue.emptyValue();
+	private Value flowEnergyLast = DoubleValue.emptyValue();
 	private Double flowCounterLast = Double.NaN;
-	private double flowEnergyLast = 0;
 
-	public Circulation(ContentManagementService context, Configurations configs) 
-			throws EnergyManagementException {
-		
-		setConfiguredSection(SECTION);
+	@Override
+	@SuppressWarnings("unchecked")
+	public Circulation activate(ContentManagementService content) throws ComponentException {
+		super.activate(content);
+		return setConfiguredSection(SECTION);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Circulation configure(Configurations configs) throws ConfigurationException {
+		super.configure(configs);
 		if (!isDisabled()) {
-			onBind(context);
-			onConfigure(configs);
 			
 			flowCount.registerValueListener(new FlowCountListener());
 			flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
 			flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
 		}
+		return this;
 	}
 
 	public void register(CirculationCallbacks callbacks) {
@@ -160,8 +170,16 @@ public class Circulation extends ConfigurationHandler implements CirculationTemp
 				}
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energy = flowSpecificHeat*flowMass*tempDelta;
-				flowEnergyLast += energy/3600;
-				flowEnergy.setLatestValue(new DoubleValue(flowEnergyLast, counter.getTime()));
+				
+				if (flowEnergyLast.doubleValue() > 0) {
+					// Calculate power since last counter tick in seconds
+					long timeDelta = (counter.getTime() - flowEnergyLast.getTime())/1000;
+					double power = energy/timeDelta;
+					flowPower.setLatestValue(new DoubleValue(power, counter.getTime()));
+				}
+				double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
+				flowEnergyLast = new DoubleValue(energyTotal, counter.getTime());
+				flowEnergy.setLatestValue(flowEnergyLast);
 			}
 			flowCounterLast = counter.doubleValue();
 		}

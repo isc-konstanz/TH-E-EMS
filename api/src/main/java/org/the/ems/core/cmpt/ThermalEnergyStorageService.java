@@ -26,6 +26,8 @@ import org.the.ems.core.data.Value;
 
 public interface ThermalEnergyStorageService extends ComponentService {
 
+	static final String PID = "org.the.ems.core.cmpt.tes";
+
 	@Override
 	public default ComponentType getType() {
 		return ComponentType.THERMAL_ENERGY_STORAGE;

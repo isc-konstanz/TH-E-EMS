@@ -46,19 +46,19 @@ public class ChannelWrapper implements Channel, RecordListener {
 	 * Interface used to notify the {@link ContentManager} 
 	 * implementation about changed temperatures
 	 */
-	public interface ControlChannelCallbacks {
-		public void execute(Runnable task);
+	public interface ChannelCallbacks {
+		public void doExecute(Runnable task);
 	}
 
 	/**
 	 * The Channels' current callback object, which is notified of changed temperatures
 	 */
-	private final ControlChannelCallbacks callbacks;
+	private final ChannelCallbacks callbacks;
 
 	private final org.openmuc.framework.dataaccess.Channel channel;
 	private final List<ValueListener> listeners;
 
-	public ChannelWrapper(ControlChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
+	public ChannelWrapper(ChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
 		this.callbacks = callbacks;
 		this.channel = channel;
 		this.listeners = new ArrayList<ValueListener>();
@@ -105,7 +105,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 		Runnable task = () -> {
 			channel.setLatestRecord(ChannelWrapper.encodeRecord(value));
 		};
-		callbacks.execute(task);
+		callbacks.doExecute(task);
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 				channel.writeFuture(ChannelWrapper.encodeFutureValueList(new ValueList(value)));
 			}
 		};
-		callbacks.execute(task);
+		callbacks.doExecute(task);
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 			}
 			channel.writeFuture(ChannelWrapper.encodeFutureValueList(values));
 		};
-		callbacks.execute(task);
+		callbacks.doExecute(task);
 	}
 
 	@Override

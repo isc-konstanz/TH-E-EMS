@@ -21,9 +21,17 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.data.Value;
 
 public interface ElectricalEnergyStorageService extends ComponentService {
+
+	static final String PID = "org.the.ems.core.cmpt.ees";
+
+	@Override
+	public default ComponentType getType() {
+		return ComponentType.ELECTRICAL_ENERGY_STORAGE;
+	};
 
 	/*
 	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.

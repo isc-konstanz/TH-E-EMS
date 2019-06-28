@@ -26,6 +26,8 @@ import org.the.ems.core.data.Value;
 
 public interface CogeneratorService extends GeneratorService {
 
+	static final String PID = "org.the.ems.core.cmpt.chp";
+
 	@Override
 	public default ComponentType getType() {
 		return ComponentType.COMBINED_HEAT_POWER;

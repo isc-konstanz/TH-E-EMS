@@ -53,6 +53,10 @@ public interface GeneratorService extends ComponentService {
 	/*
 	 * Stop the generation.
 	 */
-	public void stop(Long time) throws EnergyManagementException;
+	public void stop(long time) throws EnergyManagementException;
+
+	public default void stop() throws EnergyManagementException {
+		stop(System.currentTimeMillis());
+	}
 
 }

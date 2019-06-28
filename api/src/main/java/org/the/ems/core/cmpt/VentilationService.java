@@ -25,6 +25,8 @@ import org.the.ems.core.EnergyManagementException;
 
 public interface VentilationService extends ComponentService {
 
+	static final String PID = "org.the.ems.core.cmpt.vnt";
+
 	@Override
 	public default ComponentType getType() {
 		return ComponentType.VENTILATION;

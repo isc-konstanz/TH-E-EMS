@@ -26,9 +26,9 @@ public interface ComponentService {
 
 	public String getId();
 
-	public default ComponentType getType() {
-		return ComponentType.NONE;
-	};
+	public String getTypeName();
+
+	public ComponentType getType();
 
 	public ComponentStatus getStatus();
 

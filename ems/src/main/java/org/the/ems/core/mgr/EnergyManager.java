@@ -19,23 +19,20 @@
  */
 package org.the.ems.core.mgr;
 
-import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.felix.service.command.CommandProcessor;
-import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.cmpt.ManagedComponent;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
@@ -49,59 +46,75 @@ import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.VentilationService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.ConfigurationHandler;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.ChannelListener;
-import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
-import org.the.ems.core.mgr.config.IniConfigurations;
+import org.the.ems.core.config.ConfiguredObject;
+import org.the.ems.core.mgr.config.ConfigurationService;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
 
 @Component(
-	immediate = true,
+	service = {},
 	property = {
 		CommandProcessor.COMMAND_SCOPE + ":String=th-e-ems",
-		CommandProcessor.COMMAND_FUNCTION + ":String=reload"
+		CommandProcessor.COMMAND_FUNCTION + ":String=maintenance"
 	},
-	service = {}
+	configurationPid = EnergyManager.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public final class EnergyManager extends ConfigurationHandler implements ScheduleListener, Runnable {
+public final class EnergyManager extends ConfiguredObject implements ScheduleListener, Runnable {
 	private final static Logger logger = LoggerFactory.getLogger(EnergyManager.class);
 
-	private final static int SLEEP_INTERVAL = 60000;
-	private final static String CONFIG_MANAGEMENT = "org.the.ems.core.config";
-	private final static String CONFIG_COMPONENTS = "org.the.ems.cmpt.config";
+	public final static String ID = "ems";
+	public final static String PID = "org.the.ems.core";
 
 	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
-	private final Map<String, ComponentService> newComponents = new LinkedHashMap<String, ComponentService>();
 
+	private ControlSchedule scheduleUpdate = null;
 	private ControlSchedule schedule = new ControlSchedule();
-	private ControlSchedule newSchedule = null;
+
+	private Thread manager = null;
 
 	@Configuration(mandatory = false)
-	private ChannelListener maintenance;
-	private volatile boolean maintenanceFlag;
-	private volatile boolean deactivateFlag;
+	private volatile int interval = 1000;
 
-	private Thread manager;
+	@Configuration
+	private volatile boolean maintenance = false;
+	private volatile boolean deactivate;
+
+	@Reference
+	ConfigurationService configs;
 
 	@Activate
-	protected void activate(ComponentContext context) {
+	protected void activate(Map<String, ?> properties) {
 		logger.info("Activating TH-E Energy Management System");
-		this.onConfigure();
-		
-		manager = new Thread(this);
-		manager.setName("TH-E EMS");
-		manager.start();
+		try {
+			configure(Configurations.create(properties));
+			
+			manager = new Thread(this);
+			manager.setName("TH-E EMS");
+			manager.start();
+			
+		} catch (ConfigurationException e) {
+			logger.error("Error while loading configurations: {}", e.getMessage());
+		}
+	}
+
+	@Modified
+	void modified(Map<String, ?> properties) {
+		try {
+			configure(Configurations.create(properties));
+			manager.interrupt();
+			
+		} catch (ConfigurationException e) {
+			logger.warn("Error while updating configurations: {}", e.getMessage());
+		}
 	}
 
 	@Deactivate
-	protected void deactivate(ComponentContext context) {
+	protected void deactivate() {
 		logger.info("Deactivating TH-E Energy Management System");
-		deactivateFlag = true;
+		deactivate = true;
 		
 		manager.interrupt();
 		try {
@@ -111,51 +124,21 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 		}
 	}
 
-	protected void onConfigure() {
-		String fileName = System.getProperty(CONFIG_MANAGEMENT);
-		if (fileName == null) {
-			fileName = "conf" + File.separator + "th-e" + File.separator + "ems.cfg";
-		}
-		try {
-			super.onConfigure(new IniConfigurations(fileName));
-			
-		} catch (ConfigurationException e) {
-			logger.error("Error while reading ems configuration: {}", e.getMessage());
-		}
-		
-		if (maintenance == null) {
-			return;
-		}
-		else {
-			maintenance.deregister();
-		}
-		maintenanceFlag = false;
-		maintenance.setLatestValue(new BooleanValue(maintenanceFlag));
-		maintenance.registerValueListener(new ValueListener() {
-			
-			@Override
-			public void onValueReceived(Value value) {
-				maintenanceFlag = value.booleanValue();
-				manager.interrupt();
-			}
-		});
-	}
-
 	@Reference(
 		cardinality = ReferenceCardinality.MANDATORY,
 		policy = ReferencePolicy.DYNAMIC
 	)
 	protected void bindContentManagementService(ContentManagementService service) {
-		context = service;
+		content = service;
 	}
 
 	protected void unbindContentManagementService(ContentManagementService service) {
-		context = null;
+		content = null;
 	}
 
 	@Override
 	public void onScheduleReceived(ControlSchedule schedule) {
-		newSchedule = schedule;
+		scheduleUpdate = schedule;
 		manager.interrupt();
 	}
 
@@ -250,11 +233,12 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	protected void bindComponentService(ComponentService componentService) {
 		String id = componentService.getId();
 		
-		synchronized (newComponents) {
-			if (!newComponents.containsKey(id) && !components.containsKey(id)) {
-				logger.info("Registering TH-E EMS {}: {}", componentService.getClass().getInterfaces()[0].getSimpleName(), id);
+		synchronized (components) {
+			if (!components.containsKey(id)) {
+				logger.info("Registering TH-E EMS {} {}: {}", 
+						componentService.getTypeName(), componentService.getType().getFullName(), id);
 				
-				newComponents.put(id, componentService);
+				components.put(id, componentService);
 				manager.interrupt();
 			}
 		}
@@ -263,80 +247,36 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	protected void unbindComponentService(ComponentService componentService) {
 		String id = componentService.getId();
 		
-		// OSGi deactivate functions are always called sequentially:
-		ComponentService removedComponent;
 		synchronized (components) {
-			removedComponent = components.remove(id);
-		}
-		String removedComponentType = componentService.getClass().getInterfaces()[0].getSimpleName();
-		try {
-			if (removedComponent != null) {
-				logger.info("Deregistering TH-E EMS {}: {}", removedComponentType, id);
-				if (removedComponent instanceof ManagedComponent) {
-					ManagedComponent managedComponent = (ManagedComponent) removedComponent;
-					managedComponent.onDeactivate();
-					managedComponent.onDestroy();
-				}
-			}
-			else {
-				// Component was removed before it was added to the active components
-				newComponents.remove(id);
-			}
-			logger.debug("Component deregistered: " + id);
+			logger.info("Deregistering TH-E EMS {} {}: {}", 
+					componentService.getTypeName(), componentService.getType().getFullName(), id);
 			
-		} catch (EnergyManagementException e) {
-			logger.warn("Error deregistering TH-E EMS {} \"{}\": {}", removedComponentType, id, 
-					e.getMessage());
+			components.remove(id);
 		}
 	}
 
-	private Configurations loadComponentConfigs(ComponentService component) throws ConfigurationException {
-		String fileDir = System.getProperty(CONFIG_COMPONENTS);
-		if (fileDir == null) {
-			fileDir = "conf" + File.separator + "ems" + File.separator;
-		}
-		if (!fileDir.endsWith(File.separator)) {
-			fileDir += File.separator;
-		}
-		String fileName = fileDir + component.getType().getKey() + ".cfg";
-		
-		// TODO: Override settings from conf.d/{type, id}
-		//String id = component.getId().toLowerCase().replaceAll("[^A-Za-z0-9]", "-");
-		return new IniConfigurations(fileName);
-	}
+	public void maintenance(String enabled) {
+		maintenance = Boolean.parseBoolean(enabled);
+		manager.interrupt();
 
-	public void reload() {
-		logger.info("Reload TH-E EMS configuration.");
-		this.onConfigure();
-		
-		for (ComponentService component : components.values()) {
-			if (component instanceof ManagedComponent) {
-				try {
-					ManagedComponent managedComponent = (ManagedComponent) component;
-					managedComponent.onDeactivate();
-					managedComponent.onActivate(loadComponentConfigs(managedComponent));
-					
-				} catch (EnergyManagementException e) {
-					logger.error("Error while reloading TH-E EMS component \"{}\": {}", 
-							component.getId(), e.getMessage());
-				}
-			}
-		}
+		logger.info(maintenance ? "Enabling" : "Disabling" + " TH-E EMS maintenance mode");
 	}
 
 	@Override
 	public void run() {
 		logger.info("Starting TH-E EMS");
 		
-		deactivateFlag = false;
-		while (!deactivateFlag) {
+		deactivate = false;
+		while (!deactivate) {
 			if (manager.isInterrupted()) {
 				handleInterruptEvent();
 				continue;
 			}
 			try {
+				configs.watch();
+				
 				handleComponentEvent();
-				Thread.sleep(SLEEP_INTERVAL);
+				Thread.sleep(interval);
 				
 			} catch (InterruptedException e) {
 				handleInterruptEvent();
@@ -346,35 +286,9 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 	}
 
 	private void handleInterruptEvent() {
-		if (deactivateFlag) {
+		if (deactivate) {
 			logger.info("TH-E EMS thread interrupted and will stop");
 			return;
-		}
-		
-		synchronized (newComponents) {
-			if (newComponents.size() != 0) {
-				synchronized (components) {
-					components.putAll(newComponents);
-				}
-				for (Entry<String, ComponentService> newComponentEntry : newComponents.entrySet()) {
-					String id = newComponentEntry.getKey();
-					ComponentService component = newComponentEntry.getValue();
-					
-					logger.info("Activating TH-E EMS {}: {}", component.getClass().getInterfaces()[0].getSimpleName(), id);
-					try {
-						if (component instanceof ManagedComponent) {
-							ManagedComponent managedComponent = (ManagedComponent) component;
-							managedComponent.onBind(context);
-							managedComponent.onActivate(loadComponentConfigs(managedComponent));
-						}
-						component.setStatus(ComponentStatus.ENABLED);
-						
-					} catch (EnergyManagementException e) {
-						logger.warn("Error while activating component \"{}\": ", id, e);
-					}
-				}
-				newComponents.clear();
-			}
 		}
 		handleComponentEvent();
 	}
@@ -383,15 +297,15 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 		// TODO: implement channel flag checks, component and optimization verifications
 		
 		boolean scheduleFlag = false;
-		if (newSchedule != null && newSchedule.getTimestamp() > schedule.getTimestamp()) {
+		if (scheduleUpdate != null && scheduleUpdate.getTimestamp() > schedule.getTimestamp()) {
 			// TODO: verify schedule integrity
 			scheduleFlag = true;
-			schedule = newSchedule;
+			schedule = scheduleUpdate;
 		}
 		synchronized (components) {
 			for (ComponentService component : components.values()) {
 				try {
-					if (maintenanceFlag) {
+					if (maintenance) {
 						component.setStatus(ComponentStatus.MAINTENANCE);
 					}
 					else {
@@ -402,8 +316,8 @@ public final class EnergyManager extends ConfigurationHandler implements Schedul
 						
 						if (scheduleFlag) {
 							try {
-								if (newSchedule.contains(component)) {
-									component.schedule(newSchedule.get(component));
+								if (schedule.contains(component)) {
+									component.schedule(schedule.get(component));
 								}
 							} catch (ComponentException e) {
 								logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);

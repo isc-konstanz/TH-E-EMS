@@ -21,8 +21,8 @@ package org.the.ems.core.schedule;
 
 import java.util.HashMap;
 
-import org.the.ems.core.ComponentType;
 import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
 
 public class ControlSchedule extends HashMap<String, Schedule> {
 	private static final long serialVersionUID = 8892391031173460437L;

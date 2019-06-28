@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.openmuc.framework.app.the.ems.ChannelWrapper.ControlChannelCallbacks;
+import org.openmuc.framework.app.the.ems.ChannelWrapper.ChannelCallbacks;
 import org.openmuc.framework.dataaccess.DataAccessService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -43,17 +43,17 @@ import org.the.ems.core.schedule.NamedThreadFactory;
 
 @Component(
 	immediate = true,
-	service = { ContentManagementService.class }
+	service = ContentManagementService.class
 )
-public final class ContentManager implements ContentManagementService, ControlChannelCallbacks {
+public class ContentManager implements ContentManagementService, ChannelCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(ContentManager.class);
 
-	private final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
+	protected final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
 
-	private ExecutorService executor = null;
+	protected ExecutorService executor = null;
 
 	@Reference
-	private DataAccessService access;
+	protected DataAccessService access;
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -123,7 +123,7 @@ public final class ContentManager implements ContentManagementService, ControlCh
 	}
 
 	@Override
-	public void execute(Runnable task) {
+	public void doExecute(Runnable task) {
 		executor.execute(task);
 	}
 

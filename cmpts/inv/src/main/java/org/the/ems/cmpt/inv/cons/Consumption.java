@@ -24,23 +24,24 @@ import java.util.Map;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.cmpt.inv.cons.PowerListener.PowerCallbacks;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationHandler;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Consumption extends ConfigurationHandler implements PowerCallbacks, ValueListener {
+public class Consumption extends ConfiguredObject implements PowerCallbacks, ValueListener {
 
 	private final static String SECTION = "Consumption";
 
 	private volatile InverterCallbacks callbacks = null;
 
-	@Configuration(section=ConfigurationHandler.SECTION_DEFAULT)
+	@Configuration(section=Configurations.GENERAL)
 	private ChannelListener consPower;
 
 	@Configuration
@@ -59,14 +60,18 @@ public class Consumption extends ConfigurationHandler implements PowerCallbacks,
 
 	private volatile boolean running = false;
 
-	public Consumption(ContentManagementService context, Configurations configs)
-			throws EnergyManagementException {
-		
-		setConfiguredSection(SECTION);
+	@Override
+	@SuppressWarnings("unchecked")
+	public Consumption activate(ContentManagementService content) throws ComponentException {
+		super.activate(content);
+		return setConfiguredSection(SECTION);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public Consumption configure(Configurations configs) throws ConfigurationException {
+		super.configure(configs);
 		if (!isDisabled()) {
-			onBind(context);
-			onConfigure(configs);
-			
 			consPower.registerValueListener(this);
 			
 			eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
@@ -77,6 +82,7 @@ public class Consumption extends ConfigurationHandler implements PowerCallbacks,
 			}
 			running = true;
 		}
+		return this;
 	}
 
 	public Consumption register(InverterCallbacks callbacks) {

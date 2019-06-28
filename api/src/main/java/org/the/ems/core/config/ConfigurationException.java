@@ -19,9 +19,9 @@
  */
 package org.the.ems.core.config;
 
-import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.ComponentException;
 
-public final class ConfigurationException extends EnergyManagementException {
+public final class ConfigurationException extends ComponentException {
 	private static final long serialVersionUID = -450390320810928331L;
 
 	public ConfigurationException() {

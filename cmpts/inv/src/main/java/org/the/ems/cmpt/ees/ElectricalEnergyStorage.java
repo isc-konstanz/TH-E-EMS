@@ -20,15 +20,21 @@
 package org.the.ems.cmpt.ees;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.cmpt.ConfiguredComponent;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Value;
 
-@Component
+@Component(
+	scope = ServiceScope.BUNDLE,
+	service = ElectricalEnergyStorageService.class,
+	configurationPid = ElectricalEnergyStorageService.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
 public class ElectricalEnergyStorage extends ConfiguredComponent implements ElectricalEnergyStorageService {
-	private final static String ID = "ElectricalEnergyStorage";
 
 	@Configuration(mandatory=false)
 	private double socMax = 90;
@@ -38,11 +44,6 @@ public class ElectricalEnergyStorage extends ConfiguredComponent implements Elec
 
 	@Configuration
 	protected double capacity;
-
-	@Override
-	public String getId() {
-		return ID;
-	}
 
 	@Override
 	public double getCapacity() {

@@ -29,30 +29,30 @@ import java.util.List;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 
-public abstract class ConfigurationHandler {
-
-	protected static final String SECTION_DEFAULT = "General";
-
-	private String section = SECTION_DEFAULT;
+public abstract class ConfiguredObject {
 
 	private boolean disabled = true;
 
+	private String section = Configurations.GENERAL;
+
 	protected final ChannelCollection channels = new ChannelCollection();
 
-	protected ContentManagementService context;
+	protected ContentManagementService content;
 
-	public void onBind(ContentManagementService context) throws EnergyManagementException {
-		this.context = context;
+	@SuppressWarnings("unchecked")
+	public <C extends ConfiguredObject> C activate(ContentManagementService content) throws ComponentException {
+		this.content = content;
+		return (C) this;
 	}
 
-	public void onConfigure(Configurations configs) throws ConfigurationException {
+	@SuppressWarnings("unchecked")
+	public <C extends ConfiguredObject> C configure(Configurations configs) throws ConfigurationException {
 		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
 		elements.addAll(Arrays.asList(this.getClass().getDeclaredFields()));
 		elements.addAll(Arrays.asList(this.getClass().getDeclaredMethods()));
@@ -74,10 +74,10 @@ public abstract class ConfigurationHandler {
 			
 			boolean configured = false;
 			if (element instanceof Field) {
-				configured = onConfigure(configs, (Field) element, section, keys, config.scale());
+				configured = configure(configs, (Field) element, section, keys, config.scale());
 			}
 			else {
-				configured = onConfigure(configs, (Method) element, section, keys);
+				configured = configure(configs, (Method) element, section, keys);
 			}
 			if (!configured && config.mandatory()) {
 				throw newConfigException(MessageFormat.format("Mandatory configuration of section \"{0}\" not found: {1}",
@@ -87,9 +87,10 @@ public abstract class ConfigurationHandler {
 		if (!configs.isDisabled(section)) {
 			disabled = false;
 		}
+		return (C) this;
 	}
 
-	private boolean onConfigure(Configurations configs, Method method,
+	private boolean configure(Configurations configs, Method method,
 			String section, String[] keys) throws ConfigurationException {
 		
 		if (keys.length > 1) {
@@ -99,32 +100,32 @@ public abstract class ConfigurationHandler {
 		
 		String key = keys[0];
 		if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-			key = Configurations.parse(method.getName().substring(3));
+			key = parse(method.getName().substring(3));
 		}
 		if (configs.contains(section, key)) {
-			onConfigureChannel(configs, section, key);
+			configureChannel(configs, section, key);
 			
 			return true;
 		}
 		return false;
 	}
 
-	private boolean onConfigure(Configurations configs, Field field, 
+	private boolean configure(Configurations configs, Field field, 
 			String section, String[] keys, double scale) throws ConfigurationException {
 		Object value = null;
 		
 		Class<?> type = field.getType();
 		field.setAccessible(true);
 		if (type.isAssignableFrom(ChannelCollection.class)) {
-			value = onConfigureCollection(configs, section, keys);
+			value = configureCollection(configs, section, keys);
 		}
 		else {
 			for (String key : keys) {
 				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-					key = Configurations.parse(field.getName());
+					key = parse(field.getName());
 				}
 				if (configs.contains(section, key)) {
-					value = onConfigureField(configs, type, section, key);
+					value = configureField(configs, type, section, key);
 					break;
 				}
 			}
@@ -162,28 +163,34 @@ public abstract class ConfigurationHandler {
 		return false;
 	}
 
-	private ChannelCollection onConfigureCollection(Configurations configs, 
+	private ChannelCollection configureCollection(Configurations configs, 
 			String section, String[] keys) throws ConfigurationException {
 		
 		ChannelCollection channels = new ChannelCollection();
 		for (String key : keys) {
 			if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-				throw new ConfigurationException("");
+				throw new ConfigurationException("Error configuring empty channel collection");
 			}
-			if (configs.contains(section, key)) {
-				Channel channel = onConfigureChannel(configs, section, key);
+			else if (key.contains("?") || key.contains("*")) {
+				for (String k : configs.search(section, key)) {
+					Channel channel = configureChannel(configs, section, k);
+					channels.put(k, channel);
+				}
+			}
+			else if (configs.contains(section, key)) {
+				Channel channel = configureChannel(configs, section, key);
 				channels.put(key, channel);
 			}
 		}
 		return channels;
 	}
 
-	private Object onConfigureField(Configurations configs, Class<?> type, 
+	private Object configureField(Configurations configs, Class<?> type, 
 			String section, String key) throws ConfigurationException {
 		
 		try {
 			if (Channel.class.isAssignableFrom(type)) {
-				Channel channel = onConfigureChannel(configs, section, key);
+				Channel channel = configureChannel(configs, section, key);
 				
 				if (type.isAssignableFrom(ChannelListener.class)) {
 					return new ChannelListener(channel);
@@ -202,18 +209,18 @@ public abstract class ConfigurationHandler {
 		}
 	}
 
-	private Channel onConfigureChannel(Configurations configs,  
+	private Channel configureChannel(Configurations configs,  
 			String section, String key) throws ConfigurationException {
 		
 		if (channels.containsKey(key)) {
 			return channels.get(key);
 		}
-		if (context == null) {
+		if (content == null) {
 			throw newConfigException("Unable to configure channel");
 		}
 		try {
-			String id = configs.getString(section, key);
-			Channel channel = context.getChannel(id);
+			String id = configs.get(section, key);
+			Channel channel = content.getChannel(id);
 			channels.put(key, channel);
 			
 			return channel;
@@ -252,7 +259,7 @@ public abstract class ConfigurationHandler {
 				}
 				String key = config.value()[0];
 				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-					key = Configurations.parse(method.substring(3));
+					key = parse(method.substring(3));
 				}
 				return key;
 				
@@ -267,7 +274,7 @@ public abstract class ConfigurationHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <C extends ConfigurationHandler> C setConfiguredSection(String section) {
+	protected <C extends ConfiguredObject> C setConfiguredSection(String section) {
 		this.section = section;
 		return (C) this;
 	}
@@ -283,6 +290,14 @@ public abstract class ConfigurationHandler {
 	private ConfigurationException newConfigException(String message) {
 		return new ConfigurationException(MessageFormat.format("Error reading configuration \"{0}\": {1}", 
 				this.getClass().getSimpleName(), message));
+	}
+
+	private static String parse(String key) {
+		LinkedList<String> result = new LinkedList<String>();
+		for (String str : key.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")) {
+			result.add(str.toLowerCase());
+		}
+		return String.join("_", result);
 	}
 
 }

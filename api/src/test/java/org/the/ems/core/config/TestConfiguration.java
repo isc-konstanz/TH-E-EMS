@@ -34,10 +34,11 @@ public class TestConfiguration {
 
 	@Before
 	public void newTestConfiguratios() {
-		configs = new Configurations();
+		configs = Configurations.create();
 		configs.add("General", "test", "Test");
 		configs.add("General", "test_string", "1");
 		configs.add("General", "test_channel", "Channel");
+		configs.add("General", "test_channel2", "Channel2");
 		configs.add("General", "test_float", 1.0f);
 		configs.add("General", "test_boolean", false);
 		configs.add("General", "test_enum", ValueType.BOOLEAN);
@@ -61,6 +62,8 @@ public class TestConfiguration {
 		assertEquals("Test", handler.getTestSelection());
 		assertEquals("Test", handler.getTestCollection("test").getId());
 		assertEquals("Channel", handler.getTestCollection("test_channel").getId());
+		assertEquals("Channel", handler.getTestWildcard("test_channel").getId());
+		assertEquals("Channel2", handler.getTestWildcard("test_channel2").getId());
 		assertEquals("Channel", handler.getTestChannel().getId());
 	}
 

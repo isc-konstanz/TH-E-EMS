@@ -81,25 +81,25 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 	}
 
 	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
+	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		state.registerValueListener(new StateListener());
-		circulation = new Circulation(context, configs);
-		circulationPump = new CirculationPump(context, configs, circulation);
+		circulation = new Circulation().activate(content).configure(configs);
+		circulationPump = new CirculationPump(circulation);
 	}
 
 	@Override
-	public void onResume() throws EnergyManagementException {
+	public void onResume() throws ComponentException {
 		circulationPump.resume();
 	}
 
 	@Override
-	public void onPause() throws EnergyManagementException {
+	public void onPause() throws ComponentException {
 		circulationPump.pause();
 	}
 
 	@Override
-	public void onDeactivate() throws EnergyManagementException {
+	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		state.deregister();
 		circulation.deactivate();
@@ -107,7 +107,7 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 	}
 
 	@Override
-	public void doSchedule(WriteContainer container, Schedule schedule) throws EnergyManagementException {
+	public void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -161,7 +161,7 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 	protected abstract void onStart(WriteContainer container, Value value) throws ComponentException;
 
 	@Override
-	public final void stop(Long time) throws EnergyManagementException {
+	public final void stop(long time) throws EnergyManagementException {
 		if (time - startTimeLast < intervalMin && !isMaintenance()) {
 			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 					intervalMin/60000));
@@ -173,7 +173,7 @@ public abstract class GeneratorComponent extends ConfiguredComponent implements 
 		doWrite(container);
 	}
 
-	protected abstract void onStop(WriteContainer container, Long time) throws ComponentException;
+	protected abstract void onStop(WriteContainer container, long time) throws ComponentException;
 
 	protected abstract void onStateChanged(Value value);
 

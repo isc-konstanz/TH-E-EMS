@@ -19,21 +19,45 @@
  */
 package org.the.ems.cmpt;
 
+import java.util.Map;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
-import org.the.ems.core.config.ConfigurationHandler;
+import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class ConfiguredComponent extends ConfigurationHandler implements ManagedComponent {
+public abstract class ConfiguredComponent extends ConfiguredObject implements ComponentService {
+	private final static Logger logger = LoggerFactory.getLogger(ConfiguredComponent.class);
 
 	protected volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
+
+	@Configuration(section = Configurations.GENERAL, mandatory = false)
+	protected String id = getType().getKey();
+
+	@Override
+	public String getId() {
+		return id;
+	}
+
+	@Override
+	public String getTypeName() {
+		return "Basic";
+	}
 
 	@Override
 	public final ComponentStatus getStatus() {
@@ -61,32 +85,63 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 		return componentStatus == ComponentStatus.MAINTENANCE;
 	}
 
-	@Override
-	public void onBind(ContentManagementService context) throws EnergyManagementException {
-		super.onBind(context);
+	@Activate
+	public final void activate(BundleContext context, Map<String, ?> properties) throws org.osgi.service.component.ComponentException {
+		try {
+			super.activate(context.getService(context.getServiceReference(ContentManagementService.class)));
+			
+			Configurations configs = Configurations.create(properties);
+			
+			configure(configs);
+			onActivate(configs);
+			
+		} catch (Exception e) {
+			logger.warn("Error while activating {} {} {}: {}", 
+					getTypeName(), getType().getFullName(), getId().toUpperCase(), e.getMessage());
+			
+			throw new org.osgi.service.component.ComponentException(e);
+		}
 	}
 
-	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
-		super.onConfigure(configs);
+	@Modified
+	void modified(Map<String, ?> properties) {
+		try {
+			Configurations configs = Configurations.create(properties);
+			
+			onDeactivate();
+			configure(configs);
+			onActivate(configs);
+			
+		} catch (Exception e) {
+			logger.warn("Error while updating configurations: {}", e.getMessage());
+		}
 	}
 
-	@Override
-	public void onResume() throws EnergyManagementException {
-	}
-
-	@Override
-	public void onPause() throws EnergyManagementException {
-	}
-
-	@Override
-	public void onDeactivate() throws EnergyManagementException {
-	}
-
-	@Override
-	public void onDestroy() throws EnergyManagementException {
+	@Deactivate
+	protected final void deactivate() {
 		// Clear up resources
-		this.context = null;
+		this.content = null;
+		try {
+			onDeactivate();
+			
+		} catch (Exception e) {
+			logger.warn("Error while deactivating {} {} {}: {}", 
+					getTypeName(), getType().getFullName(), id, e.getMessage());
+			
+			throw new org.osgi.service.component.ComponentException(e);
+		}
+	}
+
+	public void onActivate(Configurations configs) throws ComponentException {
+	}
+
+	public void onResume() throws ComponentException {
+	}
+
+	public void onPause() throws ComponentException {
+	}
+
+	public void onDeactivate() throws ComponentException {
 	}
 
 	@Override
@@ -103,7 +158,6 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 		doWrite(container);
 	}
 
-	@Override
 	public void doSchedule(WriteContainer container, Schedule schedule) 
 			throws UnsupportedOperationException, EnergyManagementException {
 		
@@ -127,7 +181,6 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 		doWrite(container);
 	}
 
-	@Override
 	public void doSet(WriteContainer container, Value value)
 			throws UnsupportedOperationException, EnergyManagementException {
 		
@@ -135,7 +188,7 @@ public abstract class ConfiguredComponent extends ConfigurationHandler implement
 	}
 
 	protected void onSet(WriteContainer container, Value value)
-			throws UnsupportedOperationException, EnergyManagementException {
+			throws UnsupportedOperationException, ComponentException {
 		// Default implementation to be overridden
 		throw new UnsupportedOperationException();
 	}

@@ -26,6 +26,8 @@ import org.the.ems.core.data.Value;
 
 public interface HeatPumpService extends GeneratorService {
 
+	static final String PID = "org.the.ems.core.cmpt.hp";
+
 	@Override
 	public default ComponentType getType() {
 		return ComponentType.HEAT_PUMP;

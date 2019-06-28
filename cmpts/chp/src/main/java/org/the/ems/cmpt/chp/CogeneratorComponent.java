@@ -20,6 +20,8 @@
 package org.the.ems.cmpt.chp;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.cmpt.GeneratorComponent;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
@@ -28,9 +30,13 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 
-@Component
+@Component(
+	scope = ServiceScope.BUNDLE,
+	service = CogeneratorService.class,
+	configurationPid = CogeneratorService.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
 public class CogeneratorComponent extends GeneratorComponent implements CogeneratorService {
-	private final static String ID = "Cogenerator";
 
 	@Configuration("th_eff")
 	protected double thermalEfficiency;
@@ -52,11 +58,6 @@ public class CogeneratorComponent extends GeneratorComponent implements Cogenera
 
 	@Configuration
 	protected Channel state;
-
-	@Override
-	public String getId() {
-		return ID;
-	}
 
 	@Override
 	public double getElectricalEfficiency() {
@@ -98,7 +99,7 @@ public class CogeneratorComponent extends GeneratorComponent implements Cogenera
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, Long time) throws ComponentException {
+	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		long delay = time;
 		if (!starter || state.getLatestValue().booleanValue()) {
 			delay += enableDelay;

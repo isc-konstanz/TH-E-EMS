@@ -20,11 +20,12 @@
 package org.the.ems.cmpt.hp;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.GeneratorComponent;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
@@ -35,11 +36,14 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-@Component
+@Component(
+	scope = ServiceScope.BUNDLE,
+	service = HeatPumpService.class,
+	configurationPid = HeatPumpService.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
 public class HeatPumpComponent extends GeneratorComponent implements HeatPumpService {
-	private final static Logger logger = LoggerFactory.getLogger(HeatPumpComponent.class);
-
-	private final static String ID = "HeatPump";
+	private static final Logger logger = LoggerFactory.getLogger(HeatPumpComponent.class);
 
 	@Configuration("temp_min")
 	protected double temperatureMin;
@@ -54,11 +58,6 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 	protected ChannelListener temperature;
 
 	protected Value temperatureValue = DoubleValue.emptyValue();
-
-	@Override
-	public String getId() {
-		return ID;
-	}
 
 	@Configuration
 	protected double cop;
@@ -85,14 +84,14 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
 
 	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
+	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 
 		temperature.registerValueListener(new TemperatureListener());
 	}
 
 	@Override
-	public void onDeactivate() throws EnergyManagementException {
+	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		
 		temperature.deregister();
@@ -107,7 +106,7 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, Long time) throws ComponentException {
+	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		container.add(state, new BooleanValue(false, time));
 	}
 
@@ -120,6 +119,9 @@ public class HeatPumpComponent extends GeneratorComponent implements HeatPumpSer
 			return;
 		}
 		else if (value.booleanValue() && stateValueLast != null && !stateValueLast.booleanValue()) {
+			if (circulationPump != null) {
+				circulationPump.start();
+			}
 			startTimeLast = value.getTime();
 		}
 	}

@@ -19,18 +19,22 @@
  */
 package org.the.ems.cmpt.circ;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation.CirculationCallbacks;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationHandler;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class CirculationPump extends ConfigurationHandler implements CirculationCallbacks {
+public class CirculationPump extends ConfiguredObject implements CirculationCallbacks {
+	private final static Logger logger = LoggerFactory.getLogger(CirculationPump.class);
 
 	private final static String SECTION = "Circulation";
 
@@ -53,24 +57,32 @@ public class CirculationPump extends ConfigurationHandler implements Circulation
 
 	private volatile boolean running = false;
 
-	public CirculationPump(ContentManagementService context, Configurations configs, 
-			Circulation circulation) throws EnergyManagementException {
-		
+	public CirculationPump(Circulation circulation) {
 		this.circulation = circulation;
-		
-		setConfiguredSection(SECTION);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public CirculationPump activate(ContentManagementService content) throws ComponentException {
+		super.activate(content);
+		return setConfiguredSection(SECTION);
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public CirculationPump configure(Configurations configs) throws ConfigurationException {
+		super.configure(configs);
 		if (!configs.contains(SECTION, STATE)) {
-			return;
+			return this;
 		}
 		if (!isDisabled()) {
-			onBind(context);
-			onConfigure(configs);
-			
 			circulation.register(this);
 			state.registerValueListener(new CirculationPumpStateListener());
 			
 			running = true;
+			logger.debug("Activated TH-E EMS CirculationPump");
 		}
+		return this;
 	}
 
 	public void resume() {

@@ -24,7 +24,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
-public class TestHandler extends ConfigurationHandler {
+public class TestHandler extends ConfiguredObject {
 
 	@Configuration
 	private String test;
@@ -50,15 +50,18 @@ public class TestHandler extends ConfigurationHandler {
 	@Configuration(value="test", section="Test")
 	private String testSection;
 
-	@Configuration(value= {"test1","test"})
+	@Configuration(value= {"test1", "test"})
 	private String testSelection;
 
-	@Configuration(value= {"test","test_channel"})
+	@Configuration(value= {"test", "test_channel"})
 	private ChannelCollection testCollection;
 
+	@Configuration(value= "test_channel*")
+	private ChannelCollection testWildcard;
+
 	public TestHandler(Configurations configs) throws ConfigurationException {
-		context = new TestManager();
-		onConfigure(configs);
+		content = new TestManager();
+		configure(configs);
 	}
 
 	public String getTest() {
@@ -99,6 +102,10 @@ public class TestHandler extends ConfigurationHandler {
 
 	public TestChannel getTestCollection(String key) {
 		return (TestChannel) testCollection.get(key);
+	}
+
+	public TestChannel getTestWildcard(String key) {
+		return (TestChannel) testWildcard.get(key);
 	}
 
 	@Configuration

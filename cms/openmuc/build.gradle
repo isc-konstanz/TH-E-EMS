@@ -24,8 +24,8 @@ def projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
 def projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 
 dependencies {
-  implementation project(':api')
-  implementation fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+  api project(':api')
+  api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
 }
 
 eclipse {
@@ -38,6 +38,6 @@ jar {
   manifest {
     attributes('Bundle-Name':        projectFullName,
                'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
+	           'Export-Package':     '*')
   }
 }

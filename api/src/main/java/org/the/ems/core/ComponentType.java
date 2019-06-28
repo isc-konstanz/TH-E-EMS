@@ -19,22 +19,53 @@
  */
 package org.the.ems.core;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum ComponentType {
-	NONE(null),
-	INVERTER("inv"),
-	ELECTRICAL_ENERGY_STORAGE("ees"),
-	THERMAL_ENERGY_STORAGE("tes"),
-	COMBINED_HEAT_POWER("chp"),
-	HEAT_PUMP("hp"),
-	VENTILATION("vnt");
+	INVERTER("inv", "Inverter"),
+	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
+	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
+	COMBINED_HEAT_POWER("chp", "Cogenerator"),
+	HEAT_PUMP("hp", "Heat Pump"),
+	VENTILATION("vnt", "Ventilation");
+
+	private static final Map<String, ComponentType> keys = new HashMap<String, ComponentType>();
 
 	private final String key;
+	private final String name;
 
-	private ComponentType(String key) {
+	private ComponentType(String key, String name) {
 		this.key = key;
+		this.name = name;
+	}
+
+	public String getId() {
+		return ComponentType.class.getPackage().getName().toLowerCase().concat(".cmpt.").concat(key);
 	}
 
 	public String getKey() {
 		return key;
 	}
+
+	public String getFullName() {
+		return name;
+	}
+
+	public ComponentType typeOf(String key) throws IllegalArgumentException {
+		ComponentType enumInstance = keys.get(key);
+		if (enumInstance == null) {
+			throw new IllegalArgumentException("Unknown component type: " + key);
+		}
+		return enumInstance;
+	}
+
+	static {
+		for (ComponentType t : ComponentType.values()) {
+			if (keys.put(t.key, t) != null) {
+				throw new IllegalArgumentException("Duplicate type: " + t.key);
+			}
+		}
+	}
+
 }

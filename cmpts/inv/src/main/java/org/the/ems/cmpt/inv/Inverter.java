@@ -20,8 +20,10 @@
 package org.the.ems.cmpt.inv;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ConfiguredComponent;
@@ -40,11 +42,14 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-@Component(service = InverterService.class)
-public class InverterComponent extends ConfiguredComponent implements InverterService, InverterCallbacks, ValueListener {
-	private static final Logger logger = LoggerFactory.getLogger(InverterComponent.class);
-
-	private final static String ID = "Inverter";
+@Component(
+	scope = ServiceScope.BUNDLE,
+	service = InverterService.class,
+	configurationPid = InverterService.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
+public class Inverter extends ConfiguredComponent implements InverterService, InverterCallbacks, ValueListener {
+	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY)
 	protected ElectricalEnergyStorageService battery;
@@ -64,11 +69,6 @@ public class InverterComponent extends ConfiguredComponent implements InverterSe
 
 	protected Consumption cons;
 	protected ExternalSolar solar;
-
-	@Override
-	public String getId() {
-		return ID;
-	}
 
 	@Override
 	public Value getCommand() throws ComponentException {
@@ -160,22 +160,22 @@ public class InverterComponent extends ConfiguredComponent implements InverterSe
 	public Value getFrequency() throws ComponentException { return getConfiguredValue("frequency"); }
 
 	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
+	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
-		cons = new Consumption(context, configs).register(this);
-		solar = new ExternalSolar(context, configs).register(this);
+		cons = new Consumption().activate(content).configure(configs).register(this);
+		solar = new ExternalSolar().activate(content).configure(configs).register(this);
 		command.registerValueListener(this);
 	}
 
 	@Override
-	public void onResume() throws EnergyManagementException {
+	public void onResume() throws ComponentException {
 		cons.resume();
 		solar.resume();
 	}
 
 	@Override
-	public void onPause() throws EnergyManagementException {
+	public void onPause() throws ComponentException {
 		cons.pause();
 		solar.pause();
 	}

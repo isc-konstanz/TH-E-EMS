@@ -12,15 +12,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ConfiguredComponent;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
@@ -32,11 +33,16 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.NamedThreadFactory;
 
-@Component(service = ThermalEnergyStorageService.class)
+@Component(
+	scope = ServiceScope.BUNDLE,
+	service = ThermalEnergyStorageService.class,
+	configurationPid = ThermalEnergyStorageService.PID,
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
 public class ThermalEnergyStorage extends ConfiguredComponent implements ThermalEnergyStorageService, Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(ThermalEnergyStorage.class);
 
-	private final static String ID = "ThermalEnergyStorage";
+	private static final String TEMP = "temp";
 
 	protected ScheduledExecutorService executor;
 
@@ -56,7 +62,7 @@ public class ThermalEnergyStorage extends ConfiguredComponent implements Thermal
 
 	protected double mass;
 
-	@Configuration(mandatory=false, value={"temp_h10", "temp_h30", "temp_h60", "temp_h90"})
+	@Configuration(mandatory=false, value="temp*")
 	protected ChannelCollection temperatures;
 
 	protected Value temperatureLast = null;
@@ -71,30 +77,25 @@ public class ThermalEnergyStorage extends ConfiguredComponent implements Thermal
 	protected final List<GeneratorEnergy> energyValues = new ArrayList<GeneratorEnergy>();
 
 	@Override
-	public String getId() {
-		return ID;
-	}
-
-	@Override
-	public void onActivate(Configurations configs) throws EnergyManagementException {
+	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
 		// Storage medium mass in kilogram
 		mass = capacity*density;
 		
-		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E EMS "+ID+" TES Pool - thread-");
+		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E EMS "+getId().toUpperCase()+" Pool - thread-");
 		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
 		
 		LocalTime time = LocalTime.now();
 		LocalTime next = time.with(next(interval)).minusMinutes(5);
-		logger.debug("Starting TH-E EMS {} TES power calculation {}", ID, next);
+		logger.debug("Starting TH-E EMS {} power calculation {}", getId().toUpperCase(), next);
 		
 		executor.scheduleAtFixedRate(this, 
 				time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
 	}
 
 	@Override
-	public void onDeactivate() throws EnergyManagementException {
+	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		executor.shutdown();
 	}
@@ -137,7 +138,19 @@ public class ThermalEnergyStorage extends ConfiguredComponent implements Thermal
 	@Override
 	public void run() {
 		try {
-			Value temperature = getTemperature();
+			long time = System.currentTimeMillis();
+			double temperatureSum = 0;
+			for (Channel temperature : temperatures.values()) {
+//				time = Math.min(time, val.getTime());
+				Value temp = temperature.getLatestValue();
+				
+				temperatureSum += temp.doubleValue();
+			}
+			Value temperature = new DoubleValue(temperatureSum/temperatures.size(), time);
+			if (temperatures.size() > 1) {
+				temperatures.get(TEMP).setLatestValue(temperature);
+			}
+			
 			if (temperatureLast != null && temperature.getTime() > temperatureLast.getTime()) {
 				long timeDelta = (temperature.getTime() - temperatureLast.getTime())/1000;
 				double tempDelta = temperatureLast.doubleValue() - temperature.doubleValue();
@@ -171,15 +184,9 @@ public class ThermalEnergyStorage extends ConfiguredComponent implements Thermal
 	}
 
 	@Override
+	@Configuration(TEMP)
 	public Value getTemperature() throws ComponentException {
-		long time = System.currentTimeMillis();
-		double sum = 0;
-		for (Channel temperature : temperatures.values()) {
-			Value val = temperature.getLatestValue();
-			sum += val.doubleValue();
-//			time = Math.min(time, val.getTime());
-		}
-		return new DoubleValue(sum/temperatures.size(), time);
+		return getConfiguredValue(TEMP);
 	}
 
 	private TemporalAdjuster next(int interval) {

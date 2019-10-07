@@ -36,7 +36,7 @@ public class Control extends Component
 
 	private static final Logger logger = LoggerFactory.getLogger(Control.class);
 
-	public final static String PID = "org.the.ems.core.cmpt.mpc";
+	public final static String PID = "org.the.ems.ctrl.mpc";
 
 	private ScheduledExecutorService executor;
 

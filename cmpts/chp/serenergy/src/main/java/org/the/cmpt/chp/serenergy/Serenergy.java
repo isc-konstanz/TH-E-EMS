@@ -19,7 +19,7 @@ import org.the.ems.core.data.WriteContainer;
 @Component(
 	scope = ServiceScope.BUNDLE,
 	service = CogeneratorService.class,
-	configurationPid = CogeneratorService.PID,
+	configurationPid = CogeneratorService.PID+".serenergy",
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class Serenergy extends Cogenerator {

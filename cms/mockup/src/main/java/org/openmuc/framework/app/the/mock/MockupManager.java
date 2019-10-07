@@ -29,10 +29,12 @@ import java.util.concurrent.Executors;
 import org.openmuc.framework.app.the.mock.MockupChannel.ChannelCallbacks;
 import org.openmuc.framework.config.ChannelConfig;
 import org.openmuc.framework.config.ConfigService;
+import org.openmuc.framework.config.ConfigWriteException;
 import org.openmuc.framework.config.DeviceConfig;
 import org.openmuc.framework.config.DriverConfig;
 import org.openmuc.framework.config.IdCollisionException;
 import org.openmuc.framework.config.RootConfig;
+import org.openmuc.framework.data.ValueType;
 import org.openmuc.framework.dataaccess.DataAccessService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -94,13 +96,30 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
         		break;
 	        }
 	    }
+		String did = id.split(separator)[0];
 		try {
-		    DeviceConfig device = getDevice(id.split(separator)[0]);
+			boolean update = false;
+			RootConfig root = configs.getConfig();
+			DriverConfig driver = root.getDriver(VIRTUAL);
+			if (driver == null) {
+				driver = root.addDriver(VIRTUAL);
+				update = true;
+			}
+			DeviceConfig device = driver.getDevice(did);
+			if (device == null) {
+				device = driver.addDevice(did);
+				update = true;
+			}
 			ChannelConfig configs = device.getChannel(id);
 			if (configs == null) {
 				configs = device.addChannel(id);
+				update = true;
 			}
-		} catch (IdCollisionException e) {
+			if (update) {
+	            this.configs.setConfig(root);
+	            this.configs.writeConfigToFile();
+			}
+		} catch (IdCollisionException | ConfigWriteException e) {
 			throw new UnknownChannelException("Unable to instantiate channel for id: " + id);
 		}
 		if (!channels.containsKey(id)) {
@@ -114,24 +133,6 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 		}
 		
 		return channels.get(id);
-	}
-
-	private DeviceConfig getDevice(String id) throws IdCollisionException {
-		DriverConfig driver = getDriver();
-		DeviceConfig device = driver.getDevice(id);
-		if (device == null) {
-			device = driver.addDevice(id);
-		}
-		return device;
-	}
-
-	private DriverConfig getDriver() throws IdCollisionException {
-		RootConfig root = configs.getConfig();
-		DriverConfig driver = root.getDriver(VIRTUAL);
-		if (driver == null) {
-			driver = root.addDriver(VIRTUAL);
-		}
-		return driver;
 	}
 
 	@Override

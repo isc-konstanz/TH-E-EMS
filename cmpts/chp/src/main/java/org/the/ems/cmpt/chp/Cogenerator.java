@@ -22,7 +22,7 @@ package org.the.ems.cmpt.chp;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.the.ems.cmpt.GeneratorComponent;
+import org.the.ems.cmpt.Generator;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
@@ -36,7 +36,7 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPid = CogeneratorService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class CogeneratorComponent extends GeneratorComponent implements CogeneratorService {
+public class Cogenerator extends Generator implements CogeneratorService {
 
 	@Configuration("th_eff")
 	protected double thermalEfficiency;

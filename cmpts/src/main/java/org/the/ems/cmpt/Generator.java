@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation;
 import org.the.ems.cmpt.circ.CirculationPump;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.GeneratorService;
@@ -37,8 +38,8 @@ import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class GeneratorComponent extends ConfiguredComponent implements GeneratorService {
-	private final static Logger logger = LoggerFactory.getLogger(GeneratorComponent.class);
+public abstract class Generator extends Component implements GeneratorService {
+	private final static Logger logger = LoggerFactory.getLogger(Generator.class);
 
 	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
 	protected int intervalMin = 600000;

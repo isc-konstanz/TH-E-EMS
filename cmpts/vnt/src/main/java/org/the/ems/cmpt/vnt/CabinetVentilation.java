@@ -22,11 +22,10 @@ package org.the.ems.cmpt.vnt;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.the.ems.cmpt.ConfiguredComponent;
 import org.the.ems.cmpt.vnt.TemperatureListener.TemperatureCallbacks;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.VentilationService;
 import org.the.ems.core.config.Configuration;
@@ -37,13 +36,13 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-@Component(
+@org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
 	service = VentilationService.class,
 	configurationPid = VentilationService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class CabinetVentilation extends ConfiguredComponent implements VentilationService, TemperatureCallbacks {
+public class CabinetVentilation extends Component implements VentilationService, TemperatureCallbacks {
 
 	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
 	protected int intervalMin = 600000;

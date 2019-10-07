@@ -19,22 +19,21 @@
  */
 package org.the.ems.cmpt.ees;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.the.ems.cmpt.ConfiguredComponent;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Value;
 
-@Component(
+@org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
 	service = ElectricalEnergyStorageService.class,
 	configurationPid = ElectricalEnergyStorageService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class ElectricalEnergyStorage extends ConfiguredComponent implements ElectricalEnergyStorageService {
+public class ElectricalEnergyStorage extends Component implements ElectricalEnergyStorageService {
 
 	@Configuration(mandatory=false)
 	private double socMax = 90;

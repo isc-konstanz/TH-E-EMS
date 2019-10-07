@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.cmpt;
+package org.the.ems.core;
 
 import java.util.Map;
 
@@ -27,12 +27,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentService;
-import org.the.ems.core.ComponentStatus;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.config.ConfiguredObject;
@@ -41,13 +35,13 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class ConfiguredComponent extends ConfiguredObject implements ComponentService {
-	private final static Logger logger = LoggerFactory.getLogger(ConfiguredComponent.class);
+public abstract class Component extends ConfiguredObject implements ComponentService {
+	private final static Logger logger = LoggerFactory.getLogger(Component.class);
 
 	protected volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
 
 	@Configuration(section = Configurations.GENERAL, mandatory = false)
-	protected String id = getType().getKey();
+	protected String id = getType().getKey().toUpperCase();
 
 	@Override
 	public String getId() {
@@ -57,6 +51,11 @@ public abstract class ConfiguredComponent extends ConfiguredObject implements Co
 	@Override
 	public String getTypeName() {
 		return "Basic";
+	}
+
+	@Override
+	public ComponentType getType() {
+		return ComponentType.GENERAL;
 	}
 
 	@Override
@@ -97,7 +96,7 @@ public abstract class ConfiguredComponent extends ConfiguredObject implements Co
 			
 		} catch (Exception e) {
 			logger.warn("Error while activating {} {} {}: {}", 
-					getTypeName(), getType().getFullName(), getId().toUpperCase(), e.getMessage());
+					getTypeName(), getType().getFullName(), getId(), e.getMessage());
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}

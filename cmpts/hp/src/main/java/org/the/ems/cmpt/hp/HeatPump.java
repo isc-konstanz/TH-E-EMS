@@ -24,7 +24,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.cmpt.GeneratorComponent;
+import org.the.ems.cmpt.Generator;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
@@ -42,8 +42,8 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPid = HeatPumpService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class HeatPumpComponent extends GeneratorComponent implements HeatPumpService {
-	private static final Logger logger = LoggerFactory.getLogger(HeatPumpComponent.class);
+public class HeatPump extends Generator implements HeatPumpService {
+	private static final Logger logger = LoggerFactory.getLogger(HeatPump.class);
 
 	@Configuration("temp_min")
 	protected double temperatureMin;

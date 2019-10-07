@@ -19,16 +19,15 @@
  */
 package org.the.ems.cmpt.inv;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.cmpt.ConfiguredComponent;
 import org.the.ems.cmpt.inv.cons.Consumption;
 import org.the.ems.cmpt.inv.ext.ExternalSolar;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
@@ -42,13 +41,13 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-@Component(
+@org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
 	service = InverterService.class,
 	configurationPid = InverterService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Inverter extends ConfiguredComponent implements InverterService, InverterCallbacks, ValueListener {
+public class Inverter extends Component implements InverterService, InverterCallbacks, ValueListener {
 	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
 
 	@Reference(cardinality = ReferenceCardinality.MANDATORY)

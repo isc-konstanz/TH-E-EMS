@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -19,7 +18,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.cmpt.ConfiguredComponent;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.cmpt.CogeneratorService;
@@ -33,13 +32,13 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.NamedThreadFactory;
 
-@Component(
+@org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
 	service = ThermalEnergyStorageService.class,
 	configurationPid = ThermalEnergyStorageService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class ThermalEnergyStorage extends ConfiguredComponent implements ThermalEnergyStorageService, Runnable {
+public class ThermalEnergyStorage extends Component implements ThermalEnergyStorageService, Runnable {
 	private static final Logger logger = LoggerFactory.getLogger(ThermalEnergyStorage.class);
 
 	private static final String TEMP = "temp";

@@ -5,7 +5,7 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.cmpt.chp.serenergy.data.Request;
 import org.the.cmpt.chp.serenergy.data.State;
-import org.the.ems.cmpt.chp.CogeneratorComponent;
+import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
@@ -22,7 +22,7 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPid = CogeneratorService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Serenergy extends CogeneratorComponent {
+public class Serenergy extends Cogenerator {
 
 	@Deprecated
 	protected boolean starter = false;

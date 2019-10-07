@@ -10,21 +10,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.cmpt.ctrl.mpc.Command.CommandCallbacks;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.config.ConfiguredObject;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.NamedThreadFactory;
@@ -32,12 +26,12 @@ import org.the.ems.core.schedule.Schedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
 
-@Component(
+@org.osgi.service.component.annotations.Component(
 	service = ScheduleService.class,
 	configurationPid = Control.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Control extends ConfiguredObject
+public class Control extends Component
 		implements ScheduleService, CommandCallbacks {
 
 	private static final Logger logger = LoggerFactory.getLogger(Control.class);
@@ -61,51 +55,33 @@ public class Control extends ConfiguredObject
 
 	private final List<ScheduleListener> listeners = new ArrayList<ScheduleListener>();
 
-	@Activate
-	public final void activate(ComponentContext context, Configurations configs) 
-			throws org.osgi.service.component.ComponentException {
-		
-		logger.info("Activating TH-E MPC");
-		try {
-			super.activate((ContentManagementService) context.getBundleContext()
-					.getServiceReference(ContentManagementService.class));
-			
-			configure(configs);
-			
-			NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E MPC Pool - thread-");
-			executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
-			
-			LocalTime time = LocalTime.now();
-			LocalTime next = time.with(next(interval)).minusMinutes(5);
-			logger.debug("Starting TH-E-MPC at {}", next);
-			
-			executor.scheduleAtFixedRate(new ControlTask(python, script), 
-					time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
-			
-		} catch (Exception e) {
-			logger.error("Error while reading optimization configuration: {}", e.getMessage());
-			throw new org.osgi.service.component.ComponentException(e);
-		}
+	@Override
+	public ComponentType getType() {
+		return ComponentType.CONTROL;
 	}
 
-	@Deactivate
-	protected void deactivate(ComponentContext context) {
-		logger.info("Deactivating TH-E MPC");
+	@Override
+	public void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		
+		logger.info("Activating TH-E MPC");
+		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E MPC Pool - thread-");
+		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
+		
+		LocalTime time = LocalTime.now();
+		LocalTime next = time.with(next(interval)).minusMinutes(5);
+		logger.debug("Starting TH-E-MPC at {}", next);
+		
+		executor.scheduleAtFixedRate(new ControlTask(python, script), 
+				time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void onDeactivate() throws ComponentException {
+		super.onDeactivate();
 		
 		command.deactivate();
 		executor.shutdown();
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MANDATORY,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
-	}
-
-	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
 	}
 
 	@Override
@@ -144,7 +120,10 @@ public class Control extends ConfiguredObject
 		return (temporal) -> {
 			int minute = temporal.get(ChronoField.MINUTE_OF_DAY);
 			int next = (minute / interval + 1) * interval;
-			return temporal.with(ChronoField.NANO_OF_DAY, 0).plus(next, ChronoUnit.MINUTES);
+			return temporal.with(ChronoField.SECOND_OF_DAY, 0)
+					.with(ChronoField.MILLI_OF_DAY, 0)
+					.with(ChronoField.NANO_OF_DAY, 0)
+					.plus(next, ChronoUnit.MINUTES);
 		};
 	}
 

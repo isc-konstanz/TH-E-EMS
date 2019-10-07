@@ -17,7 +17,7 @@
     "scan": {
         "settings": "mode:DIGITAL_OUTPUT"
     },
-	
+
     "options": [
         {
             "id": "pin",

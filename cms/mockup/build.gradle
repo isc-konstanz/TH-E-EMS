@@ -18,18 +18,26 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-CMPT'
+archivesBaseName = 'th-e-mock-cms'
+def projectName = 'TH-E-Core-Mockup'
+def projectFullName = 'TH-E EMS Content Managment System - OpenMUC Mockup'
+def projectDescription = 'The OpenMUC Content Management System Mockup of TH-E EMS framework'
 
-include 'api', 'cmpts', 'cmpts:chp', 'cmpts:chp:serenergy', 'cmpts:hp', 'cmpts:inv', 'cmpts:tes', 'cms:mockup', 'mpc'
+dependencies {
+  api project(':api')
+  api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+}
 
-def coreDir = '../TH-E-EMS'
-project(':api').projectDir = file(coreDir+'/api')
-project(':cmpts').projectDir = file(coreDir+'/cmpts')
-project(':cmpts:chp').projectDir = file(coreDir+'/cmpts/chp')
-project(':cmpts:hp').projectDir = file(coreDir+'/cmpts/hp')
-project(':cmpts:inv').projectDir = file(coreDir+'/cmpts/inv')
-project(':cmpts:tes').projectDir = file(coreDir+'/cmpts/tes')
+eclipse {
+  project {
+    name = projectName
+  }
+}
 
-project(':cmpts:chp:serenergy').projectDir = file('cmpts/chp/serenergy')
-
-project(':cms:mockup').projectDir = file('cms/mockup')
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     '')
+  }
+}

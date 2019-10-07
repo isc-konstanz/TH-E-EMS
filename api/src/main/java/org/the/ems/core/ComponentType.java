@@ -43,7 +43,15 @@ public enum ComponentType {
 	}
 
 	public String getId() {
-		return ComponentType.class.getPackage().getName().toLowerCase().concat(".cmpt.").concat(key);
+		String id = "org.the.ems";
+		switch(this) {
+		case GENERAL:
+		case CONTROL:
+			break;
+		default:
+			id += ".cmpt";
+		}
+		return id.concat(".").concat(key);
 	}
 
 	public String getKey() {

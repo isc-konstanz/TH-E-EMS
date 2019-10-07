@@ -37,6 +37,6 @@ jar {
   manifest {
     attributes('Bundle-Name':        projectFullName,
                'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
+	           'Export-Package':     'org.the.ems.cmpt.vnt.*')
   }
 }

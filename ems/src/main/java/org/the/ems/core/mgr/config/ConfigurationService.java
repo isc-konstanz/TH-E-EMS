@@ -46,7 +46,7 @@ import org.the.ems.core.mgr.EnergyManager;
 public final class ConfigurationService {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
-	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "th-e" + File.separator;
+	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "ems" + File.separator;
 	private final static String CONFIG_DIR = System.getProperty("org.the.ems.core.config", CONFIG_DIR_DEFAULT);
 
 	private final Path dir = Paths.get(CONFIG_DIR);
@@ -65,7 +65,9 @@ public final class ConfigurationService {
 			watcher = FileSystems.getDefault().newWatchService();
 			register(dir);
 			
-			load(EnergyManager.PID, Configurations.create(dir.resolve(EnergyManager.ID + ".cfg").toFile()));
+			load(EnergyManager.PID, Configurations.create(
+					EnergyManager.ID, 
+					dir.resolve(EnergyManager.ID + ".cfg").toFile()));
 			
 			File[] files = this.dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 			if (files == null || files.length < 1) {
@@ -148,31 +150,30 @@ public final class ConfigurationService {
 				configs.configure(opt);
 			}
 		}
-		ComponentType type = null;
-		for (ComponentType t : ComponentType.values()) {
-			if (id.startsWith(t.getKey())) {
-				type = t;
-				break;
+		for (ComponentType type : ComponentType.values()) {
+			if (id.startsWith(type.getKey())) {
+				String pid = type.getId();
+				if (configs.contains(Configurations.GENERAL, "type")) {
+					pid = pid.concat(".")
+							.concat(configs.get(Configurations.GENERAL, "type").toLowerCase());
+				}
+				
+				String alias = id.substring(type.getKey().length());
+				if (alias.length() == 0) {
+					alias = "0";
+				}
+				load(pid, alias, configs);
+				return;
 			}
 		}
-		if (type != null) {
-			String pid = type.getId();
-			String alias = id.substring(type.getKey().length());
-			if (alias.length() == 0) {
-				alias = "0";
+		if (!id.equals(EnergyManager.ID)) {
+			if (configs.contains(Configurations.GENERAL, "pid")) {
+				String pid = configs.get(Configurations.GENERAL, "pid");
+				load(pid, configs);
+				return;
 			}
-			load(pid, alias, configs);
 		}
-		else {
-			String pid = null;
-			if (id.startsWith(EnergyManager.ID)) {
-			    pid = EnergyManager.PID;
-			}
-			else if (configs.contains(Configurations.GENERAL, "pid")) {
-				pid = configs.get(Configurations.GENERAL, "pid");
-			}
-			load(pid, configs);
-		}
+		throw new ConfigurationException("Missing PID for component configuration: "+file.getName());
 	}
 
 	private void load(String pid, String alias, Configurations configs) throws ConfigurationException {

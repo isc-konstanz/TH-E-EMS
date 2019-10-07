@@ -52,6 +52,6 @@ jar {
                'Bundle-Description': projectDescription,
                'Bundle-ClassPath':   '.,libs/ini4j-'+ini4jVersion+'.jar',
                'Import-Package':     '!org.ini4j.*,*',
-	           'Export-Package':     '')
+	           'Export-Package':      'org.the.ems.core.mgr.*')
   }
 }

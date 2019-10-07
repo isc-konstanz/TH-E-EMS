@@ -48,12 +48,12 @@ import org.the.ems.core.schedule.NamedThreadFactory;
 public class ContentManager implements ContentManagementService, ChannelCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(ContentManager.class);
 
-	protected final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
+	private final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
 
-	protected ExecutorService executor = null;
+	private ExecutorService executor = null;
 
 	@Reference
-	protected DataAccessService access;
+	private DataAccessService access;
 
 	@Activate
 	protected void activate(ComponentContext context) {
@@ -65,7 +65,7 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 
 	@Deactivate
 	protected void deactivate(ComponentContext context) {
-		logger.info("Deactivating TH-E  Content Management System");
+		logger.info("Deactivating TH-E Content Management System");
 		
 		executor.shutdown();
 	}

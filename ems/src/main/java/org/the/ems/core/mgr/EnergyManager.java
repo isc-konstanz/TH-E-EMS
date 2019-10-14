@@ -19,7 +19,9 @@
  */
 package org.the.ems.core.mgr;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.felix.service.command.CommandProcessor;
@@ -36,8 +38,11 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.EnergyManagementService;
+import org.the.ems.core.UnknownComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.cmpt.HeatPumpService;
@@ -54,7 +59,7 @@ import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
 
 @Component(
-	service = {},
+	service = EnergyManagementService.class,
 	property = {
 		CommandProcessor.COMMAND_SCOPE + ":String=th-e-ems",
 		CommandProcessor.COMMAND_FUNCTION + ":String=maintenance"
@@ -62,7 +67,8 @@ import org.the.ems.core.schedule.ScheduleService;
 	configurationPid = EnergyManager.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public final class EnergyManager extends ConfiguredObject implements ScheduleListener, Runnable {
+public final class EnergyManager extends ConfiguredObject 
+		implements EnergyManagementService, ScheduleListener, Runnable {
 	private final static Logger logger = LoggerFactory.getLogger(EnergyManager.class);
 
 	public final static String ID = "ems";
@@ -255,11 +261,35 @@ public final class EnergyManager extends ConfiguredObject implements ScheduleLis
 		}
 	}
 
-	public void maintenance(String enabled) {
-		maintenance = Boolean.parseBoolean(enabled);
+	@Override
+	public ComponentService getComponent(String id) throws UnknownComponentException {
+		if (!components.containsKey(id)) {
+			throw new UnknownComponentException("Unknown component for id: " + id);
+		}
+		return components.get(id);
+	}
+
+	@Override
+	public List<ComponentService> getComponents(ComponentType type) {
+		List<ComponentService> result = new ArrayList<ComponentService>();
+		for (ComponentService component : components.values()) {
+			if (component.getType() == type) {
+				result.add(component);
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public void setMaintenance(boolean enabled) throws EnergyManagementException {
+		maintenance = enabled;
 		manager.interrupt();
 
 		logger.info(maintenance ? "Enabling" : "Disabling" + " TH-E EMS maintenance mode");
+	}
+
+	public void maintenance(String enabled) throws EnergyManagementException {
+		setMaintenance(Boolean.parseBoolean(enabled));
 	}
 
 	@Override

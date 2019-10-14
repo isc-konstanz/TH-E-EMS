@@ -26,7 +26,7 @@ import org.the.ems.core.data.Value;
 
 public interface CogeneratorService extends GeneratorService {
 
-	static final String PID = "org.the.ems.core.cmpt.chp";
+	static final String PID = "org.the.ems.cmpt.chp";
 
 	@Override
 	public default ComponentType getType() {

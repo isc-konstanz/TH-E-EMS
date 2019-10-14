@@ -26,7 +26,7 @@ import org.the.ems.core.data.Value;
 
 public interface InverterService extends ComponentService {
 
-	static final String PID = "org.the.ems.core.cmpt.inv";
+	static final String PID = "org.the.ems.cmpt.inv";
 
 	@Override
 	public default ComponentType getType() {

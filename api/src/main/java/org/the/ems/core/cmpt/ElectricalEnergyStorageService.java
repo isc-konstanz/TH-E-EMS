@@ -26,7 +26,7 @@ import org.the.ems.core.data.Value;
 
 public interface ElectricalEnergyStorageService extends ComponentService {
 
-	static final String PID = "org.the.ems.core.cmpt.ees";
+	static final String PID = "org.the.ems.cmpt.ees";
 
 	@Override
 	public default ComponentType getType() {

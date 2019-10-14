@@ -29,6 +29,7 @@ public enum ComponentType {
 	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
 	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
 	COMBINED_HEAT_POWER("chp", "Cogenerator"),
+	HEATING_ROD("hr", "Heating Rod"),
 	HEAT_PUMP("hp", "Heat Pump"),
 	VENTILATION("vnt", "Ventilation");
 

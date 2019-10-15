@@ -95,7 +95,7 @@ public class Inverter extends Component implements InverterService, InverterCall
 	}
 
 	@Override
-	@Configuration("dc_energy")
+	@Configuration(value="dc_energy", mandatory=false)
 	public Value getInputEnergy() throws ComponentException { return getConfiguredValue("dc_energy"); }
 
 	@Override
@@ -107,7 +107,7 @@ public class Inverter extends Component implements InverterService, InverterCall
 	public Value getExportEnergy() throws ComponentException { return getConfiguredValue("export_energy"); }
 
 	@Override
-	@Configuration("dc_power")
+	@Configuration(value="dc_power", mandatory=false)
 	public Value getInputPower() throws ComponentException { return getConfiguredValue("dc_power"); }
 
 	@Override
@@ -115,47 +115,47 @@ public class Inverter extends Component implements InverterService, InverterCall
 	public Value getActivePower() throws ComponentException { return getConfiguredValue("active_power"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getActivePowerL1() throws ComponentException { return getConfiguredValue("active_power_l1"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getActivePowerL2() throws ComponentException { return getConfiguredValue("active_power_l2"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getActivePowerL3() throws ComponentException { return getConfiguredValue("active_power_l3"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getReactivePower() throws ComponentException { return getConfiguredValue("reactive_power"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getReactivePowerL1() throws ComponentException { return getConfiguredValue("reactive_power_l1"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getReactivePowerL2() throws ComponentException { return getConfiguredValue("reactive_power_l2"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getReactivePowerL3() throws ComponentException { return getConfiguredValue("reactive_power_l3"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getVoltageL1() throws ComponentException { return getConfiguredValue("voltage_l1"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getVoltageL2() throws ComponentException { return getConfiguredValue("voltage_l2"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getVoltageL3() throws ComponentException { return getConfiguredValue("voltage_l3"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getFrequency() throws ComponentException { return getConfiguredValue("frequency"); }
 
 	@Override

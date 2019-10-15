@@ -230,8 +230,12 @@ public abstract class ConfiguredObject {
 		}
 	}
 
-	protected Channel getConfiguredChannel(String key) {
-		return channels.get(key);
+	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
+		Channel channel = channels.get(key);
+		if (channel == null) {
+			throw new ConfigurationException("Unable to get unconfigured channel: "+key);
+		}
+		return channel;
 	}
 
 	protected Channel getConfiguredChannel() throws ComponentException {

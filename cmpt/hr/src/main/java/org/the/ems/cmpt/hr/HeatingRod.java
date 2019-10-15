@@ -22,8 +22,6 @@ package org.the.ems.cmpt.hr;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.Generator;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.HeatingRodService;
@@ -39,22 +37,21 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class HeatingRod extends Generator implements HeatingRodService {
-	private static final Logger logger = LoggerFactory.getLogger(HeatingRod.class);
 
 	@Override
-	@Configuration("th_energy")
+	@Configuration(value="th_energy", mandatory=false)
 	public Value getThermalEnergy() throws ComponentException { return getConfiguredValue("th_energy"); }
 
 	@Override
-	@Configuration("th_power")
+	@Configuration(value="th_power", mandatory=false)
 	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
 
 	@Override
-	@Configuration("el_energy")
+	@Configuration(value="el_energy", mandatory=false)
 	public Value getElectricalEnergy() throws ComponentException { return getConfiguredValue("el_energy"); }
 
 	@Override
-	@Configuration("el_power")
+	@Configuration(value="el_power", mandatory=false)
 	public Value getElectricalPower() throws ComponentException { return getConfiguredValue("el_power"); }
 
 	@Override

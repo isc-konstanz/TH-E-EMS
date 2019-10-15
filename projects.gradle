@@ -31,12 +31,13 @@ project.ext {
 
   distributionProjects = subprojects.findAll {
     it.getPath() == ':api' ||
-    it.getPath() == ':cmpts' ||
-    it.getPath() == ':cmpts:chp' ||
-    it.getPath() == ':cmpts:hp' ||
-    it.getPath() == ':cmpts:inv' ||
-    it.getPath() == ':cmpts:tes' ||
-    it.getPath() == ':cmpts:vnt' ||
+    it.getPath() == ':cmpt' ||
+    it.getPath() == ':cmpt:chp' ||
+    it.getPath() == ':cmpt:hr' ||
+    it.getPath() == ':cmpt:hp' ||
+    it.getPath() == ':cmpt:inv' ||
+    it.getPath() == ':cmpt:tes' ||
+    it.getPath() == ':cmpt:vnt' ||
     it.getPath() == ':ems' ||
     it.getPath() == ':cms'
   }

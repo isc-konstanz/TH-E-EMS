@@ -18,23 +18,13 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-core-ems'
-def projectName = 'TH-E-Core-EMS'
-def projectFullName = 'TH-E EMS Core - Manager'
-def projectDescription = 'The Energy Management System of TH-E EMS framework'
-
-configurations.create('embed')
-
-def ini4jVersion = '0.5.4'
+archivesBaseName = 'th-e-cmpt-vnt'
+def projectName = 'TH-E-Component-Ventilation'
+def projectFullName = 'TH-E EMS Component - Cabinet ventilation'
+def projectDescription = 'Cabinet ventilation component for TH-E EMS framework.'
 
 dependencies {
-  implementation project(':cmpt')
-  implementation group: 'org.osgi', name: 'org.osgi.service.cm', version: '1.6.0'
-  implementation group:'org.apache.felix',name:'org.apache.felix.gogo.runtime', version:'1.1.0'
-
-  implementation group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
-
-  embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
+  api project(':cmpt')
 }
 
 eclipse {
@@ -44,14 +34,9 @@ eclipse {
 }
 
 jar {
-  into('libs') {
-    from configurations.embed
-  }
   manifest {
     attributes('Bundle-Name':        projectFullName,
                'Bundle-Description': projectDescription,
-               'Bundle-ClassPath':   '.,libs/ini4j-'+ini4jVersion+'.jar',
-               'Import-Package':     '!org.ini4j.*,*',
-	           'Export-Package':      'org.the.ems.core.mgr.*')
+	           'Export-Package':     'org.the.ems.cmpt.vnt.*')
   }
 }

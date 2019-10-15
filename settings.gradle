@@ -20,6 +20,6 @@
  */
 rootProject.name = 'TH-E-EMS'
 
-include 'api', 'cmpts', 'cmpts:chp', 'cmpts:hp', 'cmpts:inv', 'cmpts:tes', 'cmpts:vnt', 'ems', 'cms'
+include 'api', 'cmpt', 'cmpt:chp', 'cmpt:hr', 'cmpt:hp', 'cmpt:inv', 'cmpt:tes', 'cmpt:vnt', 'ems', 'cms'
 
 project(':cms').projectDir = file('cms/openmuc')

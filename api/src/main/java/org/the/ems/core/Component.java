@@ -86,6 +86,8 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 			
 			Configurations configs = Configurations.create(properties);
 			configure(configs);
+			
+			onActivate(configs, context);
 			onActivate(configs);
 			
 		} catch (Exception e) {
@@ -123,6 +125,9 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}
+	}
+
+	protected void onActivate(Configurations configs, BundleContext context) throws ComponentException {
 	}
 
 	protected void onActivate(Configurations configs) throws ComponentException {

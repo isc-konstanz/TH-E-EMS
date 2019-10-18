@@ -203,7 +203,7 @@ public abstract class Heating extends Component implements HeatingService {
 		public void onValueReceived(Value value) {
 			if (!value.equals(stateValueLast) || stateValueLast == null) {
 				if (value.booleanValue() && (stateValueLast == null || !stateValueLast.booleanValue())) {
-					if (circulationPump != null) {
+					if (!circulationPump.isDisabled()) {
 						circulationPump.start();
 					}
 					// TODO: Verify if the generator really has started

@@ -39,6 +39,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentType;
+import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.mgr.EnergyManager;
 
@@ -59,6 +60,9 @@ public final class ConfigurationService {
 	@Reference
 	ConfigurationAdmin configs;
 
+	@Reference
+	ContentManagementService content; // make sure the CMS is active before registering bundles
+
 	@Activate
 	protected void activate() {
 		try {
@@ -72,30 +76,13 @@ public final class ConfigurationService {
 			if (files == null || files.length < 1) {
 				return;
 			}
-			for (File file : files) {
-				String id = file.getName();
-				int pos = id.lastIndexOf(".");
-				if (pos > 0) {
-					id = id.substring(0, pos);
-				}
-				Path dir = this.dir.resolve(id.concat(".d"));
-				if (dir.toFile().isDirectory()) {
-					register(dir);
-				}
-				load(file);
+			ComponentType[] types = ComponentType.values();
+			for (int i = types.length; i-- > 0; ) {
+				register(files, types[i]);
 			}
-		} catch (ConfigurationException | IOException e) {
+		} catch (Exception e) {
 			logger.error("Error while initializing configurations: {}", e.getMessage());
 		}
-	}
-
-	private void register(Path dir) throws IOException {
-		WatchKey key = dir.register(watcher,
-				StandardWatchEventKinds.ENTRY_CREATE,
-				StandardWatchEventKinds.ENTRY_MODIFY,
-				StandardWatchEventKinds.ENTRY_DELETE);
-		
-		keys.put(key, dir);
 	}
 
 	public void watch() {
@@ -135,6 +122,46 @@ public final class ConfigurationService {
 		}
 	}
 
+	private void register(Path dir) throws IOException {
+		WatchKey key = dir.register(watcher,
+				StandardWatchEventKinds.ENTRY_CREATE,
+				StandardWatchEventKinds.ENTRY_MODIFY,
+				StandardWatchEventKinds.ENTRY_DELETE);
+		
+		keys.put(key, dir);
+	}
+
+	private void register(File[] files, ComponentType type) throws Exception {
+		files:
+		for (File file : files) {
+			String id = file.getName();
+			int pos = id.lastIndexOf(".");
+			if (pos > 0) {
+				id = id.substring(0, pos);
+			}
+			if (id.equals(EnergyManager.ID)) {
+				continue;
+			}
+			if (!id.startsWith(type.getKey())) {
+				if (type != ComponentType.GENERAL) {
+					continue;
+				}
+				else {
+					for (ComponentType t : ComponentType.values()) {
+						if (id.startsWith(t.getKey())) {
+							continue files;
+						}
+					}
+				}
+			}
+			Path dir = this.dir.resolve(id.concat(".d"));
+			if (dir.toFile().isDirectory()) {
+				register(dir);
+			}
+			load(file, id, type);
+		}
+	}
+
 	private void load(File file) throws ConfigurationException {
 		String id = file.getName();
 		int pos = id.lastIndexOf(".");
@@ -144,29 +171,38 @@ public final class ConfigurationService {
 		if (id.equals(EnergyManager.ID)) {
 			return;
 		}
+		ComponentType type = ComponentType.GENERAL;
+		for (ComponentType t : ComponentType.values()) {
+			if (id.startsWith(t.getKey())) {
+				type = t;
+				break;
+			}
+		}
+		load(file, id, type);
+	}
+
+	private void load(File file, String id, ComponentType type) throws ConfigurationException {
 		Configurations configs = Configurations.create(id, dir.resolve(id.concat(".cfg")).toFile());
-		
+
 		File[] dir = this.dir.resolve(id+".d").toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 		if (dir != null && dir.length > 0) {
 			for (File opt : dir) {
 				configs.configure(opt);
 			}
 		}
-		for (ComponentType type : ComponentType.values()) {
-			if (id.startsWith(type.getKey())) {
-				String pid = type.getId();
-				if (configs.contains(Configurations.GENERAL, "type")) {
-					pid = pid.concat(".")
-							.concat(configs.get(Configurations.GENERAL, "type").toLowerCase());
-				}
-				
-				String alias = id.substring(type.getKey().length());
-				if (alias.length() == 0) {
-					alias = "0";
-				}
-				load(pid, alias, configs);
-				return;
+		if (id.startsWith(type.getKey())) {
+			String pid = type.getId();
+			if (configs.contains(Configurations.GENERAL, "type")) {
+				pid = pid.concat(".")
+						.concat(configs.get(Configurations.GENERAL, "type").toLowerCase());
 			}
+			
+			String alias = id.substring(type.getKey().length());
+			if (alias.length() == 0) {
+				alias = "0";
+			}
+			load(pid, alias, configs);
+			return;
 		}
 		if (configs.contains(Configurations.GENERAL, "pid")) {
 			String pid = configs.get(Configurations.GENERAL, "pid");

@@ -1,4 +1,4 @@
-package org.the.cmpt.ctrl.mpc;
+package org.the.ems.ctrl.mpc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,13 +9,13 @@ import java.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ControlTask implements Runnable {
-	private final static Logger logger = LoggerFactory.getLogger(ControlTask.class);
+public class ModelPredictionTask implements Runnable {
+	private final static Logger logger = LoggerFactory.getLogger(ModelPredictionTask.class);
 
 	private final String python;
 	private final String script;
 
-	public ControlTask(String python, String script) {
+	public ModelPredictionTask(String python, String script) {
 		this.python = python;
 		this.script = script;
 	}

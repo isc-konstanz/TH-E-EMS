@@ -24,7 +24,7 @@ def projectFullName = 'TH-E EMS Components - Serenergy Fuel Cell'
 def projectDescription = 'Serenergy fuel cell component for TH-E EMS framework.'
 
 dependencies {
-  implementation project(':cmpts:chp')
+  implementation project(':cmpt:chp')
 }
 
 eclipse {

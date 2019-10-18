@@ -1,4 +1,4 @@
-package org.the.cmpt.ctrl.mpc;
+package org.the.ems.ctrl.mpc;
 
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.cmpt.ctrl.mpc.Command.CommandCallbacks;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
@@ -25,16 +24,17 @@ import org.the.ems.core.schedule.NamedThreadFactory;
 import org.the.ems.core.schedule.Schedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
+import org.the.ems.ctrl.mpc.Command.CommandCallbacks;
 
 @org.osgi.service.component.annotations.Component(
 	service = ScheduleService.class,
-	configurationPid = Control.PID,
+	configurationPid = ModelPredictiveControl.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Control extends Component
+public class ModelPredictiveControl extends Component
 		implements ScheduleService, CommandCallbacks {
 
-	private static final Logger logger = LoggerFactory.getLogger(Control.class);
+	private static final Logger logger = LoggerFactory.getLogger(ModelPredictiveControl.class);
 
 	public final static String PID = "org.the.ems.ctrl.mpc";
 
@@ -72,7 +72,7 @@ public class Control extends Component
 		LocalTime next = time.with(next(interval)).minusMinutes(5);
 		logger.debug("Starting TH-E-MPC at {}", next);
 		
-		executor.scheduleAtFixedRate(new ControlTask(python, script), 
+		executor.scheduleAtFixedRate(new ModelPredictionTask(python, script), 
 				time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
 	}
 

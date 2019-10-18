@@ -1,4 +1,4 @@
-package org.the.cmpt.ctrl.mpc;
+package org.the.ems.ctrl.mpc;
 
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
@@ -11,7 +11,7 @@ import org.the.ems.core.data.ValueListener;
 public class Command extends ConfiguredObject implements ValueListener {
 
 	/**
-	 * Interface used to notify the {@link Control} 
+	 * Interface used to notify the {@link ModelPredictiveControl} 
 	 * implementation about received grid service requests
 	 */
 	public interface CommandCallbacks {

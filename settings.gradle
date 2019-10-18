@@ -20,16 +20,21 @@
  */
 rootProject.name = 'TH-E-CMPT'
 
-include 'api', 'cmpts', 'cmpts:chp', 'cmpts:chp:serenergy', 'cmpts:hp', 'cmpts:inv', 'cmpts:tes', 'cms:mockup', 'mpc'
+include 'api', 'cmpt', 'cmpt:chp', 'cmpt:chp:serenergy', 'cmpt:hp', 'cmpt:inv', 'cmpt:tes', 'cms', 'cms:mockup', 'ctrl', 'ctrl:2p', 'ctrl:sd', 'ctrl:mpc'
 
 def coreDir = '../TH-E-EMS'
 project(':api').projectDir = file(coreDir+'/api')
-project(':cmpts').projectDir = file(coreDir+'/cmpts')
-project(':cmpts:chp').projectDir = file(coreDir+'/cmpts/chp')
-project(':cmpts:hp').projectDir = file(coreDir+'/cmpts/hp')
-project(':cmpts:inv').projectDir = file(coreDir+'/cmpts/inv')
-project(':cmpts:tes').projectDir = file(coreDir+'/cmpts/tes')
+project(':cmpt').projectDir = file(coreDir+'/cmpt')
+project(':cmpt:chp').projectDir = file(coreDir+'/cmpt/chp')
+project(':cmpt:hp').projectDir = file(coreDir+'/cmpt/hp')
+project(':cmpt:inv').projectDir = file(coreDir+'/cmpt/inv')
+project(':cmpt:tes').projectDir = file(coreDir+'/cmpt/tes')
+project(':cmpt:chp:serenergy').projectDir = file('cmpt/chp/serenergy')
 
-project(':cmpts:chp:serenergy').projectDir = file('cmpts/chp/serenergy')
-
+project(':cms').projectDir = file(coreDir+'/cms/openmuc')
 project(':cms:mockup').projectDir = file('cms/mockup')
+
+project(':ctrl').projectDir = file(coreDir+'/ctrl')
+project(':ctrl:2p').projectDir = file(coreDir+'/ctrl/2p')
+project(':ctrl:sd').projectDir = file('ctrl/sd')
+project(':ctrl:mpc').projectDir = file('ctrl/mpc')

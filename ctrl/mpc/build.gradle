@@ -23,15 +23,8 @@ def projectName = 'TH-E-MPC'
 def projectFullName = 'TH-E Model Predictive Control'
 def projectDescription = 'The Model Predictive Control of TH-E EMS framework'
 
-configurations.create('embed')
-
-def ini4jVersion = '0.5.4'
-
 dependencies {
   implementation project(':api')
-  implementation group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
-
-  embed group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
 }
 
 eclipse {
@@ -41,14 +34,9 @@ eclipse {
 }
 
 jar {
-  into('libs') {
-    from configurations.embed
-  }
   manifest {
     attributes('Bundle-Name':        projectFullName,
                'Bundle-Description': projectDescription,
-               'Bundle-ClassPath':   '.,libs/ini4j-'+ini4jVersion+'.jar',
-               'Import-Package':     '!org.ini4j.*,*',
 	           'Export-Package':     '')
   }
 }

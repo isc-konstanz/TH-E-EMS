@@ -1,21 +1,21 @@
 package org.the.ems.cmpt.tes;
 
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.GeneratorService;
+import org.the.ems.core.HeatingService;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
 public class GeneratorEnergy {
 
-	private final GeneratorService component;
+	private final HeatingService component;
 
 	private Double energy = Double.NaN;
 
-	public GeneratorEnergy(GeneratorService component) {
+	public GeneratorEnergy(HeatingService component) {
 		this.component = component;
 	}
 
-	public GeneratorService getService() {
+	public HeatingService getService() {
 		return component;
 	}
 

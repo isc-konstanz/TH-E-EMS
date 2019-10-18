@@ -28,8 +28,9 @@ import org.the.ems.cmpt.circ.CirculationPump;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.GeneratorService;
 import org.the.ems.core.GeneratorState;
+import org.the.ems.core.HeatingService;
+import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ChannelListener;
@@ -38,11 +39,11 @@ import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class Generator extends Component implements GeneratorService {
-	private final static Logger logger = LoggerFactory.getLogger(Generator.class);
+public abstract class Heating extends Component implements HeatingService {
+	private final static Logger logger = LoggerFactory.getLogger(Heating.class);
 
-	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
-	protected int intervalMin = 600000;
+	@Configuration(mandatory=false, scale=60000) // Default runtime minimum of 10 minutes
+	protected int runtimeMin = 600000;
 
 	@Configuration(scale=1000)
 	protected double powerMax;
@@ -68,6 +69,17 @@ public abstract class Generator extends Component implements GeneratorService {
 
 	public void setState(GeneratorState state) {
 		this.generatorState = state;
+	}
+
+	public int getRuntime() {
+		if (startTimeLast > 0) {
+			return (int) (System.currentTimeMillis() - startTimeLast);
+		}
+		return 0;
+	}
+
+	public int getMinRuntime() {
+		return runtimeMin;
 	}
 
 	public double getMaxPower() {
@@ -116,8 +128,8 @@ public abstract class Generator extends Component implements GeneratorService {
 				throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 			}
 			else if (value.doubleValue() == 0) {
-				if (value.getTime() - startTimeLast < intervalMin) {
-					logger.debug("Unable to stop component after interval shorter than {}mins", intervalMin/60000);
+				if (value.getTime() - startTimeLast < runtimeMin) {
+					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
 				}
 				onStop(container, value.getTime());
@@ -148,6 +160,9 @@ public abstract class Generator extends Component implements GeneratorService {
 
 	@Override
 	public final void start(Value value) throws EnergyManagementException {
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
 		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
@@ -163,9 +178,12 @@ public abstract class Generator extends Component implements GeneratorService {
 
 	@Override
 	public final void stop(long time) throws EnergyManagementException {
-		if (time - startTimeLast < intervalMin && !isMaintenance()) {
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
+		if (time - startTimeLast < runtimeMin) {
 			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
-					intervalMin/60000));
+					runtimeMin/60000));
 		}
 		setState(GeneratorState.STOPPING);
 		
@@ -176,7 +194,8 @@ public abstract class Generator extends Component implements GeneratorService {
 
 	protected abstract void onStop(WriteContainer container, long time) throws ComponentException;
 
-	protected abstract void onStateChanged(Value value);
+	protected void onStateChanged(Value value) {
+	}
 
 	protected class StateListener implements ValueListener {
 
@@ -187,6 +206,12 @@ public abstract class Generator extends Component implements GeneratorService {
 					if (circulationPump != null) {
 						circulationPump.start();
 					}
+					// TODO: Verify if the generator really has started
+					setState(GeneratorState.RUNNING);
+				}
+				else {
+					// TODO: Verify if the generator really has stopped
+					setState(GeneratorState.STANDBY);
 				}
 				onStateChanged(value);
 				

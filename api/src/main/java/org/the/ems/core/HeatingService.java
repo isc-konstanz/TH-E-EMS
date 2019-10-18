@@ -21,9 +21,19 @@ package org.the.ems.core;
 
 import org.the.ems.core.data.Value;
 
-public interface GeneratorService extends ComponentService {
+public interface HeatingService extends ComponentService {
 
 	public GeneratorState getState();
+
+	/*
+	 * Get the current runtime in milliseconds [ms].
+	 */
+	public int getRuntime();
+
+	/*
+	 * Get the minimum runtime in milliseconds [ms].
+	 */
+	public int getMinRuntime();
 
 	/*
 	 * Get the maximum power in watts [W].

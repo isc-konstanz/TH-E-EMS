@@ -66,8 +66,7 @@ public final class ConfigurationService {
 			register(dir);
 			
 			load(EnergyManager.PID, Configurations.create(
-					EnergyManager.ID, 
-					dir.resolve(EnergyManager.ID + ".cfg").toFile()));
+					EnergyManager.ID, dir.resolve(EnergyManager.ID + ".cfg").toFile()));
 			
 			File[] files = this.dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 			if (files == null || files.length < 1) {
@@ -142,6 +141,9 @@ public final class ConfigurationService {
 		if (pos > 0) {
 			id = id.substring(0, pos);
 		}
+		if (id.equals(EnergyManager.ID)) {
+			return;
+		}
 		Configurations configs = Configurations.create(id, dir.resolve(id.concat(".cfg")).toFile());
 		
 		File[] dir = this.dir.resolve(id+".d").toFile().listFiles((d, name) -> name.endsWith(".cfg"));
@@ -166,12 +168,10 @@ public final class ConfigurationService {
 				return;
 			}
 		}
-		if (!id.equals(EnergyManager.ID)) {
-			if (configs.contains(Configurations.GENERAL, "pid")) {
-				String pid = configs.get(Configurations.GENERAL, "pid");
-				load(pid, configs);
-				return;
-			}
+		if (configs.contains(Configurations.GENERAL, "pid")) {
+			String pid = configs.get(Configurations.GENERAL, "pid");
+			load(pid, configs);
+			return;
 		}
 		throw new ConfigurationException("Missing PID for component configuration: "+file.getName());
 	}

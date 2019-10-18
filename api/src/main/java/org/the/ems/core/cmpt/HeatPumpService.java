@@ -21,10 +21,10 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
-import org.the.ems.core.GeneratorService;
+import org.the.ems.core.HeatingService;
 import org.the.ems.core.data.Value;
 
-public interface HeatPumpService extends GeneratorService {
+public interface HeatPumpService extends HeatingService {
 
 	static final String PID = "org.the.ems.cmpt.hp";
 

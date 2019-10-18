@@ -42,8 +42,8 @@ public class CirculationPump extends ConfiguredObject implements CirculationCall
 
 	private final Circulation circulation;
 
-	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
-	private int intervalMin = 600000;
+	@Configuration(mandatory=false, scale=60000) // Default runtime minimum of 10 minutes
+	private int runtimeMin = 600000;
 
 	@Configuration(mandatory=false)
 	private double flowTempDeltaMin = 0.5;
@@ -106,7 +106,7 @@ public class CirculationPump extends ConfiguredObject implements CirculationCall
 	}
 
 	public boolean isRunInterval() {
-		return System.currentTimeMillis() - startTimeLast >= intervalMin;
+		return System.currentTimeMillis() - startTimeLast >= runtimeMin;
 	}
 
 	public void start() {

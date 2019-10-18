@@ -46,6 +46,7 @@ import org.the.ems.core.UnknownComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.cmpt.HeatPumpService;
+import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.VentilationService;
@@ -60,6 +61,7 @@ import org.the.ems.core.schedule.ScheduleService;
 
 @Component(
 	service = EnergyManagementService.class,
+	immediate = true,
 	property = {
 		CommandProcessor.COMMAND_SCOPE + ":String=th-e-ems",
 		CommandProcessor.COMMAND_FUNCTION + ":String=maintenance"
@@ -206,6 +208,18 @@ public final class EnergyManager extends ConfiguredObject
 
 	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
 		unbindComponentService(cogeneratorService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
+		bindComponentService(heatingRodService);
+	}
+
+	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
+		unbindComponentService(heatingRodService);
 	}
 
 	@Reference(

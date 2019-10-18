@@ -54,11 +54,6 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 	}
 
 	@Override
-	public ComponentType getType() {
-		return ComponentType.GENERAL;
-	}
-
-	@Override
 	public final ComponentStatus getStatus() {
 		return componentStatus;
 	}
@@ -90,13 +85,12 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 			super.activate(context.getService(context.getServiceReference(ContentManagementService.class)));
 			
 			Configurations configs = Configurations.create(properties);
-			
 			configure(configs);
 			onActivate(configs);
 			
 		} catch (Exception e) {
-			logger.warn("Error while activating {} {} {}: {}", 
-					getTypeName(), getType().getFullName(), getId(), e.getMessage());
+			logger.warn("Error while activating {} {} {}:", 
+					getTypeName(), getType().getFullName(), getId(), e);
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}
@@ -131,16 +125,16 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 		}
 	}
 
-	public void onActivate(Configurations configs) throws ComponentException {
+	protected void onActivate(Configurations configs) throws ComponentException {
 	}
 
-	public void onResume() throws ComponentException {
+	protected void onResume() throws ComponentException {
 	}
 
-	public void onPause() throws ComponentException {
+	protected void onPause() throws ComponentException {
 	}
 
-	public void onDeactivate() throws ComponentException {
+	protected void onDeactivate() throws ComponentException {
 	}
 
 	@Override

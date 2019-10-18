@@ -28,7 +28,9 @@ public interface ComponentService {
 
 	public String getTypeName();
 
-	public ComponentType getType();
+	public default ComponentType getType() {
+		return ComponentType.GENERAL;
+	}
 
 	public ComponentStatus getStatus();
 

@@ -22,7 +22,7 @@ package org.the.ems.cmpt.hr;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.the.ems.cmpt.Generator;
+import org.the.ems.cmpt.Heating;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.config.Configuration;
@@ -36,7 +36,7 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPid = HeatingRodService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class HeatingRod extends Generator implements HeatingRodService {
+public class HeatingRod extends Heating implements HeatingRodService {
 
 	@Override
 	@Configuration(value="th_energy", mandatory=false)
@@ -62,10 +62,6 @@ public class HeatingRod extends Generator implements HeatingRodService {
 	@Override
 	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		container.add(state, new BooleanValue(false, time));
-	}
-
-	@Override
-	protected void onStateChanged(Value value) {
 	}
 
 }

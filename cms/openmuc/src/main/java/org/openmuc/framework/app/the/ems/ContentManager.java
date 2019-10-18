@@ -65,7 +65,7 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 
 	@Deactivate
 	protected void deactivate(ComponentContext context) {
-		logger.info("Deactivating TH-E  Content Management System");
+		logger.info("Deactivating TH-E Content Management System");
 		
 		executor.shutdown();
 	}

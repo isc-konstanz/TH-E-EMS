@@ -18,8 +18,25 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-EMS'
+archivesBaseName = 'th-e-ctrl'
+def projectName = 'TH-E-Control'
+def projectFullName = 'TH-E EMS Core - Controls'
+def projectDescription = 'The core controls of TH-E EMS framework'
 
-include 'api', 'cmpt', 'cmpt:chp', 'cmpt:hr', 'cmpt:hp', 'cmpt:inv', 'cmpt:tes', 'cmpt:vnt', 'ems', 'cms', 'ctrl', 'ctrl:2p'
+dependencies {
+  api project(':api')
+}
 
-project(':cms').projectDir = file('cms/openmuc')
+eclipse {
+  project {
+    name = projectName
+  }
+}
+
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     'org.the.ems.ctrl.*')
+  }
+}

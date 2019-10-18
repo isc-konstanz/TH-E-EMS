@@ -32,6 +32,15 @@ import org.the.ems.core.config.ConfigurationException;
 public class Configurations extends org.the.ems.core.config.Configurations {
     private static final Logger logger = LoggerFactory.getLogger(Configurations.class);
 
+	public Configurations configure(File[] files) throws ConfigurationException {
+		if (files != null && files.length > 0) {
+			for (File file : files) {
+				configure(file);
+			}
+		}
+		return this;
+	}
+
 	public Configurations configure(File file) throws ConfigurationException {
 		if (file.exists()) {
 			logger.debug("Configuring from file: {}", file.getAbsolutePath());

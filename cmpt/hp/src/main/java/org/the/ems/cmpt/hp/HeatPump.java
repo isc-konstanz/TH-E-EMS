@@ -46,12 +46,6 @@ import org.the.ems.core.data.WriteContainer;
 public class HeatPump extends Heating implements HeatPumpService {
 	private static final Logger logger = LoggerFactory.getLogger(HeatPump.class);
 
-	@Configuration("temp_min")
-	protected double temperatureMin;
-
-	@Configuration("temp_max")
-	protected double temperatureMax;
-
 	@Configuration("temp_in_max")
 	protected double temperatureInMax;
 
@@ -130,23 +124,9 @@ public class HeatPump extends Heating implements HeatPumpService {
 		@Override
 		public void onValueReceived(Value value) {
 			temperatureValue = value;
-			
 			if (temperatureValue.doubleValue() >= temperatureInMax) {
 				state.write(new BooleanValue(false, value.getTime()));;
 				return;
-			}
-			if (isMaintenance()) {
-				return;
-			}
-			if (temperatureValue.doubleValue() <= temperatureMin &&
-					(stateValueLast != null && !stateValueLast.booleanValue())) {
-				
-				state.write(new BooleanValue(true, value.getTime()));
-			}
-			else if (temperatureValue.doubleValue() >= temperatureMax &&
-					(stateValueLast != null && stateValueLast.booleanValue())) {
-				
-				state.write(new BooleanValue(false, value.getTime()));
 			}
 		}
 	}

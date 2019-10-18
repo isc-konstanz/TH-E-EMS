@@ -47,6 +47,8 @@ import org.the.ems.core.mgr.EnergyManager;
 public final class ConfigurationService {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
+	private final static int SLEEP = 100;
+
 	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "ems" + File.separator;
 	private final static String CONFIG_DIR = System.getProperty("org.the.ems.core.config", CONFIG_DIR_DEFAULT);
 
@@ -78,6 +80,13 @@ public final class ConfigurationService {
 			}
 			ComponentType[] types = ComponentType.values();
 			for (int i = types.length; i-- > 0; ) {
+				try {
+					// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
+					// and only continue if all bundles are active
+					Thread.sleep(SLEEP);
+					
+				} catch (InterruptedException e) {
+				}
 				register(files, types[i]);
 			}
 		} catch (Exception e) {

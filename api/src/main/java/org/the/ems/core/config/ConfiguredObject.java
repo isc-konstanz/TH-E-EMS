@@ -54,8 +54,12 @@ public abstract class ConfiguredObject {
 	@SuppressWarnings("unchecked")
 	public <C extends ConfiguredObject> C configure(Configurations configs) throws ConfigurationException {
 		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
-		elements.addAll(Arrays.asList(this.getClass().getDeclaredFields()));
-		elements.addAll(Arrays.asList(this.getClass().getDeclaredMethods()));
+		Class<?> clazz = this.getClass();
+		while(clazz.getSuperclass() != null) {
+			elements.addAll(Arrays.asList(clazz.getDeclaredFields()));
+			elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		    clazz = clazz.getSuperclass();
+		}
 		
 		for (AnnotatedElement element : elements) {
 			Configuration config = element.getAnnotation(Configuration.class);

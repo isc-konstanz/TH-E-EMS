@@ -62,7 +62,7 @@ public class Circulation extends ConfiguredObject implements CirculationTemperat
 
 	// The channel key of the counter in liters
 	@Configuration
-	private ChannelListener flowCount;
+	private ChannelListener flowCounter;
 
 	@Configuration
 	private Channel flowEnergy;
@@ -99,7 +99,7 @@ public class Circulation extends ConfiguredObject implements CirculationTemperat
 		super.configure(configs);
 		if (!isDisabled()) {
 			
-			flowCount.registerValueListener(new FlowCountListener());
+			flowCounter.registerValueListener(new FlowCountListener());
 			flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
 			flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
 		}
@@ -116,7 +116,7 @@ public class Circulation extends ConfiguredObject implements CirculationTemperat
 
 	public void deactivate() {
 		if (!isDisabled()) {
-			flowCount.deregister();
+			flowCounter.deregister();
 			flowTempIn.deregister();
 			flowTempOut.deregister();
 		}

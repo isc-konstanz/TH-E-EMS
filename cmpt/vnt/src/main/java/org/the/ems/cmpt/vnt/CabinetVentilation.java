@@ -45,7 +45,7 @@ import org.the.ems.core.data.ValueListener;
 public class CabinetVentilation extends Component implements VentilationService, TemperatureCallbacks {
 
 	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
-	protected int intervalMin = 600000;
+	protected int runtimeMin = 600000;
 
 	@Configuration(mandatory=false, value="temp_tolerance")
 	protected double temperatureTolerance = 0.5;
@@ -96,7 +96,7 @@ public class CabinetVentilation extends Component implements VentilationService,
 				start();
 			}
 			else if (temperature < temperatureMax - temperatureTolerance &&
-					System.currentTimeMillis() - startTimeLast >= intervalMin) {
+					System.currentTimeMillis() - startTimeLast >= runtimeMin) {
 				
 				if (stateValueLast != null && stateValueLast.booleanValue()) {
 					temperatureHighFlags.remove(type);

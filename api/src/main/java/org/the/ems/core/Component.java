@@ -91,8 +91,8 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 			onActivate(configs);
 			
 		} catch (Exception e) {
-			logger.warn("Error while activating {} {} {}:", 
-					getTypeName(), getType().getFullName(), getId(), e);
+			logger.warn("Error while activating {} {} {}: {}", 
+					getTypeName(), getType().getFullName(), getId(), e.getMessage());
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}

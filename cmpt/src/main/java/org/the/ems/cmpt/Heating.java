@@ -71,6 +71,7 @@ public abstract class Heating extends Component implements HeatingService {
 		this.generatorState = state;
 	}
 
+	@Override
 	public int getRuntime() {
 		if (startTimeLast > 0) {
 			return (int) (System.currentTimeMillis() - startTimeLast);
@@ -78,14 +79,17 @@ public abstract class Heating extends Component implements HeatingService {
 		return 0;
 	}
 
+	@Override
 	public int getMinRuntime() {
 		return runtimeMin;
 	}
 
+	@Override
 	public double getMaxPower() {
 		return powerMax;
 	}
 
+	@Override
 	public double getMinPower() {
 		if (powerMin > 0) {
 			return powerMin;
@@ -166,12 +170,20 @@ public abstract class Heating extends Component implements HeatingService {
 		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
-		setState(GeneratorState.STARTING);
-		startTimeLast = value.getTime();
-		
-		WriteContainer container = new WriteContainer();
-		onStart(container, value);
-		doWrite(container);
+		switch(getState()) {
+		case STANDBY:
+		case STOPPING:
+			setState(GeneratorState.STARTING);
+			
+			WriteContainer container = new WriteContainer();
+			onStart(container, value);
+			doWrite(container);
+			
+			startTimeLast = value.getTime();
+			break;
+		default:
+			break;
+		}
 	}
 
 	protected abstract void onStart(WriteContainer container, Value value) throws ComponentException;
@@ -185,11 +197,19 @@ public abstract class Heating extends Component implements HeatingService {
 			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 					runtimeMin/60000));
 		}
-		setState(GeneratorState.STOPPING);
-		
-		WriteContainer container = new WriteContainer();
-		onStop(container, time);
-		doWrite(container);
+		switch(getState()) {
+		case RUNNING:
+		case STARTING:
+			setState(GeneratorState.STOPPING);
+			
+			WriteContainer container = new WriteContainer();
+			onStop(container, time);
+			doWrite(container);
+			
+			break;
+		default:
+			break;
+		}
 	}
 
 	protected abstract void onStop(WriteContainer container, long time) throws ComponentException;
@@ -200,12 +220,14 @@ public abstract class Heating extends Component implements HeatingService {
 	protected class StateListener implements ValueListener {
 
 		@Override
-		public void onValueReceived(Value value) {
-			if (!value.equals(stateValueLast) || stateValueLast == null) {
-				if (value.booleanValue() && (stateValueLast == null || !stateValueLast.booleanValue())) {
+		public void onValueReceived(Value state) {
+			if (stateValueLast == null || stateValueLast.booleanValue() != state.booleanValue()) {
+				if (state.booleanValue()) {
 					if (!circulationPump.isDisabled()) {
 						circulationPump.start();
 					}
+					startTimeLast = state.getTime();
+					
 					// TODO: Verify if the generator really has started
 					setState(GeneratorState.RUNNING);
 				}
@@ -213,11 +235,9 @@ public abstract class Heating extends Component implements HeatingService {
 					// TODO: Verify if the generator really has stopped
 					setState(GeneratorState.STANDBY);
 				}
-				onStateChanged(value);
-				
-				stateValueLast = value;
-				startTimeLast = value.getTime();
+				onStateChanged(state);
 			}
+			stateValueLast = state;
 		}
 	}
 

@@ -85,7 +85,7 @@ public abstract class ConfiguredObject {
 			}
 			if (!configured && config.mandatory()) {
 				throw newConfigException(MessageFormat.format("Mandatory configuration of section \"{0}\" not found: {1}",
-						section, keys));
+						section, parse(keys, element)));
 			}
 		}
 		if (!configs.isDisabled(section)) {
@@ -102,10 +102,7 @@ public abstract class ConfiguredObject {
 					method.getName()));
 		}
 		
-		String key = keys[0];
-		if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-			key = parse(method.getName().substring(3));
-		}
+		String key = parse(keys, method);
 		if (configs.contains(section, key)) {
 			configureChannel(configs, section, key);
 			
@@ -267,7 +264,10 @@ public abstract class ConfiguredObject {
 				}
 				String key = config.value()[0];
 				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-					key = parse(method.substring(3));
+					if (method.startsWith("get")) {
+						method = method.substring(3);
+					}
+					key = parse(method);
 				}
 				return key;
 				
@@ -298,6 +298,24 @@ public abstract class ConfiguredObject {
 	private ConfigurationException newConfigException(String message) {
 		return new ConfigurationException(MessageFormat.format("Error reading configuration \"{0}\": {1}", 
 				this.getClass().getSimpleName(), message));
+	}
+
+	private static String parse(String[] keys, AnnotatedElement element) {
+		String key = keys[0];
+		if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
+			String name;
+			if (element instanceof Field) {
+				name = ((Field) element).getName();
+			}
+			else {
+				name = ((Method) element).getName();
+				if (name.startsWith("get")) {
+					name = name.substring(3);
+				}
+			}
+			key = parse(name);
+		}
+		return key;
 	}
 
 	private static String parse(String key) {

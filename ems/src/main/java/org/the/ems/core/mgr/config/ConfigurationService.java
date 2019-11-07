@@ -44,10 +44,8 @@ import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.mgr.EnergyManager;
 
 @Component(service = ConfigurationService.class, immediate = true)
-public final class ConfigurationService {
+public final class ConfigurationService extends Thread {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
-
-	private final static int SLEEP = 100;
 
 	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "ems" + File.separator;
 	private final static String CONFIG_DIR = System.getProperty("org.the.ems.core.config", CONFIG_DIR_DEFAULT);
@@ -69,26 +67,44 @@ public final class ConfigurationService {
 	protected void activate() {
 		try {
 			watcher = FileSystems.getDefault().newWatchService();
-			register(dir);
-			
 			load(EnergyManager.PID, Configurations.create(
 					EnergyManager.ID, dir.resolve(EnergyManager.ID + ".cfg").toFile()));
 			
+			register(dir);
+			start();
+			
+		} catch (Exception e) {
+			logger.error("Error while initializing configurations: {}", e.getMessage());
+		}
+	}
+
+	@Override
+	public void run() {
+		logger.debug("Starting TH-E Configuration");
+		try {
 			File[] files = this.dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 			if (files == null || files.length < 1) {
 				return;
 			}
 			ComponentType[] types = ComponentType.values();
 			for (int i = types.length; i-- > 0; ) {
-				try {
-					// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
-					// and only continue if all bundles are active
-					Thread.sleep(SLEEP);
-					
-				} catch (InterruptedException e) {
+				ComponentType type = types[i];
+				switch(type) {
+				case GENERAL:
+				case CONTROL:
+					try {
+						// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
+						// and only continue if all bundles are active
+						Thread.sleep(1000);
+						
+					} catch (InterruptedException e) {
+					}
+				default:
+					break;
 				}
-				register(files, types[i]);
+				register(files, type);
 			}
+			
 		} catch (Exception e) {
 			logger.error("Error while initializing configurations: {}", e.getMessage());
 		}

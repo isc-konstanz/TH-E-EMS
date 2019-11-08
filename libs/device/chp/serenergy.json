@@ -121,28 +121,23 @@
             "description": "Fuel cell state",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.1.0",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
-            "configs": {"samplingInterval": 5000, "valueType":"INTEGER"}
+            "configs": {"samplingInterval": 5000, "valueType":"INTEGER"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000}
         },
         {
             "name": "chp*ctrl*state",
             "description": "Fuel cell control state",
             "device": "chp*ctrl",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "State", "tag": "Fuel cell"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "Fuel cell"}
+            }
         },
         {
             "name": "chp*ctrl*enable",
             "description": "Fuel cell control enable",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.1.0",
-            "logging": "authorization:NONE",
             "configs": {"valueType":"INTEGER"}
         },
         {
@@ -150,7 +145,6 @@
             "description": "Fuel cell control start",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.3.0",
-            "logging": "authorization:NONE",
             "configs": {"valueType":"INTEGER"}
         },
         {
@@ -158,7 +152,6 @@
             "description": "Fuel cell control stop",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.4.0",
-            "logging": "authorization:NONE",
             "configs": {"valueType":"INTEGER"}
         },
         {
@@ -166,74 +159,50 @@
             "description": "Fuel cell stack current limit",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.6.0",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000},
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"INTEGER", "unit": "A"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Current limit", "tag": "Fuel cell stack"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "Current limit", "tag": "Fuel cell stack"}
+            }
         },
         {
             "name": "chp*stack*power",
             "description": "Fuel cell stack power",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.1.0",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true},
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit": "W"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Power", "tag": "Fuel cell stack"}
-                },
-                {
-                    "process": "power_to_kwh",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Energy", "tag": "Fuel cell stack"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "Fuel cell stack"}
+            }
         },
         {
             "name": "chp*stack*voltage",
             "description": "Fuel cell stack voltage",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.2.0",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true},
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "V"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Voltage", "tag": "Fuel cell stack"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "Fuel cell stack"}
+            }
         },
         {
             "name": "chp*stack*current",
             "description": "Fuel cell stack current",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.3.0",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true},
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "A"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Current", "tag": "Fuel cell stack"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Current", "tag": "Fuel cell stack"}
+            }
         },
         {
             "name": "chp*stack*temp",
             "description": "Fuel cell stack temperature",
             "device": "chp",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.4.0",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true},
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "°C"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Temperature", "tag": "Fuel cell stack"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Temperature", "tag": "Fuel cell stack"}
+            }
         }
     ],
 
@@ -242,44 +211,43 @@
             "name": "State",
             "tag": "Fuel cell",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPFINA",
-            "interval": "60"
+            "engine": "Engine::MYSQL",
+            "table": "chp*state"
         },
         {
             "name": "Power",
             "tag": "Fuel cell stack",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
-        },
-        {
-            "name": "Energy",
-            "tag": "Fuel cell stack",
-            "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::MYSQL",
+            "table": "chp*stack*power"
         },
         {
             "name": "Voltage",
             "tag": "Fuel cell stack",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::MYSQL",
+            "table": "chp*stack*voltage"
         },
         {
             "name": "Current",
             "tag": "Fuel cell stack",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::MYSQL",
+            "table": "chp*stack*current"
         },
         {
             "name": "Current limit",
             "tag": "Fuel cell stack",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::MYSQL",
+            "table": "chp*stack*current*limit"
         },
         {
             "name": "Temperature",
             "tag": "Fuel cell stack",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::MYSQL",
+            "table": "chp*stack*temp"
         }
     ]
 }

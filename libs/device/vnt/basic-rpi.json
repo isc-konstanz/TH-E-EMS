@@ -51,14 +51,10 @@
             "name": "vnt*state",
             "description": "Ventilation control",
             "device": "vnt",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Ventilation", "tag": "State"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "Ventilation"}
+            }
         }
     ],
 
@@ -67,8 +63,8 @@
             "name": "Ventilation",
             "tag": "State",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPFINA",
-            "interval": "60"
+            "engine": "Engine::MYSQL",
+            "table": "vnt*state"
         }
     ]
 }

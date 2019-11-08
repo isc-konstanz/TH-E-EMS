@@ -62,14 +62,10 @@
             "name": "<node>*temp",
             "description": "DS18B20 temperature",
             "settings": "unit:CELSIUS",
-            "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true},
             "configs": {"samplingInterval": "<refresh>", "unit": "°C", "valueType":"DOUBLE"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Temperature", "tag": "<name>"}
-                }
-            ]
+            "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true, "engine":"SQL",
+                "feed": {"name": "Temperature", "tag": "<name>"}
+            }
         }
     ],
 
@@ -78,7 +74,8 @@
             "name": "Temperature",
             "tag": "<name>",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*temp",
 			"unit": "°C"
         }
     ]

@@ -56,6 +56,7 @@
             "id": "power",
             "type": "Text",
             "format": "%.1f kW",
+            "scale": 0.001,
             "input": "hp*circ*flow*power",
             "node": "hp*circ"
         },
@@ -78,14 +79,10 @@
             "name": "hp*state",
             "description": "Heat pump state",
             "device": "hp",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "State", "tag": "Heat pump"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "Heat pump"}
+            }
         }
     ],
 
@@ -94,8 +91,8 @@
             "name": "State",
             "tag": "Heat pump",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPFINA",
-            "interval": "60"
+            "engine": "Engine::MYSQL",
+            "table": "hp*state"
         }
     ]
 }

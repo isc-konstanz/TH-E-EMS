@@ -41,47 +41,32 @@
             "name": "<node>*pump*state",
             "description": "<name> pump state",
             "device": "<node>",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "State", "tag": "<name> flow"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name> flow"}
+            }
         },
         {
             "name": "<node>*delta*temp",
             "description": "<name> flow temperature",
             "device": "<node>",
-            "logging": {"loggingInterval": 15000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true},
-            "configs": {"valueType":"DOUBLE", "unit": "°C"}
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": 15000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true}
         },
         {
             "name": "<node>*flow*power",
             "description": "<name> flow power",
             "device": "<node>",
-            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 10, "average": true},
-            "configs": {"valueType":"DOUBLE", "unit": "kWh"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Power", "tag": "<name> flow"}
-                }
-            ]
+            "configs": {"scalingFactor": 1000, "valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name> flow"}
+            }
         },
         {
             "name": "<node>*flow*energy",
             "description": "<name> flow energy",
             "device": "<node>",
-            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000},
-            "configs": {"valueType":"DOUBLE", "unit": "kWh"},
-            "processList": [
-                {
-                    "process": "counter_accumulator",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "Energy", "tag": "<name> flow"}
-                }
-            ]
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
         }
     ],
 
@@ -90,20 +75,15 @@
             "name": "State",
             "tag": "<name> flow",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPFINA",
-            "interval": "60"
+            "engine": "Engine::MYSQL",
+            "table": "<node>*pump*state"
         },
         {
             "name": "Power",
             "tag": "<name> flow",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
-        },
-        {
-            "name": "Energy",
-            "tag": "<name> flow",
-            "type": "DataType::REALTIME",
-            "engine": "Engine::PHPTIMESERIES"
+            "engine": "Engine::MYSQL",
+            "table": "<node>*pump*power"
         }
     ]
 }

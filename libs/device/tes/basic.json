@@ -1,0 +1,58 @@
+{
+    "name": "Buffer storage",
+    "group": "Thermal Energy Storage",
+    "category": "Storage",
+    "description": "Basic thermal energy storage",
+
+    "devices": [
+        {
+            "name": "<node>",
+            "description": "Thermal Energy Storage",
+            "driver": "virtual"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*temp",
+            "description": "<name> temperature",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true, "engine":"SQL",
+                "feed": {"name": "Temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*power",
+            "description": "<name> power",
+            "device": "<node>",
+            "configs": {"scalingFactor": 1000, "valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*energy",
+            "description": "<name> energy",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Temperature",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*temp"
+        },
+        {
+            "name": "Power",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*power"
+        }
+    ]
+}

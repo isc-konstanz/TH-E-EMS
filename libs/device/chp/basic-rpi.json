@@ -50,28 +50,32 @@
             "input": "chp*state"
         },
         {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Flow",
+            "format": "%.1f °C",
+            "input": "chp*circ*in*temp",
+            "node": "chp*circ*in"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "chp*circ*flow*power",
+            "node": "chp*circ"
+        },
+        {
             "id": "circulation",
             "type": "Switch",
-            "label": "Flow",
             "left": "Off",
             "right": "On",
             "mapping": {
                 "ON": { "channel": "chp*circ*pump*state", "value": true },
                 "OFF": { "channel": "chp*circ*pump*state", "value": false }
             },
-            "input": "chp*circ*pump*state"
-        },
-        {
-            "id": "power",
-            "type": "Text",
-            "format": "%.1f kW",
-            "input": "chp*circ*flow*power"
-        },
-        {
-            "id": "temperature",
-            "type": "Text",
-            "format": "%.1f °C",
-            "input": "chp*circ*in*temp"
+            "input": "chp*circ*pump*state",
+            "node": "chp*circ*pump"
         }
     ],
 
@@ -79,15 +83,11 @@
         {
             "name": "chp*state",
             "description": "Heat pump state",
-            "device": "hp",
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000},
+            "device": "chp",
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
-            "processList": [
-                {
-                    "process": "log_to_feed",
-                    "arguments": {"type": "ProcessArg::FEEDID", "value": "State", "tag": "Heat pump"}
-                }
-            ]
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "Cogenerator"}
+            }
         }
     ],
 
@@ -96,8 +96,8 @@
             "name": "State",
             "tag": "Cogenerator",
             "type": "DataType::REALTIME",
-            "engine": "Engine::PHPFINA",
-            "interval": "60"
+            "engine": "Engine::MYSQL",
+            "table": "chp*state"
         }
     ]
 }

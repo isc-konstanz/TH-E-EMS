@@ -28,7 +28,7 @@ import org.the.ems.cmpt.circ.CirculationPump;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.GeneratorState;
+import org.the.ems.core.HeatingState;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.Configuration;
@@ -57,17 +57,17 @@ public abstract class Heating extends Component implements HeatingService {
 	protected Circulation circulation;
 	protected CirculationPump circulationPump;
 
-	protected volatile GeneratorState generatorState = GeneratorState.STANDBY;
+	protected volatile HeatingState generatorState = HeatingState.STANDBY;
 
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
 
 	@Override
-	public GeneratorState getState() {
+	public HeatingState getState() {
 		return generatorState;
 	}
 
-	public void setState(GeneratorState state) {
+	public void setState(HeatingState state) {
 		this.generatorState = state;
 	}
 
@@ -173,7 +173,7 @@ public abstract class Heating extends Component implements HeatingService {
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-			setState(GeneratorState.STARTING);
+			setState(HeatingState.STARTING);
 			
 			WriteContainer container = new WriteContainer();
 			onStart(container, value);
@@ -200,7 +200,7 @@ public abstract class Heating extends Component implements HeatingService {
 		switch(getState()) {
 		case RUNNING:
 		case STARTING:
-			setState(GeneratorState.STOPPING);
+			setState(HeatingState.STOPPING);
 			
 			WriteContainer container = new WriteContainer();
 			onStop(container, time);
@@ -229,11 +229,11 @@ public abstract class Heating extends Component implements HeatingService {
 					startTimeLast = state.getTime();
 					
 					// TODO: Verify if the generator really has started
-					setState(GeneratorState.RUNNING);
+					setState(HeatingState.RUNNING);
 				}
 				else {
 					// TODO: Verify if the generator really has stopped
-					setState(GeneratorState.STANDBY);
+					setState(HeatingState.STANDBY);
 				}
 				onStateChanged(state);
 			}

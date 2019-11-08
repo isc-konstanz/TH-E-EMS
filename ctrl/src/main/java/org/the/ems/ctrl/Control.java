@@ -9,6 +9,7 @@ import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
+import org.the.ems.core.HeatingState;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.UnknownComponentException;
 import org.the.ems.core.config.Configuration;
@@ -48,7 +49,8 @@ public abstract class Control extends Component {
 		if (component instanceof HeatingService) {
 			HeatingService heating = (HeatingService) component;
 			try {
-				switch(heating.getState()) {
+				HeatingState state = heating.getState();
+				switch(state) {
 				case STANDBY:
 				case STOPPING:
 					if (checkStart(heating)) {
@@ -61,6 +63,9 @@ public abstract class Control extends Component {
 					if (checkStop(heating) && heating.getRuntime() >= heating.getMinRuntime()) {
 						doStop(heating);
 						onStop(heating);
+					}
+					else if (state == HeatingState.RUNNING) {
+						doSet(heating);
 					}
 					break;
 				}
@@ -79,10 +84,6 @@ public abstract class Control extends Component {
 		heating.start(getValue(heating));
 	}
 
-	protected Value getValue(HeatingService heating) {
-		return new DoubleValue(heating.getMaxPower());
-	}
-
 	protected void onStart(HeatingService heating) throws EnergyManagementException {
 		// Default implementation to be overridden
 	}
@@ -98,6 +99,14 @@ public abstract class Control extends Component {
 
 	protected void onStop(HeatingService heating) throws EnergyManagementException {
 		// Default implementation to be overridden
+	}
+
+	protected void doSet(HeatingService heating) throws EnergyManagementException {
+		heating.set(getValue(heating));
+	}
+
+	protected Value getValue(HeatingService heating) {
+		return new DoubleValue(heating.getMaxPower());
 	}
 
 }

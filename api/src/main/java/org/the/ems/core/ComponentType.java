@@ -26,12 +26,12 @@ public enum ComponentType {
 	GENERAL("cmpt", "Component"),
 	CONTROL("ctrl", "Control"),
 	INVERTER("inv", "Inverter"),
-	VENTILATION("vnt", "Ventilation"),
+	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
+	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
+	COMBINED_HEAT_POWER("chp", "Cogenerator"),
 	HEAT_PUMP("hp", "Heat Pump"),
 	HEATING_ROD("hr", "Heating Rod"),
-	COMBINED_HEAT_POWER("chp", "Cogenerator"),
-	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
-	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage");
+	VENTILATION("vnt", "Ventilation");
 
 	private static final Map<String, ComponentType> keys = new HashMap<String, ComponentType>();
 

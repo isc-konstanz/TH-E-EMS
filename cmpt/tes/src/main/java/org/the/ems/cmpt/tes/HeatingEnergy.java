@@ -5,13 +5,13 @@ import org.the.ems.core.HeatingService;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public class GeneratorEnergy {
+public class HeatingEnergy {
 
 	private final HeatingService component;
 
 	private Double energy = Double.NaN;
 
-	public GeneratorEnergy(HeatingService component) {
+	public HeatingEnergy(HeatingService component) {
 		this.component = component;
 	}
 

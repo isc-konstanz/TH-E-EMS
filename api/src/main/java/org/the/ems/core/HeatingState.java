@@ -19,7 +19,7 @@
  */
 package org.the.ems.core;
 
-public enum GeneratorState {
+public enum HeatingState {
 	STARTING,
 	STOPPING,
 	RUNNING,

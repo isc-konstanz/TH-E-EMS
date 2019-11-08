@@ -23,7 +23,7 @@ import org.the.ems.core.data.Value;
 
 public interface HeatingService extends ComponentService {
 
-	public GeneratorState getState();
+	public HeatingState getState();
 
 	/*
 	 * Get the current runtime in milliseconds [ms].

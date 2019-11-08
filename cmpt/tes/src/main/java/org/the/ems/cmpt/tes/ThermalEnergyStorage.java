@@ -6,25 +6,25 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map.Entry;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
-import org.the.ems.core.cmpt.CogeneratorService;
-import org.the.ems.core.cmpt.HeatPumpService;
+import org.the.ems.core.EnergyManagementService;
+import org.the.ems.core.HeatingService;
+import org.the.ems.core.UnknownComponentException;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
@@ -61,7 +61,10 @@ public class ThermalEnergyStorage extends Component implements ThermalEnergyStor
 
 	protected double mass;
 
-	@Configuration(mandatory=false, value="temp*")
+	@Configuration(value="heating*")
+	protected List<String> heatings;
+
+	@Configuration(value="temp*")
 	protected ChannelCollection temperatures;
 
 	protected Value temperatureLast = null;
@@ -73,24 +76,39 @@ public class ThermalEnergyStorage extends Component implements ThermalEnergyStor
 	protected Channel energy;
 	protected double energyLast = 0;
 
-	protected final List<GeneratorEnergy> energyValues = new ArrayList<GeneratorEnergy>();
+	protected final List<HeatingEnergy> energyValues = new ArrayList<HeatingEnergy>();
 
 	@Override
-	public void onActivate(Configurations configs) throws ComponentException {
-		super.onActivate(configs);
-		
-		// Storage medium mass in kilogram
-		mass = capacity*density;
-		
-		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E EMS "+getId().toUpperCase()+" Pool - thread-");
-		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
-		
-		LocalTime time = LocalTime.now();
-		LocalTime next = time.with(next(interval)).minusMinutes(5);
-		logger.debug("Starting TH-E EMS {} power calculation {}", getId().toUpperCase(), next);
-		
-		executor.scheduleAtFixedRate(this, 
-				time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
+	public void onActivate(Configurations configs, BundleContext context) throws ComponentException {
+		super.onActivate(configs, context);
+		try {
+			EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
+			for (String heating : heatings) {
+				ComponentService component = manager.getComponent(heating);
+				if (component instanceof HeatingService) {
+					logger.debug("Registering heating component \"{}\" to be feeding into thermal storage {}", heating, getId());
+					
+					HeatingEnergy energy = new HeatingEnergy((HeatingService) component);
+					energyValues.add(energy);
+				}
+			}
+			
+			// Storage medium mass in kilogram
+			mass = capacity*density;
+			
+			NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E EMS "+getId().toUpperCase()+" Pool - thread-");
+			executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
+			
+			LocalTime time = LocalTime.now();
+			LocalTime next = time.with(next(interval));
+			logger.debug("Starting TH-E EMS {} power calculation {}", getId().toUpperCase(), next);
+			
+			executor.scheduleAtFixedRate(this, 
+					time.until(next, ChronoUnit.MILLIS), interval*60000, TimeUnit.MILLISECONDS);
+			
+		} catch (UnknownComponentException e) {
+			throw new ConfigurationException("Unable to find controllable component " + e.getMessage());
+		}
 	}
 
 	@Override
@@ -99,67 +117,39 @@ public class ThermalEnergyStorage extends Component implements ThermalEnergyStor
 		executor.shutdown();
 	}
 
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindCogeneratorService(CogeneratorService service) {
-		GeneratorEnergy energy = new GeneratorEnergy(service);
-		energyValues.add(energy);
-	}
-
-	protected void unbindCogeneratorService(CogeneratorService service) {
-		unbindComponentSerivce(service);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindHeatPumpService(HeatPumpService service) {
-		GeneratorEnergy energy = new GeneratorEnergy(service);
-		energyValues.add(energy);
-	}
-
-	protected void unbindHeatPumpService(HeatPumpService service) {
-		unbindComponentSerivce(service);
-	}
-
-	private void unbindComponentSerivce(ComponentService service) {
-		ListIterator<GeneratorEnergy> iter = energyValues.listIterator();
-		while(iter.hasNext()){
-		    if(iter.next().getService().getId().equals(service.getId())){
-		        iter.remove();
-		    }
-		}
-	}
-
 	@Override
 	public void run() {
 		try {
 			long time = System.currentTimeMillis();
-			double temperatureSum = 0;
-			for (Channel temperature : temperatures.values()) {
-//				time = Math.min(time, val.getTime());
-				Value temp = temperature.getLatestValue();
-				
-				temperatureSum += temp.doubleValue();
-			}
-			Value temperature = new DoubleValue(temperatureSum/temperatures.size(), time);
+			Value temperature;
 			if (temperatures.size() > 1) {
+				double tempSum = 0;
+				for (Entry<String, Channel> channel : temperatures.entrySet()) {
+					if (!channel.getKey().equals(TEMP)) {
+						Value temp = channel.getValue().getLatestValue();
+						if (temp != null) {
+							tempSum += temp.doubleValue();
+						}
+					}
+				}
+				temperature = new DoubleValue(tempSum/(temperatures.size() - 1), time);
 				temperatures.get(TEMP).setLatestValue(temperature);
 			}
+			else {
+				temperature = temperatures.get(TEMP).getLatestValue();
+			}
 			
-			if (temperatureLast != null && temperature.getTime() > temperatureLast.getTime()) {
-				long timeDelta = (temperature.getTime() - temperatureLast.getTime())/1000;
+			if (temperature != null && temperatureLast != null) {
+				long timeDelta = (time - temperatureLast.getTime())/1000;
 				double tempDelta = temperatureLast.doubleValue() - temperature.doubleValue();
 				
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energyDelta = specificHeat*mass*tempDelta;
 				
-				for (GeneratorEnergy energy : energyValues) {
+				for (HeatingEnergy energy : energyValues) {
 					energyDelta -= energy.getValue().doubleValue();
 				}
+				energyDelta = Math.max(energyDelta, 0);
 				
 				energyLast += energyDelta/3600;
 				energy.setLatestValue(new DoubleValue(energyLast, temperature.getTime()));
@@ -167,7 +157,7 @@ public class ThermalEnergyStorage extends Component implements ThermalEnergyStor
 			}
 			temperatureLast = temperature;
 			
-		} catch (ComponentException e) {
+		} catch (Exception e) {
 			logger.warn("Error calculating power: {}", e.getMessage());
 		}
 	}
@@ -192,7 +182,10 @@ public class ThermalEnergyStorage extends Component implements ThermalEnergyStor
 		return (temporal) -> {
 			int minute = temporal.get(ChronoField.MINUTE_OF_DAY);
 			int next = (minute / interval + 1) * interval;
-			return temporal.with(ChronoField.NANO_OF_DAY, 0).plus(next, ChronoUnit.MINUTES);
+			return temporal.with(ChronoField.SECOND_OF_DAY, 0)
+					.with(ChronoField.MILLI_OF_DAY, 0)
+					.with(ChronoField.NANO_OF_DAY, 0)
+					.plus(next, ChronoUnit.MINUTES);
 		};
 	}
 

@@ -171,12 +171,11 @@ public class Circulation extends ConfiguredObject implements CirculationTemperat
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energy = flowSpecificHeat*flowMass*tempDelta;
 				
-				if (flowEnergyLast.doubleValue() > 0) {
-					// Calculate power since last counter tick in seconds
-					long timeDelta = (counter.getTime() - flowEnergyLast.getTime())/1000;
-					double power = energy/timeDelta;
-					flowPower.setLatestValue(new DoubleValue(power, counter.getTime()));
-				}
+				// Calculate average power since last counter tick
+				long timeDelta = (counter.getTime() - flowEnergyLast.getTime())/1000;
+				double power = energy/timeDelta;
+				flowPower.setLatestValue(new DoubleValue(power, counter.getTime()));
+				
 				double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
 				flowEnergyLast = new DoubleValue(energyTotal, counter.getTime());
 				flowEnergy.setLatestValue(flowEnergyLast);

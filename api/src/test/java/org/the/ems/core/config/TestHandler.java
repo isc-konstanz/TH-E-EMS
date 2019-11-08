@@ -20,6 +20,8 @@
  */
 package org.the.ems.core.config;
 
+import java.util.List;
+
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
@@ -50,13 +52,16 @@ public class TestHandler extends ConfiguredObject {
 	@Configuration(value="test", section="Test")
 	private String testSection;
 
-	@Configuration(value= {"test1", "test"})
+	@Configuration(value={"test1", "test"})
 	private String testSelection;
 
-	@Configuration(value= {"test", "test_channel"})
+	@Configuration(value="test*")
+	private List<String> testList;
+
+	@Configuration(value={"test", "test_channel"})
 	private ChannelCollection testCollection;
 
-	@Configuration(value= "test_channel*")
+	@Configuration(value="test_channel*")
 	private ChannelCollection testWildcard;
 
 	public TestHandler(Configurations configs) throws ConfigurationException {

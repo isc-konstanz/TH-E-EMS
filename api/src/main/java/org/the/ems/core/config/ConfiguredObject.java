@@ -24,6 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -117,7 +118,10 @@ public abstract class ConfiguredObject {
 		
 		Class<?> type = field.getType();
 		field.setAccessible(true);
-		if (type.isAssignableFrom(ChannelCollection.class)) {
+		if (ChannelCollection.class.isAssignableFrom(type)) {
+			value = configureChannels(configs, section, keys);
+		}
+		else if (Collection.class.isAssignableFrom(type)) {
 			value = configureCollection(configs, section, keys);
 		}
 		else {
@@ -156,34 +160,16 @@ public abstract class ConfiguredObject {
 						keys.length > ((ChannelCollection) value).size()) {
 					return false;
 				}
+				else if (type.isAssignableFrom(Collection.class) &&
+						keys.length > ((Collection<?>) value).size()) {
+					return false;
+				}
 				return true;
 			}
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			throw newConfigException(e.getMessage());
 		}
 		return false;
-	}
-
-	private ChannelCollection configureCollection(Configurations configs, 
-			String section, String[] keys) throws ConfigurationException {
-		
-		ChannelCollection channels = new ChannelCollection();
-		for (String key : keys) {
-			if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-				throw new ConfigurationException("Error configuring empty channel collection");
-			}
-			else if (key.contains("?") || key.contains("*")) {
-				for (String k : configs.search(section, key)) {
-					Channel channel = configureChannel(configs, section, k);
-					channels.put(k, channel);
-				}
-			}
-			else if (configs.contains(section, key)) {
-				Channel channel = configureChannel(configs, section, key);
-				channels.put(key, channel);
-			}
-		}
-		return channels;
 	}
 
 	private Object configureField(Configurations configs, Class<?> type, 
@@ -208,6 +194,54 @@ public abstract class ConfiguredObject {
 			
 			throw newConfigException(e.getMessage());
 		}
+	}
+
+	private Collection<String> configureCollection(Configurations configs, 
+			String section, String[] keys) throws ConfigurationException {
+		
+		Collection<String> channels = new LinkedList<String>();
+		for (String key : keys) {
+			try {
+				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
+					throw new ConfigurationException("Error configuring empty string collection");
+				}
+				else if (key.contains("?") || key.contains("*")) {
+					for (String k : configs.search(section, key)) {
+						channels.add(configs.get(section, k, String.class));
+					}
+				}
+				else if (configs.contains(section, key)) {
+					channels.add(configs.get(section, key, String.class));
+				}
+			} catch (ConfigurationException | IllegalArgumentException | 
+					NullPointerException | NoSuchFieldException e) {
+				
+				throw newConfigException(e.getMessage());
+			}
+		}
+		return channels;
+	}
+
+	private ChannelCollection configureChannels(Configurations configs, 
+			String section, String[] keys) throws ConfigurationException {
+		
+		ChannelCollection channels = new ChannelCollection();
+		for (String key : keys) {
+			if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
+				throw new ConfigurationException("Error configuring empty channel collection");
+			}
+			else if (key.contains("?") || key.contains("*")) {
+				for (String k : configs.search(section, key)) {
+					Channel channel = configureChannel(configs, section, k);
+					channels.put(k, channel);
+				}
+			}
+			else if (configs.contains(section, key)) {
+				Channel channel = configureChannel(configs, section, key);
+				channels.put(key, channel);
+			}
+		}
+		return channels;
 	}
 
 	private Channel configureChannel(Configurations configs,  

@@ -147,7 +147,7 @@ public class ThermalEnergyStorage extends Component implements ThermalEnergyStor
 				double energyDelta = specificHeat*mass*tempDelta;
 				
 				for (HeatingEnergy energy : energyValues) {
-					energyDelta -= energy.getValue().doubleValue();
+					energyDelta += energy.getValue().doubleValue();
 				}
 				energyDelta = Math.max(energyDelta, 0);
 				

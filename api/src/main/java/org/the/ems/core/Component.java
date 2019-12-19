@@ -80,7 +80,7 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 	}
 
 	@Activate
-	public final void activate(BundleContext context, Map<String, ?> properties) throws org.osgi.service.component.ComponentException {
+	protected final void activate(BundleContext context, Map<String, ?> properties) throws org.osgi.service.component.ComponentException {
 		try {
 			super.activate(context.getService(context.getServiceReference(ContentManagementService.class)));
 			
@@ -99,7 +99,7 @@ public abstract class Component extends ConfiguredObject implements ComponentSer
 	}
 
 	@Modified
-	void modified(Map<String, ?> properties) {
+	protected void modified(Map<String, ?> properties) {
 		try {
 			Configurations configs = Configurations.create(properties);
 			

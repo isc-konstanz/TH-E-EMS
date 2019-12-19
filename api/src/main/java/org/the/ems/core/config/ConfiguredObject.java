@@ -117,7 +117,6 @@ public abstract class ConfiguredObject {
 		Object value = null;
 		
 		Class<?> type = field.getType();
-		field.setAccessible(true);
 		if (ChannelCollection.class.isAssignableFrom(type)) {
 			value = configureChannels(configs, section, keys);
 		}
@@ -154,6 +153,7 @@ public abstract class ConfiguredObject {
 						value = (double) value*scale;
 					}
 				}
+				field.setAccessible(true);
 				field.set(this, value);
 				
 				if (type.isAssignableFrom(ChannelCollection.class) &&

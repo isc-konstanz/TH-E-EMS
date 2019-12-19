@@ -17,7 +17,7 @@
             "name": "<node>*temp",
             "description": "<name> temperature",
             "device": "<node>",
-            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true, "engine":"SQL",
                 "feed": {"name": "Temperature", "tag": "<name>"}
             }
@@ -45,14 +45,16 @@
             "tag": "<name>",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "<node>*temp"
+            "table": "<node>*temp",
+			"unit": "°C"
         },
         {
             "name": "Power",
             "tag": "<name>",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "<node>*power"
+            "table": "<node>*power",
+			"unit": "W"
         }
     ]
 }

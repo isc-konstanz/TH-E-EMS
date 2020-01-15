@@ -20,11 +20,11 @@ import org.the.ems.ctrl.Control;
 )
 public class TwoPointControl extends Control {
 
-	@Configuration("temp_min")
-	private double temperatureMin;
-
 	@Configuration("temp_max")
 	private double temperatureMax;
+
+	@Configuration("temp_min")
+	private double temperatureMin;
 
 	@Configuration("temp")
 	private ChannelListener temperature;
@@ -51,7 +51,7 @@ public class TwoPointControl extends Control {
 	}
 
 	protected boolean checkMinTemperature() {
-		return temperatureValue <= temperatureMax;
+		return temperatureValue <= temperatureMin;
 	}
 
 	@Override

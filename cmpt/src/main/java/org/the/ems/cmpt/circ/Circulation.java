@@ -28,14 +28,14 @@ import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.config.ConfiguredObject;
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Circulation extends ConfiguredObject implements CirculationTemperatureCallbacks {
+public class Circulation extends Configurable implements CirculationTemperatureCallbacks {
 
 	private final static String SECTION = "Circulation";
 

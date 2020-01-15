@@ -29,13 +29,13 @@ import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.config.ConfiguredObject;
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Consumption extends ConfiguredObject implements PowerCallbacks, ValueListener {
+public class Consumption extends Configurable implements PowerCallbacks, ValueListener {
 
 	private final static String SECTION = "Consumption";
 

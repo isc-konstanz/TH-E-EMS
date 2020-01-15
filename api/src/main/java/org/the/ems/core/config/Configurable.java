@@ -36,7 +36,7 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 
-public abstract class ConfiguredObject {
+public abstract class Configurable {
 
 	private boolean disabled = true;
 
@@ -47,13 +47,13 @@ public abstract class ConfiguredObject {
 	protected ContentManagementService content;
 
 	@SuppressWarnings("unchecked")
-	public <C extends ConfiguredObject> C activate(ContentManagementService content) throws ComponentException {
+	public <C extends Configurable> C activate(ContentManagementService content) throws ComponentException {
 		this.content = content;
 		return (C) this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <C extends ConfiguredObject> C configure(Configurations configs) throws ConfigurationException {
+	public <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
 		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
 		Class<?> clazz = this.getClass();
 		while(clazz.getSuperclass() != null) {
@@ -316,7 +316,7 @@ public abstract class ConfiguredObject {
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <C extends ConfiguredObject> C setConfiguredSection(String section) {
+	protected <C extends Configurable> C setConfiguredSection(String section) {
 		this.section = section;
 		return (C) this;
 	}

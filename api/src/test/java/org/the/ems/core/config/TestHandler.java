@@ -26,7 +26,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
-public class TestHandler extends ConfiguredObject {
+public class TestHandler extends Configurable {
 
 	@Configuration
 	private String test;

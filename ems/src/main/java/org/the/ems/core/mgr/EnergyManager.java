@@ -53,7 +53,7 @@ import org.the.ems.core.cmpt.VentilationService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.config.ConfiguredObject;
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.mgr.config.ConfigurationService;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
@@ -69,7 +69,7 @@ import org.the.ems.core.schedule.ScheduleService;
 	configurationPid = EnergyManager.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public final class EnergyManager extends ConfiguredObject 
+public final class EnergyManager extends Configurable 
 		implements EnergyManagementService, ScheduleListener, Runnable {
 	private final static Logger logger = LoggerFactory.getLogger(EnergyManager.class);
 

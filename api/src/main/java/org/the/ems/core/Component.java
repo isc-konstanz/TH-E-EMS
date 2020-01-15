@@ -29,13 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.config.ConfiguredObject;
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
-public abstract class Component extends ConfiguredObject implements ComponentService {
+public abstract class Component extends Configurable implements ComponentService {
 	private final static Logger logger = LoggerFactory.getLogger(Component.class);
 
 	protected volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;

@@ -18,25 +18,25 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-project.ext {
+archivesBaseName = 'th-e-cmpt-chp-ice'
+def projectName = 'TH-E-Components-InternalCombustionEngine'
+def projectFullName = 'TH-E EMS Components - Internal Combustion Engine Cogernerator'
+def projectDescription = 'Internal combustion engine cogernerator component for TH-E EMS framework.'
 
-  projectVersion = '0.5.0'
+dependencies {
+  implementation project(':cmpt:chp')
+}
 
-  projectGroup = 'org.the.ems'
-
-  projectVendor = 'ISC Konstanz e.V.'
-  projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
-
-  copyDependencies = false
-
-  distributionProjects = subprojects.findAll {
-    it.getPath() == ':cmpt:chp:ice' ||
-    it.getPath() == ':cmpt:chp:serenergy' ||
-    it.getPath() == ':ctrl:mpc' ||
-    it.getPath() == ':ctrl:sd'
+eclipse {
+  project {
+    name = projectName
   }
+}
 
-  javadocProjects = distributionProjects.findAll {
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     '')
   }
-
 }

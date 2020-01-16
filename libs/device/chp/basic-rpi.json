@@ -6,13 +6,8 @@
 
     "devices": [
         {
-            "name": "chp",
-            "description": "Cogenerator",
-            "driver": "virtual"
-        },
-        {
-            "name": "chp*ctrl",
-            "description": "Cogenerator control",
+            "name": "<node>",
+            "description": "<name>",
             "driver": "rpi-gpio",
             "address": "pin:<pin>",
             "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
@@ -27,11 +22,10 @@
         {
             "id": "pin",
             "name": "Pin",
-            "description": "The Pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "description": "The pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
             "type": "text",
             "scan": true,
-            "mandatory": true,
-            "syntax": "deviceAddress"
+            "mandatory": true
         }
     ],
 
@@ -44,49 +38,50 @@
             "left": "Off",
             "right": "On",
             "mapping": {
-                "ON": { "channel": "chp*state", "value": true },
-                "OFF": { "channel": "chp*state", "value": false }
+                "ON": { "channel": "<node>*state", "value": true },
+                "OFF": { "channel": "<node>*state", "value": false }
             },
-            "input": "chp*state"
+            "input": "<node>*state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Pump",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*circ*pump*state", "value": true },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false }
+            },
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ*pump"
         },
         {
             "id": "temperature",
             "type": "Text",
             "label": "Flow",
             "format": "%.1f °C",
-            "input": "chp*circ*in*temp",
-            "node": "chp*circ*in"
+            "input": "<node>*circ*in*temp",
+            "node": "<node>*circ*in"
         },
         {
             "id": "power",
             "type": "Text",
             "format": "%.1f kW",
             "scale": 0.001,
-            "input": "chp*circ*flow*power",
-            "node": "chp*circ"
-        },
-        {
-            "id": "circulation",
-            "type": "Switch",
-            "left": "Off",
-            "right": "On",
-            "mapping": {
-                "ON": { "channel": "chp*circ*pump*state", "value": true },
-                "OFF": { "channel": "chp*circ*pump*state", "value": false }
-            },
-            "input": "chp*circ*pump*state",
-            "node": "chp*circ*pump"
+            "input": "<node>*circ*flow*power",
+            "node": "<node>*circ"
         }
     ],
 
     "channels": [
         {
-            "name": "chp*state",
-            "description": "Heat pump state",
-            "device": "chp",
+            "name": "<node>*state",
+            "description": "<name> state",
+            "device": "<node>",
             "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
-                "feed": {"name": "State", "tag": "Cogenerator"}
+                "feed": {"name": "State", "tag": "<name>"}
             }
         }
     ],
@@ -94,10 +89,10 @@
     "feeds": [
         {
             "name": "State",
-            "tag": "Cogenerator",
+            "tag": "<name>",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*state"
+            "table": "<node>*state"
         }
     ]
 }

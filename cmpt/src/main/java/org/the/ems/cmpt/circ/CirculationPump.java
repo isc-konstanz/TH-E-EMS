@@ -105,7 +105,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 		return !isDisabled() && running;
 	}
 
-	public boolean isRunInterval() {
+	public boolean hasRunMinimum() {
 		return System.currentTimeMillis() - startTimeLast >= runtimeMin;
 	}
 
@@ -123,7 +123,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 
 	@Override
 	public void onTemperatureDeltaUpdated(Value delta) {
-		if (isRunning() && isRunInterval() && delta.doubleValue() <= flowTempDeltaMin) {
+		if (isRunning() && hasRunMinimum() && delta.doubleValue() <= flowTempDeltaMin) {
 			stop();
 		}
 	}

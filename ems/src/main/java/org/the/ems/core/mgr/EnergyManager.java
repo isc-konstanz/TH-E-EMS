@@ -255,8 +255,8 @@ public final class EnergyManager extends Configurable
 		
 		synchronized (components) {
 			if (!components.containsKey(id)) {
-				logger.info("Registering TH-E EMS {} {}: {}", 
-						componentService.getTypeName(), componentService.getType().getFullName(), id);
+				logger.info("Registered TH-E EMS {}: {}", 
+						componentService.getType().getFullName(), id);
 				
 				components.put(id, componentService);
 				manager.interrupt();
@@ -268,8 +268,8 @@ public final class EnergyManager extends Configurable
 		String id = componentService.getId();
 		
 		synchronized (components) {
-			logger.info("Deregistering TH-E EMS {} {}: {}", 
-					componentService.getTypeName(), componentService.getType().getFullName(), id);
+			logger.info("Deregistered TH-E EMS {}: {}", 
+					componentService.getType().getFullName(), id);
 			
 			components.remove(id);
 		}

@@ -49,11 +49,6 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	@Override
-	public String getTypeName() {
-		return "Basic";
-	}
-
-	@Override
 	public final ComponentStatus getStatus() {
 		return componentStatus;
 	}
@@ -91,8 +86,8 @@ public abstract class Component extends Configurable implements ComponentService
 			onActivate(configs);
 			
 		} catch (Exception e) {
-			logger.warn("Error while activating {} {} {}: {}", 
-					getTypeName(), getType().getFullName(), getId(), e.getMessage());
+			logger.warn("Error while activating {} {}: {}", 
+					getType().getFullName(), getId(), e.getMessage());
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}
@@ -120,8 +115,8 @@ public abstract class Component extends Configurable implements ComponentService
 			onDeactivate();
 			
 		} catch (Exception e) {
-			logger.warn("Error while deactivating {} {} {}: {}", 
-					getTypeName(), getType().getFullName(), id, e.getMessage());
+			logger.warn("Error while deactivating {} {}: {}", 
+					getType().getFullName(), id, e.getMessage());
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}

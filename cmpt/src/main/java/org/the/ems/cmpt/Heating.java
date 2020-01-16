@@ -57,18 +57,18 @@ public abstract class Heating extends Component implements HeatingService {
 	protected Circulation circulation;
 	protected CirculationPump circulationPump;
 
-	protected volatile HeatingState generatorState = HeatingState.STANDBY;
+	protected volatile HeatingState heatingState = HeatingState.STANDBY;
 
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
 
 	@Override
 	public HeatingState getState() {
-		return generatorState;
+		return heatingState;
 	}
 
 	public void setState(HeatingState state) {
-		this.generatorState = state;
+		this.heatingState = state;
 	}
 
 	@Override
@@ -118,6 +118,12 @@ public abstract class Heating extends Component implements HeatingService {
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
+		try {
+			stop();
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Error while stopping {} during deactivation: {}", id, e.getMessage());
+		}
 		state.deregister();
 		circulation.deactivate();
 		circulationPump.deactivate();
@@ -167,23 +173,26 @@ public abstract class Heating extends Component implements HeatingService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
-			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
-		}
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-			setState(HeatingState.STARTING);
-			
-			WriteContainer container = new WriteContainer();
-			onStart(container, value);
-			doWrite(container);
-			
-			startTimeLast = value.getTime();
+			doStart(value);
 			break;
 		default:
 			break;
 		}
+	}
+
+	protected void doStart(Value value) throws EnergyManagementException {
+		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
+			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
+		}
+		WriteContainer container = new WriteContainer();
+		
+		setState(HeatingState.STARTING);
+		onStart(container, value);
+		doWrite(container);
+		startTimeLast = value.getTime();
 	}
 
 	protected abstract void onStart(WriteContainer container, Value value) throws ComponentException;
@@ -200,42 +209,52 @@ public abstract class Heating extends Component implements HeatingService {
 		switch(getState()) {
 		case RUNNING:
 		case STARTING:
-			setState(HeatingState.STOPPING);
-			
-			WriteContainer container = new WriteContainer();
-			onStop(container, time);
-			doWrite(container);
-			
+			doStop(time);
 			break;
 		default:
 			break;
 		}
 	}
 
+	protected void doStop(long time) throws EnergyManagementException {
+		WriteContainer container = new WriteContainer();
+		
+		setState(HeatingState.STOPPING);
+		onStop(container, time);
+		doWrite(container);
+	}
+
 	protected abstract void onStop(WriteContainer container, long time) throws ComponentException;
 
-	protected void onStateChanged(Value value) {
+	protected void onStateChanged(Value state) throws EnergyManagementException {
+		if (state.booleanValue()) {
+			if (!circulationPump.isDisabled()) {
+				circulationPump.start();
+			}
+		}
 	}
 
 	protected class StateListener implements ValueListener {
 
 		@Override
-		public void onValueReceived(Value state) {
+		public synchronized void onValueReceived(Value state) {
 			if (stateValueLast == null || stateValueLast.booleanValue() != state.booleanValue()) {
-				if (state.booleanValue()) {
-					if (!circulationPump.isDisabled()) {
-						circulationPump.start();
-					}
-					startTimeLast = state.getTime();
+				try {
+					onStateChanged(state);
 					
-					// TODO: Verify if the generator really has started
-					setState(HeatingState.RUNNING);
+					if (state.booleanValue()) {
+						startTimeLast = state.getTime();
+						
+						// TODO: Verify if the heating really has started
+						setState(HeatingState.RUNNING);
+					}
+					else {
+						// TODO: Verify if the heating really has stopped
+						setState(HeatingState.STANDBY);
+					}
+				} catch (EnergyManagementException e) {
+					logger.warn("Error handling state change: {}", e.getMessage());
 				}
-				else {
-					// TODO: Verify if the generator really has stopped
-					setState(HeatingState.STANDBY);
-				}
-				onStateChanged(state);
 			}
 			stateValueLast = state;
 		}

@@ -7,11 +7,14 @@ import org.the.cmpt.chp.serenergy.data.Request;
 import org.the.cmpt.chp.serenergy.data.State;
 import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -24,17 +27,20 @@ import org.the.ems.core.data.WriteContainer;
 )
 public class Serenergy extends Cogenerator {
 
-	@Deprecated
-	protected boolean starter = false;
+	@Configuration(mandatory = false)
+	protected int enableDelay = 2500;
 
-	@Deprecated
-	protected int starterDelay = -1;
+	@Configuration
+	protected Channel enable;
 
 	@Configuration
 	protected Channel start;
 
 	@Configuration
 	protected Channel stop;
+
+	@Configuration
+	protected Channel status;
 
 	@Configuration
 	private Channel stackLimit;
@@ -63,12 +69,30 @@ public class Serenergy extends Cogenerator {
 	}
 
 	@Override
+	protected void doStart(Value value) throws EnergyManagementException {
+		if (!state.getLatestValue().booleanValue()) {
+			state.setLatestValue(new BooleanValue(true, value.getTime()));
+			return;
+		}
+		super.doStart(value);
+	}
+
+	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
 		
 		container.add(enable, Request.ENABLE.encode(time));
 		container.add(start, Request.START.encode(time+enableDelay));
 		// TODO: set stackLimit
+	}
+
+	@Override
+	protected void doStop(long time) throws EnergyManagementException {
+		if (state.getLatestValue().booleanValue()) {
+			state.setLatestValue(new BooleanValue(false, time));
+			return;
+		}
+		super.doStop(time);
 	}
 
 	@Override
@@ -83,14 +107,24 @@ public class Serenergy extends Cogenerator {
 	}
 
 	@Override
-	protected void onStateChanged(Value value) {
-		State state = State.decode(value);
-		switch(state) {
-		case STARTING:
-			startTimeLast = value.getTime();
-			break;
-		default:
-			break;
+	protected void onStateChanged(Value value) throws EnergyManagementException {
+		// The parent implementation would start the circulation pump here.
+		// This is not needed for the Serenergy fuel cell, as the stack needs 
+		// to be on operating temperature first.
+
+		try {
+			// TODO: verify status if a start or a stop is necessary
+			if (value.booleanValue()) {
+				// TODO: implement stack limit
+				//doStart(stackLimit.getLatestValue());
+				doStart(new DoubleValue(powerMin));
+			}
+			else {
+				doStop(System.currentTimeMillis());
+			}
+		} catch (EnergyManagementException e) {
+			state.setLatestValue(new BooleanValue(!value.booleanValue()));
+			throw e;
 		}
 	}
 
@@ -103,7 +137,7 @@ public class Serenergy extends Cogenerator {
 					circulationPump.start();
 				}
 				else if (temp.doubleValue() < stackTempMin) {
-					if (circulationPump.isRunInterval()) {
+					if (circulationPump.hasRunMinimum()) {
 						circulationPump.stop();
 					}
 					if (State.decode(state.getLatestValue()) == State.STANDBY) {

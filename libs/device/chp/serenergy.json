@@ -6,13 +6,13 @@
 
     "devices": [
         {
-            "name": "chp*ctrl",
-            "description": "Fuel cell control",
+            "name": "<node>*ctrl",
+            "description": "<name> control",
             "driver": "virtual"
         },
         {
-            "name": "chp",
-            "description": "Fuel cell",
+            "name": "<node>",
+            "description": "<name>",
             "driver": "snmp",
             "address": "<ip>/<port>",
             "settings": "SNMP_VERSION=V2c:AUTHENTICATIONPASSPHRASE=private"
@@ -60,7 +60,7 @@
                 "10":"Zero load mode"
             },
             "default": "Loading",
-            "input": "chp*state"
+            "input": "<node>*state"
         },
         {
             "id": "enable",
@@ -70,10 +70,10 @@
             "left": "Off",
             "right": "On",
             "mapping": {
-                "ON": { "channel": "chp*ctrl*state", "value": true },
-                "OFF": { "channel": "chp*ctrl*state", "value": true }
+                "ON": { "channel": "<node>*ctrl*state", "value": true },
+                "OFF": { "channel": "<node>*ctrl*state", "value": false }
             },
-            "input": "chp*ctrl*state"
+            "input": "<node>*ctrl*state"
         },
         {
             "id": "circulation",
@@ -82,24 +82,24 @@
             "left": "Off",
             "right": "On",
             "mapping": {
-                "ON": { "channel": "chp*circ*pump*state", "value": true },
-                "OFF": { "channel": "chp*circ*pump*state", "value": false }
+                "ON": { "channel": "<node>*circ*pump*state", "value": true },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false }
             },
-            "input": "chp*circ*pump*state",
-            "node": "chp*circ*pump"
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ"
         },
         {
             "id": "temperature",
             "type": "Text",
             "label": "Stack",
             "format": "%.1f °C",
-            "input": "chp*stack*temp"
+            "input": "<node>*stack*temp"
         },
         {
             "id": "voltage",
             "type": "Text",
             "format": "%.1f V",
-            "input": "chp*stack*voltage"
+            "input": "<node>*stack*voltage"
         },
         {
             "id": "current",
@@ -109,99 +109,99 @@
             "min": 18,
             "step": 1,
             "mapping": {
-                "SET": { "channel": "chp*stack*current*limit" }
+                "SET": { "channel": "<node>*stack*current*limit" }
             },
-            "input": "chp*stack*current*limit"
+            "input": "<node>*stack*current*limit"
         }
     ],
 
     "channels": [
         {
-            "name": "chp*state",
-            "description": "Fuel cell state",
-            "device": "chp",
+            "name": "<node>*state",
+            "description": "<name> state",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.1.0",
             "configs": {"samplingInterval": 5000, "valueType":"INTEGER"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000}
         },
         {
-            "name": "chp*ctrl*state",
-            "description": "Fuel cell control state",
-            "device": "chp*ctrl",
-            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "name": "<node>*ctrl*state",
+            "description": "<name> control state",
+            "device": "<node>*ctrl",
+            "configs": {"valueType":"BOOLEAN"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
-                "feed": {"name": "State", "tag": "Fuel cell"}
+                "feed": {"name": "State", "tag": "<name>"}
             }
         },
         {
-            "name": "chp*ctrl*enable",
-            "description": "Fuel cell control enable",
-            "device": "chp",
+            "name": "<node>*ctrl*enable",
+            "description": "<name> control enable",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.1.0",
             "configs": {"valueType":"INTEGER"}
         },
         {
-            "name": "chp*ctrl*start",
-            "description": "Fuel cell control start",
-            "device": "chp",
+            "name": "<node>*ctrl*start",
+            "description": "<name> control start",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.3.0",
             "configs": {"valueType":"INTEGER"}
         },
         {
-            "name": "chp*ctrl*stop",
-            "description": "Fuel cell control stop",
-            "device": "chp",
+            "name": "<node>*ctrl*stop",
+            "description": "<name> control stop",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.4.0",
             "configs": {"valueType":"INTEGER"}
         },
         {
-            "name": "chp*stack*current*limit",
-            "description": "Fuel cell stack current limit",
-            "device": "chp",
+            "name": "<node>*stack*current*limit",
+            "description": "<name> stack current limit",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.2.6.0",
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"INTEGER", "unit": "A"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
-                "feed": {"name": "Current limit", "tag": "Fuel cell stack"}
+                "feed": {"name": "Current limit", "tag": "<name> stack"}
             }
         },
         {
-            "name": "chp*stack*power",
-            "description": "Fuel cell stack power",
-            "device": "chp",
+            "name": "<node>*stack*power",
+            "description": "<name> stack power",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.1.0",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit": "W"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Power", "tag": "Fuel cell stack"}
+                "feed": {"name": "Power", "tag": "<name> stack"}
             }
         },
         {
-            "name": "chp*stack*voltage",
-            "description": "Fuel cell stack voltage",
-            "device": "chp",
+            "name": "<node>*stack*voltage",
+            "description": "<name> stack voltage",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.2.0",
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "V"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Voltage", "tag": "Fuel cell stack"}
+                "feed": {"name": "Voltage", "tag": "<name> stack"}
             }
         },
         {
-            "name": "chp*stack*current",
-            "description": "Fuel cell stack current",
-            "device": "chp",
+            "name": "<node>*stack*current",
+            "description": "<name> stack current",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.3.0",
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "A"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Current", "tag": "Fuel cell stack"}
+                "feed": {"name": "Current", "tag": "<name> stack"}
             }
         },
         {
-            "name": "chp*stack*temp",
-            "description": "Fuel cell stack temperature",
-            "device": "chp",
+            "name": "<node>*stack*temp",
+            "description": "<name> stack temperature",
+            "device": "<node>",
             "address": "1.3.6.1.4.1.46029.1.1.1.3.9.4.0",
             "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Temperature", "tag": "Fuel cell stack"}
+                "feed": {"name": "Temperature", "tag": "<name> stack"}
             }
         }
     ],
@@ -209,45 +209,50 @@
     "feeds": [
         {
             "name": "State",
-            "tag": "Fuel cell",
+            "tag": "<name>",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*state"
+            "table": "<node>*state"
         },
         {
             "name": "Power",
-            "tag": "Fuel cell stack",
+            "tag": "<name> stack",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*stack*power"
+            "table": "<node>*stack*power",
+            "unit": "W"
         },
         {
             "name": "Voltage",
-            "tag": "Fuel cell stack",
+            "tag": "<name> stack",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*stack*voltage"
+            "table": "<node>*stack*voltage",
+            "unit": "V"
         },
         {
             "name": "Current",
-            "tag": "Fuel cell stack",
+            "tag": "<name> stack",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*stack*current"
+            "table": "<node>*stack*current",
+            "unit": "A"
         },
         {
             "name": "Current limit",
-            "tag": "Fuel cell stack",
+            "tag": "<name> stack",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*stack*current*limit"
+            "table": "<node>*stack*current*limit",
+            "unit": "A"
         },
         {
             "name": "Temperature",
-            "tag": "Fuel cell stack",
+            "tag": "<name> stack",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "chp*stack*temp"
+            "table": "<node>*stack*temp",
+            "unit": "°C"
         }
     ]
 }

@@ -2,13 +2,13 @@ package org.the.ems.ctrl.mpc;
 
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.ConfiguredObject;
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Command extends ConfiguredObject implements ValueListener {
+public class Command extends Configurable implements ValueListener {
 
 	/**
 	 * Interface used to notify the {@link ModelPredictiveControl} 

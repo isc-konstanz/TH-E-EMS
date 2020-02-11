@@ -58,9 +58,9 @@ public class SurplusDiversionControl extends TwoPointControl {
 			return true;
 		}
 		else if (checkMaxTemperature()) {
-			return powerValue >= surplus;
+			return false;
 		}
-		return false;
+		return powerValue >= surplus;
 	}
 
 	@Override
@@ -69,9 +69,9 @@ public class SurplusDiversionControl extends TwoPointControl {
 			return true;
 		}
 		else if (checkMinTemperature()) {
-			return powerValue <= shortage;
+			return false;
 		}
-		return false;
+		return powerValue <= shortage;
 	}
 
 	@Override

@@ -7,8 +7,27 @@
     "devices": [
         {
             "name": "<node>",
-            "description": "Thermal Energy Storage",
+            "description": "Thermal energy storage",
             "driver": "virtual"
+        }
+    ],
+
+    "items": [
+        {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Temperature",
+            "header": true,
+            "format": "%.1f °C",
+            "input": "<node>*temp"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*power"
         }
     ],
 

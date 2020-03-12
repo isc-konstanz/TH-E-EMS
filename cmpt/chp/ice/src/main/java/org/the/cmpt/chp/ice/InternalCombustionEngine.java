@@ -5,12 +5,9 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 
@@ -38,15 +35,6 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected Channel starter = null;
 
 	@Override
-	protected void doStart(Value value) throws EnergyManagementException {
-		if (!state.getLatestValue().booleanValue()) {
-			state.setLatestValue(new BooleanValue(true, value.getTime()));
-			return;
-		}
-		super.doStart(value);
-	}
-
-	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
 		
@@ -64,15 +52,6 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	@Override
-	protected void doStop(long time) throws EnergyManagementException {
-		if (state.getLatestValue().booleanValue()) {
-			state.setLatestValue(new BooleanValue(false, time));
-			return;
-		}
-		super.doStop(time);
-	}
-
-	@Override
 	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		if (valve != null) {
 			container.addBoolean(valve, false, time);
@@ -85,23 +64,6 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Override
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
 		// TODO: set power level
-	}
-
-	@Override
-	protected void onStateChanged(Value value) throws EnergyManagementException {
-		super.onStateChanged(value);
-		try {
-			if (value.booleanValue()) {
-				// TODO: implement power level
-				doStart(new DoubleValue(powerMax));
-			}
-			else {
-				doStop(System.currentTimeMillis());
-			}
-		} catch (EnergyManagementException e) {
-			state.setLatestValue(new BooleanValue(!value.booleanValue()));
-			throw e;
-		}
 	}
 
 }

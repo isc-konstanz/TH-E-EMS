@@ -11,10 +11,8 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
-import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -69,30 +67,12 @@ public class Serenergy extends Cogenerator {
 	}
 
 	@Override
-	protected void doStart(Value value) throws EnergyManagementException {
-		if (!state.getLatestValue().booleanValue()) {
-			state.setLatestValue(new BooleanValue(true, value.getTime()));
-			return;
-		}
-		super.doStart(value);
-	}
-
-	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
 		
 		container.add(enable, Request.ENABLE.encode(time));
 		container.add(start, Request.START.encode(time+enableDelay));
 		// TODO: set stackLimit
-	}
-
-	@Override
-	protected void doStop(long time) throws EnergyManagementException {
-		if (state.getLatestValue().booleanValue()) {
-			state.setLatestValue(new BooleanValue(false, time));
-			return;
-		}
-		super.doStop(time);
 	}
 
 	@Override
@@ -111,21 +91,6 @@ public class Serenergy extends Cogenerator {
 		// The parent implementation would start the circulation pump here.
 		// This is not needed for the Serenergy fuel cell, as the stack needs 
 		// to be on operating temperature first.
-
-		try {
-			// TODO: verify status if a start or a stop is necessary
-			if (value.booleanValue()) {
-				// TODO: implement stack limit
-				//doStart(stackLimit.getLatestValue());
-				doStart(new DoubleValue(powerMin));
-			}
-			else {
-				doStop(System.currentTimeMillis());
-			}
-		} catch (EnergyManagementException e) {
-			state.setLatestValue(new BooleanValue(!value.booleanValue()));
-			throw e;
-		}
 	}
 
 	private class StackTempListener implements ValueListener {

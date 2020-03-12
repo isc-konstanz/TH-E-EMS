@@ -19,8 +19,8 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-chp-serenergy'
-def projectName = 'TH-E-Components-Serenergy'
-def projectFullName = 'TH-E EMS Components - Serenergy Fuel Cell'
+def projectName = 'TH-E-Component-Serenergy'
+def projectFullName = 'TH-E EMS Component - Serenergy Fuel Cell'
 def projectDescription = 'Serenergy fuel cell component for TH-E EMS framework.'
 
 dependencies {

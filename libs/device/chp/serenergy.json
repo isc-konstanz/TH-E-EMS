@@ -82,8 +82,8 @@
             "left": "Off",
             "right": "On",
             "mapping": {
-                "ON": { "channel": "<node>*circ*pump*state", "value": true },
-                "OFF": { "channel": "<node>*circ*pump*state", "value": false }
+                "ON": { "channel": "<node>*circ*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false, "valueType": "BOOLEAN" }
             },
             "input": "<node>*circ*pump*state",
             "node": "<node>*circ"

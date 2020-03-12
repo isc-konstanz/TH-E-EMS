@@ -53,28 +53,6 @@ public class SurplusDiversionControl extends TwoPointControl {
 	}
 
 	@Override
-	protected boolean checkStart(HeatingService heating) {
-		if (checkMinTemperature()) {
-			return true;
-		}
-		else if (checkMaxTemperature()) {
-			return false;
-		}
-		return powerValue >= surplus;
-	}
-
-	@Override
-	protected boolean checkStop(HeatingService heating) {
-		if (checkMaxTemperature()) {
-			return true;
-		}
-		else if (checkMinTemperature()) {
-			return false;
-		}
-		return powerValue <= shortage;
-	}
-
-	@Override
 	protected Value getValue(HeatingService heating) {
 		double value = Math.max(
 			Math.min(powerValue, heating.getMaxPower()), heating.getMinPower()
@@ -87,7 +65,12 @@ public class SurplusDiversionControl extends TwoPointControl {
 		@Override
 		public void onValueReceived(Value value) {
 			powerValue = value.doubleValue()*powerScale;
-			onControlHeating();
+			if (powerValue >= surplus && !isMaxTemperature()) {
+				start();
+			}
+			else if (powerValue <= shortage && !isMinTemperature()) {
+				stop();
+			}
 		}
 	}
 

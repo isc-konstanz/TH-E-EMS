@@ -40,12 +40,13 @@ public abstract class Control extends Component {
 		try {
 			component = context.getService(context.getServiceReference(EnergyManagementService.class))
 					.getComponent(key);
+			
 		} catch (UnknownComponentException e) {
 			throw new ConfigurationException("Unable to find controllable component: " + key);
 		}
 	}
 
-	protected final void onControlHeating() {
+	public final void start() {
 		if (component instanceof HeatingService) {
 			HeatingService heating = (HeatingService) component;
 			try {
@@ -53,31 +54,17 @@ public abstract class Control extends Component {
 				switch(state) {
 				case STANDBY:
 				case STOPPING:
-					if (checkStart(heating)) {
-						doStart(heating);
-						onStart(heating);
-					}
+					doStart(heating);
+					onStart(heating);
 					break;
-				case RUNNING:
-				case STARTING:
-					if (checkStop(heating) && heating.getRuntime() >= heating.getMinRuntime()) {
-						doStop(heating);
-						onStop(heating);
-					}
-					else if (state == HeatingState.RUNNING) {
-						doSet(heating);
-					}
+				default:
+					logger.trace("Unable to start already running heating: {}", key);
 					break;
 				}
 			} catch (EnergyManagementException e) {
-				logger.warn("Unable to control heating \"{}\": {}", key, e.getMessage());
+				logger.warn("Unable to start heating \"{}\": {}", key, e.getMessage());
 			}
 		}
-	}
-
-	protected boolean checkStart(HeatingService heating) {
-		// Default implementation to be overridden
-		return true;
 	}
 
 	protected void doStart(HeatingService heating) throws EnergyManagementException {
@@ -88,9 +75,27 @@ public abstract class Control extends Component {
 		// Default implementation to be overridden
 	}
 
-	protected boolean checkStop(HeatingService heating) {
-		// Default implementation to be overridden
-		return true;
+	public final void stop() {
+		if (component instanceof HeatingService) {
+			HeatingService heating = (HeatingService) component;
+			try {
+				HeatingState state = heating.getState();
+				switch(state) {
+				case RUNNING:
+				case STARTING:
+                    if (heating.getRuntime() >= heating.getMinRuntime()) {
+                    	doStop(heating);
+						onStop(heating);
+                    }
+					break;
+				default:
+					logger.trace("Unable to stop already running heating: {}", key);
+					break;
+				}
+			} catch (EnergyManagementException e) {
+				logger.warn("Unable to control heating \"{}\": {}", key, e.getMessage());
+			}
+		}
 	}
 
 	protected void doStop(HeatingService heating) throws EnergyManagementException {
@@ -99,10 +104,6 @@ public abstract class Control extends Component {
 
 	protected void onStop(HeatingService heating) throws EnergyManagementException {
 		// Default implementation to be overridden
-	}
-
-	protected void doSet(HeatingService heating) throws EnergyManagementException {
-		heating.set(getValue(heating));
 	}
 
 	protected Value getValue(HeatingService heating) {

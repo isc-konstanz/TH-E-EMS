@@ -123,18 +123,23 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	protected void onActivate(Configurations configs, BundleContext context) throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onActivate(Configurations configs) throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onResume() throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onPause() throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onDeactivate() throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	@Override

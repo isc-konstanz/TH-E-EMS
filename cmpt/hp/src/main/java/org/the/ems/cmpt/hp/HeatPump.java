@@ -30,7 +30,6 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
@@ -97,12 +96,6 @@ public class HeatPump extends Heating implements HeatPumpService {
 		if (temperatureValue.doubleValue() > temperatureInMax) {
 			throw new ComponentException("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
 		}
-		container.add(state, new BooleanValue(true, value.getTime()));
-	}
-
-	@Override
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
-		container.add(state, new BooleanValue(false, time));
 	}
 
 	@Override
@@ -114,7 +107,8 @@ public class HeatPump extends Heating implements HeatPumpService {
 				stop();
 				
 			} catch (EnergyManagementException e) {
-				logger.error("Error while switching off heat pump due to temperature threshold violation: " + e.getMessage());
+				logger.warn("Error while switching off heat pump due to temperature threshold violation: {}",
+						e.getMessage());
 			}
 		}
 	}
@@ -125,8 +119,13 @@ public class HeatPump extends Heating implements HeatPumpService {
 		public void onValueReceived(Value value) {
 			temperatureValue = value;
 			if (temperatureValue.doubleValue() >= temperatureInMax) {
-				state.write(new BooleanValue(false, value.getTime()));;
-				return;
+				try {
+					stop();
+					
+				} catch (EnergyManagementException e) {
+					logger.warn("Error while switching off heat pump due to temperature threshold violation: {}",
+							e.getMessage());
+				}
 			}
 		}
 	}

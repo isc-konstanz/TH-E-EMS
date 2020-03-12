@@ -71,10 +71,11 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	@Override
 	@SuppressWarnings("unchecked")
 	public CirculationPump configure(Configurations configs) throws ConfigurationException {
-		super.configure(configs);
 		if (!configs.contains(SECTION, STATE)) {
 			return this;
 		}
+		super.configure(configs);
+		
 		if (!isDisabled()) {
 			circulation.register(this);
 			state.registerValueListener(new CirculationPumpStateListener());

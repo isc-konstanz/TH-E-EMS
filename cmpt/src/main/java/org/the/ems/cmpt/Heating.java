@@ -33,7 +33,9 @@ import org.the.ems.core.HeatingService;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -97,12 +99,16 @@ public abstract class Heating extends Component implements HeatingService {
 		return getMaxPower();
 	}
 
+	protected double getStartPower() {
+		return getMaxPower();
+	}
+
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		state.registerValueListener(new StateListener());
 		circulation = new Circulation().activate(content).configure(configs);
-		circulationPump = new CirculationPump(circulation);
+		circulationPump = new CirculationPump(circulation).activate(content).configure(configs);
 	}
 
 	@Override
@@ -187,15 +193,18 @@ public abstract class Heating extends Component implements HeatingService {
 		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
-		WriteContainer container = new WriteContainer();
+		WriteContainer writeContainer = new WriteContainer();
+		writeContainer.add(state, new BooleanValue(true, value.getTime()));
 		
 		setState(HeatingState.STARTING);
-		onStart(container, value);
-		doWrite(container);
+		onStart(writeContainer, value);
+		doWrite(writeContainer);
 		startTimeLast = value.getTime();
 	}
 
-	protected abstract void onStart(WriteContainer container, Value value) throws ComponentException;
+	protected void onStart(WriteContainer container, Value value) throws ComponentException {
+		// Default implementation to be overridden
+	}
 
 	@Override
 	public final void stop(long time) throws EnergyManagementException {
@@ -207,8 +216,8 @@ public abstract class Heating extends Component implements HeatingService {
 					runtimeMin/60000));
 		}
 		switch(getState()) {
-		case RUNNING:
 		case STARTING:
+		case RUNNING:
 			doStop(time);
 			break;
 		default:
@@ -217,14 +226,17 @@ public abstract class Heating extends Component implements HeatingService {
 	}
 
 	protected void doStop(long time) throws EnergyManagementException {
-		WriteContainer container = new WriteContainer();
+		WriteContainer writeContainer = new WriteContainer();
+		writeContainer.add(state, new BooleanValue(false, time));
 		
 		setState(HeatingState.STOPPING);
-		onStop(container, time);
-		doWrite(container);
+		onStop(writeContainer, time);
+		doWrite(writeContainer);
 	}
 
-	protected abstract void onStop(WriteContainer container, long time) throws ComponentException;
+	protected void onStop(WriteContainer container, long time) throws ComponentException {
+		// Default implementation to be overridden
+	}
 
 	protected void onStateChanged(Value state) throws EnergyManagementException {
 		if (state.booleanValue()) {
@@ -237,13 +249,19 @@ public abstract class Heating extends Component implements HeatingService {
 	protected class StateListener implements ValueListener {
 
 		@Override
-		public synchronized void onValueReceived(Value state) {
-			if (stateValueLast == null || stateValueLast.booleanValue() != state.booleanValue()) {
+		public synchronized void onValueReceived(Value value) {
+			if (stateValueLast == null || stateValueLast.booleanValue() != value.booleanValue()) {
 				try {
-					onStateChanged(state);
+					if (getState() != HeatingState.STARTING && value.booleanValue()) {
+						doStart(new DoubleValue(getStartPower()));
+					}
+					else if (getState() != HeatingState.STOPPING) {
+						doStop(System.currentTimeMillis());
+					}
+					onStateChanged(value);
 					
-					if (state.booleanValue()) {
-						startTimeLast = state.getTime();
+					if (value.booleanValue()) {
+						startTimeLast = value.getTime();
 						
 						// TODO: Verify if the heating really has started
 						setState(HeatingState.RUNNING);
@@ -253,10 +271,11 @@ public abstract class Heating extends Component implements HeatingService {
 						setState(HeatingState.STANDBY);
 					}
 				} catch (EnergyManagementException e) {
+					state.setLatestValue(new BooleanValue(!value.booleanValue()));
 					logger.warn("Error handling state change: {}", e.getMessage());
 				}
 			}
-			stateValueLast = state;
+			stateValueLast = value;
 		}
 	}
 

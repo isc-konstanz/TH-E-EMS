@@ -32,11 +32,11 @@ buildscript {
 apply from: 'projects.gradle'
 
 def javaProjects() {
-  return subprojects.findAll { new File(it.projectDir, 'src').exists() }
+  return allprojects.findAll { new File(it.projectDir, 'src').exists() }
 }
 
 configure(javaProjects()) {
-  apply plugin: 'maven'
+  apply plugin: 'maven-publish'
   apply plugin: 'java-library'
   apply plugin: 'biz.aQute.bnd.builder'
   apply plugin: 'eclipse'
@@ -56,7 +56,7 @@ configure(javaProjects()) {
 
   jar {
     manifest {
-      version = project.version.replace('-','.');
+      archiveVersion = project.version.replace('-','.');
       attributes('Bundle-Vendor':      projectVendor,
                  'Bundle-DocURL':      projectSite)
     }
@@ -138,28 +138,27 @@ task distribute(type: Tar) {
   dependsOn(javadocAll)
 
   compression = Compression.GZIP
-  archiveName = project.name + '-' + projectVersion + '.tar.gz'
+  archiveFileName = project.name + '-' + projectVersion + '.tar.gz'
 
-  from('build') {
-    for (Project distributionProject: distributionProjects) {
-      include 'libs/*' + distributionProject.name + '*' + projectVersion + '*.jar'
+  into(project.name) {
+    from('build') {
+      include 'libs/*' + projectVersion + '*.jar'
     }
-  }
-  from('./') {
-    include 'LICENSE**'
-    include 'NOTICE**'
-    include 'conf/**'
-    include 'libs/**'
-    include 'licenses/**'
-  }
-
-  into('licenses') {
-    for (Project distributionProject: distributionProjects) {
-      from (distributionProject.getProjectDir().toString() + '/libs') {
-        exclude '**/*.jar'
-        exclude '**.jar'
+    from('./') {
+      include 'LICENSE**'
+      include 'NOTICE**'
+      include 'conf/**'
+      include 'libs/**'
+      include 'licenses/**'
+    }
+    into('licenses') {
+      for (Project distributionProject: distributionProjects) {
+        from (distributionProject.getProjectDir().toString() + '/libs') {
+          exclude '**/*.jar'
+          exclude '**.jar'
+        }
       }
     }
   }
-  destinationDir = file('build/dist/')
+  destinationDirectory = file('build/dist/')
 }

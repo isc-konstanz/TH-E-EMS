@@ -47,6 +47,9 @@ public abstract class Heating extends Component implements HeatingService {
 	@Configuration(mandatory=false, scale=60000) // Default runtime minimum of 10 minutes
 	protected int runtimeMin = 600000;
 
+	@Configuration(mandatory=false, scale=6000) // Default idletime minimum of 1 minute
+	protected int idletimeMin = 60000;
+
 	@Configuration(scale=1000)
 	protected double powerMax;
 
@@ -63,6 +66,7 @@ public abstract class Heating extends Component implements HeatingService {
 
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
+	protected volatile long stopTimeLast = 0;
 
 	@Override
 	public HeatingState getState() {
@@ -83,6 +87,19 @@ public abstract class Heating extends Component implements HeatingService {
 
 	@Override
 	public int getMinRuntime() {
+		return runtimeMin;
+	}
+
+	@Override
+	public int getIdletime() {
+		if (stopTimeLast > 0) {
+			return (int) (System.currentTimeMillis() - stopTimeLast);
+		}
+		return 0;
+	}
+
+	@Override
+	public int getMinIdletime() {
 		return runtimeMin;
 	}
 
@@ -179,6 +196,10 @@ public abstract class Heating extends Component implements HeatingService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
+		if (value.getTime() - startTimeLast < runtimeMin) {
+			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
+					runtimeMin/60000));
+		}
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
@@ -211,9 +232,9 @@ public abstract class Heating extends Component implements HeatingService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		if (time - startTimeLast < runtimeMin) {
-			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
-					runtimeMin/60000));
+		if (time - stopTimeLast < idletimeMin) {
+			throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
+					idletimeMin/60000));
 		}
 		switch(getState()) {
 		case STARTING:
@@ -232,6 +253,7 @@ public abstract class Heating extends Component implements HeatingService {
 		setState(HeatingState.STOPPING);
 		onStop(writeContainer, time);
 		doWrite(writeContainer);
+		stopTimeLast = time;
 	}
 
 	protected void onStop(WriteContainer container, long time) throws ComponentException {

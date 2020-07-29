@@ -36,6 +36,16 @@ public interface HeatingService extends ComponentService {
 	public int getMinRuntime();
 
 	/*
+	 * Get the current idletime in milliseconds [ms].
+	 */
+	public int getIdletime();
+
+	/*
+	 * Get the minimum idletime in milliseconds [ms].
+	 */
+	public int getMinIdletime();
+
+	/*
 	 * Get the maximum power in watts [W].
 	 */
 	public double getMaxPower();

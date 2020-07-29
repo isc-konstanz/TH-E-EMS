@@ -65,7 +65,7 @@
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*temp",
-			"unit": "°C"
+            "unit": "°C"
         },
         {
             "name": "Power",
@@ -73,7 +73,7 @@
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*power",
-			"unit": "W"
+            "unit": "W"
         }
     ]
 }

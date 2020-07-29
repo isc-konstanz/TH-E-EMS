@@ -5,10 +5,11 @@
     "description": "Configuration for a 1-Wire temperature sensor for the Raspberry Pi, type DS18B20",
 
     "scan": true,
-    "driver": "rpi-w1",
     "devices": [
         {
             "description": "DS18B20 temperature sensor",
+            "driver": "rpi-w1",
+            "address": "<id>",
             "settings": "type:SENSOR_TEMPERATURE"
         }
     ],
@@ -20,8 +21,7 @@
             "description": "The device ID, retrievable through scanning.",
             "type": "text",
             "scan": true,
-            "mandatory": true,
-            "syntax": "deviceAddress"
+            "mandatory": true
         },
         {
             "id": "refresh",
@@ -76,7 +76,7 @@
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*temp",
-			"unit": "°C"
+            "unit": "°C"
         }
     ]
 }

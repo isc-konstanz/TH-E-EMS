@@ -31,8 +31,7 @@
             "type": "text",
             "scan": true,
             "default": -1,
-            "mandatory": false,
-            "syntax": "deviceAddress"
+            "mandatory": false
         }
     ],
 

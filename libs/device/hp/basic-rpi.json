@@ -25,8 +25,7 @@
             "description": "The Pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
             "type": "text",
             "scan": true,
-            "mandatory": true,
-            "syntax": "deviceAddress"
+            "mandatory": true
         }
     ],
 

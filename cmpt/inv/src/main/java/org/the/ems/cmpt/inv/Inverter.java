@@ -25,8 +25,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.cmpt.inv.cons.Consumption;
-import org.the.ems.cmpt.inv.ext.ExternalSolar;
+import org.the.ems.cmpt.inv.ext.ConsumptionPower;
+import org.the.ems.cmpt.inv.ext.ExternalPower;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
@@ -53,9 +53,6 @@ public class Inverter extends Component implements InverterService, InverterCall
 	@Reference(cardinality = ReferenceCardinality.MANDATORY)
 	protected ElectricalEnergyStorageService battery;
 
-	@Configuration
-	protected ChannelListener setpoint;
-
 	@Configuration(scale=1000)
 	protected double powerMax;
 
@@ -63,15 +60,18 @@ public class Inverter extends Component implements InverterService, InverterCall
 	protected double powerMin;
 
 	@Configuration
-	protected ChannelListener command;
-	protected volatile Value commandValue = DoubleValue.emptyValue();
+	protected Channel setpoint;
 
-	protected Consumption cons;
-	protected ExternalSolar solar;
+	@Configuration
+	protected ChannelListener setpointPower;
+	protected volatile Value setpointValue = DoubleValue.emptyValue();
+
+	protected ExternalPower external;
+	protected ConsumptionPower conssumption;
 
 	@Override
-	public Value getCommand() throws ComponentException {
-		return commandValue;
+	public Value getSetpoint() throws ComponentException {
+		return setpointValue;
 	}
 
 	@Override
@@ -162,42 +162,42 @@ public class Inverter extends Component implements InverterService, InverterCall
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
-		cons = new Consumption().activate(content).configure(configs).register(this);
-		solar = new ExternalSolar().activate(content).configure(configs).register(this);
-		command.registerValueListener(this);
+		external = new ExternalPower().activate(content).configure(configs).register(this);
+		conssumption = new ConsumptionPower().activate(content).configure(configs).register(this);
+		setpointPower.registerValueListener(this);
 	}
 
 	@Override
 	public void onResume() throws ComponentException {
-		cons.resume();
-		solar.resume();
+		external.resume();
+		conssumption.resume();
 	}
 
 	@Override
 	public void onPause() throws ComponentException {
-		cons.pause();
-		solar.pause();
+		external.pause();
+		conssumption.pause();
 	}
 
 	@Override
 	public void onDeactivate() {
-		cons.deactivate();
-		solar.deactivate();
-		command.deregister();
+		external.deactivate();
+		conssumption.deactivate();
+		setpointPower.deregister();
 	}
 
 	@Override
 	public void onSet(WriteContainer container, Value value) throws ComponentException {
-		if (value.doubleValue() != commandValue.doubleValue()) {
-			command.setLatestValue(value);
-			return;
-		}
-		if (value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
+		double setpoint = value.doubleValue();
+		if (setpoint > getMaxPower() || setpoint < getMinPower()) {
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);
 		}
-		double setpoint = value.doubleValue();
-		if (solar.isRunning()) {
-			setpoint += solar.getSolar().doubleValue();
+		if (setpoint != setpointValue.doubleValue()) {
+			setpointPower.setLatestValue(value);
+			return;
+		}
+		if (external.isRunning()) {
+			setpoint += external.getSolar().doubleValue();
 		}
 		
 		if (setpoint > getMaxPower()) {
@@ -212,6 +212,7 @@ public class Inverter extends Component implements InverterService, InverterCall
 			if (this.setpoint.getLatestValue().doubleValue() != 0) {
 				container.add(this.setpoint, new DoubleValue(0));
 			}
+			logger.debug("Requested inverter setpoint not allowed for Battery State of Charge of {}%", soc);
 			return;
 		}
 		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
@@ -230,7 +231,7 @@ public class Inverter extends Component implements InverterService, InverterCall
 		try {
 			WriteContainer container = new WriteContainer();
 			
-			doSet(container, commandValue);
+			doSet(container, setpointValue);
 			if (container.size() < 1) {
 				return;
 			}
@@ -244,8 +245,8 @@ public class Inverter extends Component implements InverterService, InverterCall
 
 	@Override
     public void onValueReceived(Value setpoint) {
-        if (commandValue.doubleValue() != setpoint.doubleValue()) {
-            commandValue = setpoint;
+        if (setpointValue.doubleValue() != setpoint.doubleValue()) {
+            setpointValue = setpoint;
             onSetpointUpdate();
         }
     }

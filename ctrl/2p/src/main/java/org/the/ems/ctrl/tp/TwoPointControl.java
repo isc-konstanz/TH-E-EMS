@@ -3,6 +3,8 @@ package org.the.ems.ctrl.tp;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
@@ -17,6 +19,7 @@ import org.the.ems.ctrl.Control;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class TwoPointControl extends Control {
+	private final static Logger logger = LoggerFactory.getLogger(TwoPointControl.class);
 
 	@Configuration("temp_max")
 	private double temperatureMax;
@@ -55,13 +58,18 @@ public class TwoPointControl extends Control {
 
 		@Override
 		public void onValueReceived(Value value) {
+			String message = "Received temperature: {}";
+			
 			temperatureValue = value.doubleValue();
 			if (isMinTemperature()) {
 				start();
+				message += " <= "+temperatureMin+" -> ON";
 			}
 			else if (isMaxTemperature()) {
 				stop();
+				message += " >= "+temperatureMax+" -> OFF";
 			}
+			logger.debug(message, temperatureValue);
 		}
 	}
 

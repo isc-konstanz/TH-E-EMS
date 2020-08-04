@@ -17,13 +17,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.cmpt.inv.cons;
+package org.the.ems.cmpt.inv.ext;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
-import org.the.ems.cmpt.inv.cons.PowerListener.PowerCallbacks;
+import org.the.ems.cmpt.inv.ext.PowerListener.PowerCallbacks;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.config.Configuration;
@@ -35,7 +35,7 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Consumption extends Configurable implements PowerCallbacks, ValueListener {
+public class ConsumptionPower extends Configurable implements PowerCallbacks, ValueListener {
 
 	private final static String SECTION = "Consumption";
 
@@ -62,14 +62,14 @@ public class Consumption extends Configurable implements PowerCallbacks, ValueLi
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Consumption activate(ContentManagementService content) throws ComponentException {
+	public ConsumptionPower activate(ContentManagementService content) throws ComponentException {
 		super.activate(content);
 		return setConfiguredSection(SECTION);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Consumption configure(Configurations configs) throws ConfigurationException {
+	public ConsumptionPower configure(Configurations configs) throws ConfigurationException {
 		super.configure(configs);
 		if (!isDisabled()) {
 			consPower.registerValueListener(this);
@@ -85,7 +85,7 @@ public class Consumption extends Configurable implements PowerCallbacks, ValueLi
 		return this;
 	}
 
-	public Consumption register(InverterCallbacks callbacks) {
+	public ConsumptionPower register(InverterCallbacks callbacks) {
 		this.callbacks = callbacks;
 		return this;
 	}

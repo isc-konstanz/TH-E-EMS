@@ -54,9 +54,9 @@ public interface InverterService extends ComponentService {
 	public double getMinPower();
 
 	/*
-	 * Get the setpoint command to control the import/export power in watts [W].
+	 * Get the setpoint power value to control the import/export power in watts [W].
 	 */
-	public Value getCommand() throws ComponentException;
+	public Value getSetpoint() throws ComponentException;
 
 	/*
 	 * Get the generated DC input energy in kilowatt hours [kWh].

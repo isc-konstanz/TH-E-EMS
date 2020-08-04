@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.cmpt.inv.cons;
+package org.the.ems.cmpt.inv.ext;
 
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -25,7 +25,7 @@ import org.the.ems.core.data.ValueListener;
 public class PowerListener implements ValueListener {
 
 	/**
-	 * Interface used to notify the {@link Consumption} 
+	 * Interface used to notify the {@link ConsumptionPower} 
 	 * implementation about changed power values
 	 */
 	public interface PowerCallbacks {

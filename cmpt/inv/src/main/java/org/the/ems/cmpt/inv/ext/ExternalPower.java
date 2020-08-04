@@ -32,7 +32,7 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class ExternalSolar extends Configurable implements ValueListener {
+public class ExternalPower extends Configurable implements ValueListener {
 
 	private final static String SECTION = "External";
 
@@ -55,14 +55,14 @@ public class ExternalSolar extends Configurable implements ValueListener {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ExternalSolar activate(ContentManagementService content) throws ComponentException {
+	public ExternalPower activate(ContentManagementService content) throws ComponentException {
 		super.activate(content);
 		return setConfiguredSection(SECTION);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public ExternalSolar configure(Configurations configs) throws ConfigurationException {
+	public ExternalPower configure(Configurations configs) throws ConfigurationException {
 		super.configure(configs);
 		if (!isDisabled()) {
 			activePower.registerValueListener(new ActivePowerListener());
@@ -75,7 +75,7 @@ public class ExternalSolar extends Configurable implements ValueListener {
 		return this;
 	}
 
-	public ExternalSolar register(InverterCallbacks callbacks) {
+	public ExternalPower register(InverterCallbacks callbacks) {
 		this.callbacks = callbacks;
 		return this;
 	}

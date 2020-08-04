@@ -45,8 +45,8 @@
             "name": "<node>*power",
             "description": "<name> power",
             "device": "<node>",
-            "configs": {"scalingFactor": 1000, "valueType":"DOUBLE", "unit": "W"},
-            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
                 "feed": {"name": "Power", "tag": "<name>"}
             }
         },

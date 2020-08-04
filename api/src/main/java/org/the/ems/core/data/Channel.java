@@ -21,18 +21,20 @@ package org.the.ems.core.data;
 
 public interface Channel {
 
+	public String getId();
+
+	public Value getLatestValue();
+
+	public Value getLatestValue(ValueListener listener);
+
 	public void registerValueListener(ValueListener listener);
 
 	public void deregisterValueListener(ValueListener listener);
 
-	public Value getLatestValue(ValueListener listener);
-
-	public Value getLatestValue();
-
 	public void setLatestValue(Value value);
 
-	public void write(Value value);
-
 	public void write(ValueList value);
+
+	public void write(Value value);
 
 }

@@ -32,23 +32,20 @@ public class ChannelListener implements Channel {
 		this.channel = channel;
 	}
 
-	public void deregister() {
-		synchronized(listeners) {
-			for (ValueListener listener : listeners) {
-				channel.deregisterValueListener(listener);
-			}
-			listeners.clear();
-		}
+	@Override
+	public String getId() {
+		return channel.getId();
 	}
 
 	@Override
-	public void deregisterValueListener(ValueListener listener) {
-		synchronized(listeners) {
-			if (listeners.contains(listener)) {
-				listeners.remove(listener);
-				channel.deregisterValueListener(listener);
-			}
-		}
+	public Value getLatestValue() {
+		return channel.getLatestValue();
+	}
+
+	@Override
+	public Value getLatestValue(ValueListener listener) {
+		this.registerValueListener(listener);
+		return channel.getLatestValue(listener);
 	}
 
 	@Override
@@ -62,14 +59,22 @@ public class ChannelListener implements Channel {
 	}
 
 	@Override
-	public Value getLatestValue(ValueListener listener) {
-		this.registerValueListener(listener);
-		return channel.getLatestValue(listener);
+	public void deregisterValueListener(ValueListener listener) {
+		synchronized(listeners) {
+			if (listeners.contains(listener)) {
+				listeners.remove(listener);
+				channel.deregisterValueListener(listener);
+			}
+		}
 	}
 
-	@Override
-	public Value getLatestValue() {
-		return channel.getLatestValue();
+	public void deregister() {
+		synchronized(listeners) {
+			for (ValueListener listener : listeners) {
+				channel.deregisterValueListener(listener);
+			}
+			listeners.clear();
+		}
 	}
 
 	@Override

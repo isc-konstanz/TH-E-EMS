@@ -65,6 +65,23 @@ public class ChannelWrapper implements Channel, RecordListener {
 	}
 
 	@Override
+	public String getId() {
+		return channel.getId();
+	}
+
+	@Override
+	public Value getLatestValue() {
+		Record record = channel.getLatestRecord();
+		return ChannelWrapper.decodeRecord(record, channel.getValueType());
+	}
+
+	@Override
+	public Value getLatestValue(ValueListener listener) {
+		registerValueListener(listener);
+		return getLatestValue();
+	}
+
+	@Override
 	public void registerValueListener(ValueListener listener) {
 		synchronized (listeners) {
 			if (listeners.size() == 0) {
@@ -86,18 +103,6 @@ public class ChannelWrapper implements Channel, RecordListener {
 				channel.removeListener(this);
 			}
 		}
-	}
-
-	@Override
-	public Value getLatestValue(ValueListener listener) {
-		registerValueListener(listener);
-		return getLatestValue();
-	}
-
-	@Override
-	public Value getLatestValue() {
-		Record record = channel.getLatestRecord();
-		return ChannelWrapper.decodeRecord(record, channel.getValueType());
 	}
 
 	@Override

@@ -55,6 +55,9 @@ public enum State {
 	}
 
 	public static State decode(Value value) {
+		if (value == null) {
+			return UNKNOWN;
+		}
 		State enumInstance = codes.get(value.intValue());
 		if (enumInstance == null) {
 			throw new IllegalArgumentException("Unknown state code: " + value.intValue());

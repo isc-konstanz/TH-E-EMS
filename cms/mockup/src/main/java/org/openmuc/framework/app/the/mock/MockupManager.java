@@ -34,7 +34,6 @@ import org.openmuc.framework.config.DeviceConfig;
 import org.openmuc.framework.config.DriverConfig;
 import org.openmuc.framework.config.IdCollisionException;
 import org.openmuc.framework.config.RootConfig;
-import org.openmuc.framework.data.ValueType;
 import org.openmuc.framework.dataaccess.DataAccessService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;

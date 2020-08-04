@@ -196,13 +196,13 @@ public abstract class Heating extends Component implements HeatingService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		if (value.getTime() - startTimeLast < runtimeMin) {
-			throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
-					runtimeMin/60000));
-		}
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
+			if (value.getTime() - stopTimeLast < idletimeMin) {
+				throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
+						idletimeMin/60000));
+			}
 			doStart(value);
 			break;
 		default:
@@ -232,13 +232,13 @@ public abstract class Heating extends Component implements HeatingService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		if (time - stopTimeLast < idletimeMin) {
-			throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
-					idletimeMin/60000));
-		}
 		switch(getState()) {
 		case STARTING:
 		case RUNNING:
+			if (time - startTimeLast < runtimeMin) {
+				throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
+						runtimeMin/60000));
+			}
 			doStop(time);
 			break;
 		default:
@@ -274,11 +274,19 @@ public abstract class Heating extends Component implements HeatingService {
 		public synchronized void onValueReceived(Value value) {
 			if (stateValueLast == null || stateValueLast.booleanValue() != value.booleanValue()) {
 				try {
-					if (getState() != HeatingState.STARTING && value.booleanValue()) {
-						doStart(new DoubleValue(getStartPower()));
-					}
-					else if (getState() != HeatingState.STOPPING) {
-						doStop(System.currentTimeMillis());
+					switch(getState()) {
+					case STANDBY:
+					case STOPPING:
+						if (value.booleanValue()) {
+							doStart(new DoubleValue(getStartPower()));
+						}
+						break;
+					case STARTING:
+					case RUNNING:
+						if (!value.booleanValue()) {
+							doStop(System.currentTimeMillis());
+						}
+						break;
 					}
 					onStateChanged(value);
 					
@@ -289,6 +297,8 @@ public abstract class Heating extends Component implements HeatingService {
 						setState(HeatingState.RUNNING);
 					}
 					else {
+						stopTimeLast = value.getTime();
+						
 						// TODO: Verify if the heating really has stopped
 						setState(HeatingState.STANDBY);
 					}

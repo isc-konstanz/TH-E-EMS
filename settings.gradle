@@ -20,7 +20,7 @@
  */
 rootProject.name = 'TH-E-CMPT'
 
-include 'api', 'cmpt', 'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 'cmpt:hp', 'cmpt:inv', 'cmpt:tes', 'cms', 'cms:mockup', 'ctrl', 'ctrl:2p', 'ctrl:sd', 'ctrl:mpc'
+include 'api', 'cmpt', 'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 'cmpt:hp', 'cmpt:inv', 'cmpt:tes', 'cms', 'cms:mockup', 'ctrl', 'ctrl:2p', 'ctrl:ps', 'ctrl:mpc'
 
 def coreDir = '../TH-E-EMS'
 project(':api').projectDir = file(coreDir+'/api')
@@ -37,5 +37,5 @@ project(':cms:mockup').projectDir = file('cms/mockup')
 
 project(':ctrl').projectDir = file(coreDir+'/ctrl')
 project(':ctrl:2p').projectDir = file(coreDir+'/ctrl/2p')
-project(':ctrl:sd').projectDir = file('ctrl/sd')
+project(':ctrl:ps').projectDir = file('ctrl/ps')
 project(':ctrl:mpc').projectDir = file('ctrl/mpc')

@@ -33,7 +33,7 @@ project.ext {
     it.getPath() == ':cmpt:chp:ice' ||
     it.getPath() == ':cmpt:chp:serenergy' ||
     it.getPath() == ':ctrl:mpc' ||
-    it.getPath() == ':ctrl:sd'
+    it.getPath() == ':ctrl:ps'
   }
 
   javadocProjects = distributionProjects.findAll {

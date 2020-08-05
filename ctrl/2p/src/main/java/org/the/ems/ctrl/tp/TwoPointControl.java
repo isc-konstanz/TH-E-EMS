@@ -47,29 +47,40 @@ public class TwoPointControl extends Control {
 	}
 
 	protected boolean isMinTemperature() {
-		return temperatureValue <= temperatureMin;
+		return isMinTemperature(temperatureValue);
+	}
+
+	protected boolean isMinTemperature(double temperature) {
+		return temperature <= temperatureMin;
 	}
 
 	protected boolean isMaxTemperature() {
-		return temperatureValue >= temperatureMax;
+		return isMaxTemperature(temperatureValue);
+	}
+
+	protected boolean isMaxTemperature(double temperature) {
+		return temperature >= temperatureMax;
+	}
+
+	protected void onTemperatureChanged(Value value) {
+		double temperature = value.doubleValue();
+		if (isMinTemperature(temperature)) {
+			start();
+		}
+		else if (isMaxTemperature(temperature)) {
+			stop();
+		}
 	}
 
 	private class TemperatureListener implements ValueListener {
 
 		@Override
 		public void onValueReceived(Value value) {
-			String message = "Received temperature: {}";
-			
+			logger.debug("Received temperature value: {}°C", value);
+			if (temperatureValue != value.doubleValue()) {
+				onTemperatureChanged(value);
+			}
 			temperatureValue = value.doubleValue();
-			if (isMinTemperature()) {
-				start();
-				message += " <= "+temperatureMin+" -> ON";
-			}
-			else if (isMaxTemperature()) {
-				stop();
-				message += " >= "+temperatureMax+" -> OFF";
-			}
-			logger.debug(message, temperatureValue);
 		}
 	}
 

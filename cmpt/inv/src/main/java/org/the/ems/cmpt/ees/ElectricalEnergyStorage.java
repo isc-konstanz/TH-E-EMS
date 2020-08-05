@@ -23,9 +23,14 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.schedule.Schedule;
 
 @org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
@@ -70,5 +75,63 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	@Configuration(mandatory=false)
 	public Value getVoltage() throws ComponentException { return getConfiguredValue("voltage"); }
+
+    @Override
+    public final void schedule(Schedule schedule)
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        if (isMaintenance()) {
+            throw new MaintenanceException("Unable to schedule battery while in maintenance");
+        }
+        WriteContainer container = new WriteContainer();
+        for (Value value : schedule) {
+            doSet(container, value);
+        }
+        doWrite(container);
+    }
+
+    protected void doSchedule(WriteContainer container, Schedule schedule) 
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        for (Value value : schedule) {
+            doSet(container, value);
+        }
+        onSchedule(container, schedule);
+    }
+
+    protected void onSchedule(WriteContainer container, Schedule schedule) 
+            throws UnsupportedOperationException, ComponentException {
+        // Default implementation to be overridden
+    }
+
+    @Override
+    public final void set(Value value) 
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        WriteContainer container = new WriteContainer();
+        doSet(container, value);
+        doWrite(container);
+    }
+
+    protected void doSet(WriteContainer container, Value value)
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        onSet(container, value);
+    }
+
+    protected void onSet(WriteContainer container, Value value)
+            throws UnsupportedOperationException, ComponentException {
+        // Default implementation to be overridden
+        throw new UnsupportedOperationException();
+    }
+
+    protected void doWrite(WriteContainer container) throws EnergyManagementException {
+        if (container.size() < 1) {
+            return;
+        }
+        for (Channel channel : container.keySet()) {
+            channel.write(container.get(channel));
+        }
+    }
 
 }

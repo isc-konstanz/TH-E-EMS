@@ -61,7 +61,7 @@ public class ThermalEnergyStorage extends Component
 
 	protected double mass;
 
-	@Configuration(value="heating_*")
+	@Configuration(value="heating*")
 	protected List<String> heatings;
 
 	@Configuration(value="temp_*")

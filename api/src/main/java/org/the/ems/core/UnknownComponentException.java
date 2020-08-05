@@ -19,8 +19,6 @@
  */
 package org.the.ems.core;
 
-import org.the.ems.core.EnergyManagementException;
-
 public class UnknownComponentException extends EnergyManagementException {
 	private static final long serialVersionUID = 3794339623405999133L;
 

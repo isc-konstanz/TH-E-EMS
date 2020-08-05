@@ -34,6 +34,7 @@ import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
@@ -153,7 +154,20 @@ public abstract class Heating extends Component implements HeatingService {
 	}
 
 	@Override
-	public void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+	public final void schedule(Schedule schedule)
+			throws UnsupportedOperationException, EnergyManagementException {
+		
+		if (isMaintenance()) {
+			throw new MaintenanceException("Unable to schedule component while in maintenance");
+		}
+		WriteContainer container = new WriteContainer();
+		for (Value value : schedule) {
+			onSet(container, value);
+		}
+		doWrite(container);
+	}
+
+	protected void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -177,18 +191,58 @@ public abstract class Heating extends Component implements HeatingService {
 		}
 	}
 
+	protected void onSchedule(WriteContainer container, Schedule schedule) 
+			throws UnsupportedOperationException, ComponentException {
+		// Default implementation to be overridden
+	}
+
 	@Override
-	public void doSet(WriteContainer container, Value value) throws EnergyManagementException {
+	public final void set(Value value) 
+			throws UnsupportedOperationException, EnergyManagementException {
+
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
+		switch(getState()) {
+		case STANDBY:
+		case STOPPING:
+			if (value.doubleValue() > 0) {
+				if (value.getTime() - stopTimeLast < idletimeMin) {
+					throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
+							idletimeMin/60000));
+				}
+				doStart(value);
+			}
+			else {
+				doSet(value);
+			}
+			break;
+		case STARTING:
+		case RUNNING:
+			if (value.doubleValue() == 0) {
+				if (value.getTime() - startTimeLast < runtimeMin) {
+					throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
+							runtimeMin/60000));
+				}
+				doStop(value.getTime());
+			}
+			break;
+		}
+	}
+
+	protected void doSet(Value value) throws EnergyManagementException {
 		if (value.doubleValue() != 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
-		else if (value.doubleValue() == 0) {
-			onStop(container, value.getTime());
-		}
-		else {
-			onSet(container, value);
-		}
+		WriteContainer container = new WriteContainer();
+		onSet(container, value);
 		doWrite(container);
+	}
+
+	protected void onSet(WriteContainer container, Value value)
+			throws UnsupportedOperationException, ComponentException {
+		// Default implementation to be overridden
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -254,6 +308,15 @@ public abstract class Heating extends Component implements HeatingService {
 		onStop(writeContainer, time);
 		doWrite(writeContainer);
 		stopTimeLast = time;
+	}
+
+	protected void doWrite(WriteContainer container) throws EnergyManagementException {
+		if (container.size() < 1) {
+			return;
+		}
+		for (Channel channel : container.keySet()) {
+			channel.write(container.get(channel));
+		}
 	}
 
 	protected void onStop(WriteContainer container, long time) throws ComponentException {

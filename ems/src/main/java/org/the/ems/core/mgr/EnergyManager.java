@@ -19,8 +19,6 @@
  */
 package org.the.ems.core.mgr;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +33,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.the.ems.core.ComponentCollection;
+import org.the.ems.core.ComponentControlService;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
@@ -50,10 +50,10 @@ import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.VentilationService;
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.mgr.config.ConfigurationService;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
@@ -76,7 +76,7 @@ public final class EnergyManager extends Configurable
 	public final static String ID = "ems";
 	public final static String PID = "org.the.ems.core";
 
-	private final Map<String, ComponentService> components = new HashMap<String, ComponentService>();
+	private final ComponentCollection components = new ComponentCollection();
 
 	private ControlSchedule scheduleUpdate = null;
 	private ControlSchedule schedule = new ControlSchedule();
@@ -285,13 +285,7 @@ public final class EnergyManager extends Configurable
 
 	@Override
 	public List<ComponentService> getComponents(ComponentType type) {
-		List<ComponentService> result = new ArrayList<ComponentService>();
-		for (ComponentService component : components.values()) {
-			if (component.getType() == type) {
-				result.add(component);
-			}
-		}
-		return result;
+		return components.getAll(type);
 	}
 
 	@Override
@@ -347,7 +341,7 @@ public final class EnergyManager extends Configurable
 			schedule = scheduleUpdate;
 		}
 		synchronized (components) {
-			for (ComponentService component : components.values()) {
+			for (ComponentControlService component : components.getAll(ComponentControlService.class)) {
 				try {
 					if (maintenance) {
 						component.setStatus(ComponentStatus.MAINTENANCE);

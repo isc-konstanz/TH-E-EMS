@@ -21,7 +21,7 @@ package org.the.ems.core;
 
 import org.the.ems.core.data.Value;
 
-public interface HeatingService extends ComponentService {
+public interface HeatingService extends ComponentControlService {
 
 	public HeatingState getState();
 

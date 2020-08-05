@@ -19,16 +19,13 @@
  */
 package org.the.ems.core;
 
-public interface ComponentService {
+import org.the.ems.core.data.Value;
+import org.the.ems.core.schedule.Schedule;
 
-	public String getId();
+public interface ComponentControlService extends ComponentService {
 
-	public default ComponentType getType() {
-		return ComponentType.GENERAL;
-	}
+	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException;
 
-	public ComponentStatus getStatus();
-
-	public void setStatus(ComponentStatus status) throws EnergyManagementException;
+	public void set(Value value) throws EnergyManagementException, UnsupportedOperationException;
 
 }

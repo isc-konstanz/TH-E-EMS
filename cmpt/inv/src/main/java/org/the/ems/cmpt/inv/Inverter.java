@@ -30,6 +30,7 @@ import org.the.ems.cmpt.inv.ext.ExternalPower;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
@@ -40,6 +41,7 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.schedule.Schedule;
 
 @org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
@@ -187,6 +189,48 @@ public class Inverter extends Component implements InverterService, InverterCall
 	}
 
 	@Override
+    public final void schedule(Schedule schedule)
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        if (isMaintenance()) {
+            throw new MaintenanceException("Unable to schedule inverter while in maintenance");
+        }
+        WriteContainer container = new WriteContainer();
+        for (Value value : schedule) {
+            doSet(container, value);
+        }
+        doWrite(container);
+    }
+
+    protected void doSchedule(WriteContainer container, Schedule schedule) 
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        for (Value value : schedule) {
+            doSet(container, value);
+        }
+        onSchedule(container, schedule);
+    }
+
+    protected void onSchedule(WriteContainer container, Schedule schedule) 
+            throws UnsupportedOperationException, ComponentException {
+        // Default implementation to be overridden
+    }
+
+    @Override
+    public final void set(Value value) 
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        WriteContainer container = new WriteContainer();
+        doSet(container, value);
+        doWrite(container);
+    }
+
+    protected void doSet(WriteContainer container, Value value)
+            throws UnsupportedOperationException, EnergyManagementException {
+        
+        onSet(container, value);
+    }
+
 	public void onSet(WriteContainer container, Value value) throws ComponentException {
 		double setpoint = value.doubleValue();
 		if (setpoint > getMaxPower() || setpoint < getMinPower()) {
@@ -217,6 +261,15 @@ public class Inverter extends Component implements InverterService, InverterCall
 		}
 		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
 	}
+
+    protected void doWrite(WriteContainer container) throws EnergyManagementException {
+        if (container.size() < 1) {
+            return;
+        }
+        for (Channel channel : container.keySet()) {
+            channel.write(container.get(channel));
+        }
+    }
 
 	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		// TODO: Verify setpoint import/export sign

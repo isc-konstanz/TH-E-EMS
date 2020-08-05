@@ -20,11 +20,11 @@
 package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentType;
+import org.the.ems.core.ComponentControlService;
 import org.the.ems.core.data.Value;
 
-public interface ElectricalEnergyStorageService extends ComponentService {
+public interface ElectricalEnergyStorageService extends ComponentControlService {
 
 	static final String PID = "org.the.ems.cmpt.ees";
 

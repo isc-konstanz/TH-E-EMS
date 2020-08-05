@@ -199,7 +199,7 @@ public abstract class Configurable {
 	private Collection<String> configureCollection(Configurations configs, 
 			String section, String[] keys) throws ConfigurationException {
 		
-		Collection<String> channels = new LinkedList<String>();
+		Collection<String> collection = new LinkedList<String>();
 		for (String key : keys) {
 			try {
 				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
@@ -207,11 +207,11 @@ public abstract class Configurable {
 				}
 				else if (key.contains("?") || key.contains("*")) {
 					for (String k : configs.search(section, key)) {
-						channels.add(configs.get(section, k, String.class));
+						collection.add(configs.get(section, k, String.class));
 					}
 				}
 				else if (configs.contains(section, key)) {
-					channels.add(configs.get(section, key, String.class));
+					collection.add(configs.get(section, key, String.class));
 				}
 			} catch (ConfigurationException | IllegalArgumentException | 
 					NullPointerException | NoSuchFieldException e) {
@@ -219,7 +219,7 @@ public abstract class Configurable {
 				throw newConfigException(e.getMessage());
 			}
 		}
-		return channels;
+		return collection;
 	}
 
 	private ChannelCollection configureChannels(Configurations configs, 

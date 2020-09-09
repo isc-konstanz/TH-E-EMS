@@ -3,12 +3,18 @@ package org.the.cmpt.chp.ice;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
 @Component(
@@ -33,6 +39,31 @@ public class InternalCombustionEngine extends Cogenerator {
 
 	@Configuration(mandatory = false)
 	protected Channel starter = null;
+	
+	@Configuration(mandatory = false)
+	protected float tempMax = 90;
+	
+	@Configuration(value="temp_*")
+	protected ChannelCollection temperatures;
+
+	private static final Logger logger = LoggerFactory.getLogger(InternalCombustionEngine.class);
+
+	@Override
+	public void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+
+		// register Channel listener
+		for (Channel temperature : temperatures.values()) {
+			temperature.registerValueListener(new TemperatureListener());
+		}
+	}
+
+	@Override
+	public void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		
+		temperatures.deregister();
+	}
 
 	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
@@ -65,5 +96,20 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
 		// TODO: set power level
 	}
+	
+	private class TemperatureListener implements ValueListener {
 
+		@Override
+		public void onValueReceived(Value temp) {
+			if (temp.floatValue() > tempMax) {
+				logger.debug("Overheated in cooling circulation or Motor! Turning off CHP.");
+				try {
+					doStop(System.currentTimeMillis());
+					
+				} catch (EnergyManagementException e) {
+					logger.warn("Error while trying to turn off motor. ", e);
+				}
+			}
+		}
+	}			
 }

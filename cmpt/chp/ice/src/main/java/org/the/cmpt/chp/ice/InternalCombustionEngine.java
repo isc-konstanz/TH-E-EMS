@@ -16,6 +16,7 @@ import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.HeatingState;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -43,6 +44,9 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Configuration(mandatory = false)
 	protected float tempMax = 90;
 	
+	@Configuration(mandatory = false)
+	protected float tempStopMax = 70;
+	
 	@Configuration(value="temp_*")
 	protected ChannelCollection temperatures;
 
@@ -68,16 +72,18 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
+
+		container.addBoolean(enable, true, time);
 		
 		if (valve != null) {
-			container.addBoolean(valve, true, time);
 			time += enableDelay;
-		}
-		container.addBoolean(enable, true, time);
+			container.addBoolean(valve, true, time);
+		}	
 		
 		if (starter != null) {
 			container.addBoolean(starter, true, time);
 			container.addBoolean(starter, false, time+starterTime);
+			
 		}
 		// TODO: set power level
 	}
@@ -86,11 +92,19 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		if (valve != null) {
 			container.addBoolean(valve, false, time);
-			time += enableDelay;
 		}
-		container.addBoolean(enable, false, time);
+
 		// TODO: reset power level
 	}
+	
+	protected void stopEngine(long time) throws EnergyManagementException {
+		WriteContainer writeContainer = new WriteContainer();
+		
+		writeContainer.addBoolean(enable, false, time);
+		writeContainer.addBoolean(enable, false, time);
+		doWrite(writeContainer);
+		setState(HeatingState.STANDBY);
+		}
 
 	@Override
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
@@ -100,9 +114,9 @@ public class InternalCombustionEngine extends Cogenerator {
 	private class TemperatureListener implements ValueListener {
 
 		@Override
-		public void onValueReceived(Value temp) {
-			if (temp.floatValue() > tempMax) {
-				logger.debug("Overheated in cooling circulation or Motor! Turning off CHP.");
+		public void onValueReceived(Value value) {
+			if (value.floatValue() > tempMax) {
+				logger.debug("Overheat in cooling circulation or Motor! Turning down CHP.");
 				try {
 					doStop(System.currentTimeMillis());
 					
@@ -110,6 +124,29 @@ public class InternalCombustionEngine extends Cogenerator {
 					logger.warn("Error while trying to turn off motor. ", e);
 				}
 			}
+			else {
+				switch(getState()) {
+				case STANDBY:
+				case STOPPING:
+					if (enable.getLatestValue().booleanValue()) {
+						if (value.floatValue() < tempStopMax) {
+							try {
+								stopEngine(System.currentTimeMillis());
+							} catch (EnergyManagementException e) {
+								logger.warn("Failed to stop engine. )", e);
+							}
+							setState(HeatingState.STANDBY);
+						}
+					}
+
+					
+					break;
+				default:
+					break;
+				
+				}
+			}
+
 		}
 	}			
 }

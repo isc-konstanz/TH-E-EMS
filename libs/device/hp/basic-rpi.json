@@ -1,0 +1,98 @@
+{
+    "name": "GPIO (Raspberry Pi)",
+    "group": "General",
+    "category": "Heat pump",
+    "description": "Basic domestic monoblock hot water heat pump",
+
+    "devices": [
+        {
+            "name": "<node>",
+            "description": "<name> control",
+            "driver": "rpi-gpio",
+            "address": "pin:<pin>",
+            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "pin",
+            "name": "Pin",
+            "description": "The Pin number, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "scan": true,
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*state", "value": true },
+                "OFF": { "channel": "<node>*state", "value": false }
+            },
+            "input": "<node>*state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Pump",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*circ*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ"
+        },
+        {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Flow",
+            "format": "%.1f °C",
+            "input": "<node>*circ*in*temp",
+            "node": "<node>*circ*in"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*circ*flow*power",
+            "node": "<node>*circ"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*state",
+            "description": "<name> state",
+            "device": "<node>",
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name>"}
+            }
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*state"
+        }
+    ]
+}

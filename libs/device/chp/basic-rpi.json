@@ -1,0 +1,160 @@
+{
+    "name": "GPIO (Raspberry Pi)",
+    "group": "General",
+    "category": "Cogenerator",
+    "description": "Basic domestic internal combustion engine cogenerator",
+
+    "devices": [
+        {
+            "name": "<node>*engine",
+            "description": "<name> engine",
+            "driver": "rpi-gpio",
+            "address": "pin:<engine>",
+            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+        },
+        {
+            "name": "<node>*gas*valve",
+            "description": "<name> gas valve",
+            "driver": "rpi-gpio",
+            "address": "pin:<valve>",
+            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+        },
+        {
+            "name": "<node>",
+            "description": "<name> control",
+            "driver": "virtual"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "engine",
+            "name": "Engine pin",
+            "description": "The Pin number to switch the engine, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "valve",
+            "name": "Gas valve pin",
+            "description": "The pin number to switch the gas valve, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*state", "value": true },
+                "OFF": { "channel": "<node>*state", "value": false }
+            },
+            "input": "<node>*state"
+        },
+        {
+            "id": "engine",
+            "type": "Switch",
+            "label": "Engine",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*engine*state", "value": true },
+                "OFF": { "channel": "<node>*engine*state", "value": false }
+            },
+            "input": "<node>*engine*state"
+        },
+        {
+            "id": "valve",
+            "type": "Switch",
+            "label": "Gas valve",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*gas*valve*state", "value": true },
+                "OFF": { "channel": "<node>*gas*valve*state", "value": false }
+            },
+            "input": "<node>*gas*valve*state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Pump",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*circ*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ"
+        },
+        {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Flow",
+            "format": "%.1f °C",
+            "input": "<node>*circ*in*temp",
+            "node": "<node>*circ*in"
+        },
+        {
+            "id": "thermal",
+            "type": "Text",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*circ*flow*power",
+            "node": "<node>*circ"
+        },
+        {
+            "id": "electrical",
+            "type": "Text",
+            "label": "Power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*meter*power",
+            "node": "<node>*meter"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*state",
+            "description": "<name> state",
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*engine*state",
+            "description": "<name> engine state",
+            "node": "<node>*engine",
+            "device": "<node>*engine",
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000}
+        },
+        {
+            "name": "<node>*gas*valve*state",
+            "description": "<name> gas valve state",
+            "node": "<node>*gas*valve",
+            "device": "<node>*gas*valve",
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*ctrl*state"
+        }
+    ]
+}

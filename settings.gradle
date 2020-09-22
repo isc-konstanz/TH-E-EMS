@@ -1,10 +1,42 @@
-include "th-e-component-energydepot", "th-e-component-effekta", "th-e-component-serenergy", "th-e-component-gondzik", "th-e-optimization"
+/* 
+ * Copyright 2016-19 ISC Konstanz
+ * 
+ * This file is part of TH-E EMS.
+ * For more information visit https://github.com/isc-konstanz/TH-E-EMS
+ * 
+ * TH-E EMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * TH-E EMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+rootProject.name = 'TH-E-CMPT'
 
-project(":th-e-component-energydepot").projectDir = file("projects/inverter/energydepot")
-project(":th-e-component-effekta").projectDir = file("projects/inverter/effekta")
+include 'api', 'cmpt', 'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 'cmpt:hp', 'cmpt:inv', 'cmpt:inv:effekta', 'cmpt:tes', 'cms', 'cms:mockup', 'ctrl', 'ctrl:2p', 'ctrl:ps', 'ctrl:mpc'
 
-project(":th-e-component-serenergy").projectDir = file("projects/cogenerator/serenergy")
+def coreDir = '../TH-E-EMS'
+project(':api').projectDir = file(coreDir+'/api')
+project(':cmpt').projectDir = file(coreDir+'/cmpt')
+project(':cmpt:chp').projectDir = file(coreDir+'/cmpt/chp')
+project(':cmpt:chp:ice').projectDir = file('cmpt/chp/ice')
+project(':cmpt:chp:serenergy').projectDir = file('cmpt/chp/serenergy')
+project(':cmpt:hp').projectDir = file(coreDir+'/cmpt/hp')
+project(':cmpt:inv').projectDir = file(coreDir+'/cmpt/inv')
+project(":cmpt:inv:effekta").projectDir = file("cmpt/inv/effekta")
+project(':cmpt:tes').projectDir = file(coreDir+'/cmpt/tes')
 
-project(":th-e-component-gondzik").projectDir = file("projects/heatpump/gondzik")
+project(':cms').projectDir = file(coreDir+'/cms/openmuc')
+project(':cms:mockup').projectDir = file('cms/mockup')
 
-project(":th-e-optimization").projectDir = file("projects/optimization")
+project(':ctrl').projectDir = file(coreDir+'/ctrl')
+project(':ctrl:2p').projectDir = file(coreDir+'/ctrl/2p')
+project(':ctrl:ps').projectDir = file('ctrl/ps')
+project(':ctrl:mpc').projectDir = file('ctrl/mpc')

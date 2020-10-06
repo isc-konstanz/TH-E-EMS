@@ -1,4 +1,4 @@
-package de.thebox.control.component.inv.effekta;
+package org.the.ems.cmpt.inv.effekta;
 
 public enum Mode {
     DEFAULT,

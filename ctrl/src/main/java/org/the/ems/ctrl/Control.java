@@ -60,7 +60,7 @@ public abstract class Control extends Component {
 			case STOPPING:
 				try {
 					doStart(heating);
-					onStart(heating);
+					
 				} catch (EnergyManagementException e) {
 					logger.warn("Unable to start heating \"{}\": {}", heating.getId(), e.getMessage());
 				}
@@ -73,11 +73,11 @@ public abstract class Control extends Component {
 	}
 
 	protected void doStart(HeatingService heating) throws EnergyManagementException {
-		heating.start(getStartValue(heating));
+		onStart(heating);
 	}
 
 	protected void onStart(HeatingService heating) throws EnergyManagementException {
-		// Default implementation to be overridden
+		heating.start(getStartValue(heating));
 	}
 
 	public final void set(double value) {
@@ -88,7 +88,6 @@ public abstract class Control extends Component {
 		for (InverterService inverter : components.getAll(InverterService.class)) {
 			try {
 				doSet(inverter, value);
-				onSet(inverter, value);
 				
 			} catch (EnergyManagementException e) {
 				logger.warn("Unable to control inverter \"{}\": {}", inverter.getId(), e.getMessage());
@@ -101,7 +100,7 @@ public abstract class Control extends Component {
 			case STARTING:
 				try {
                 	doSet(heating, value);
-					onSet(heating, value);
+                	
 				} catch (EnergyManagementException e) {
 					logger.warn("Unable to control heating \"{}\": {}", heating.getId(), e.getMessage());
 				}
@@ -114,19 +113,19 @@ public abstract class Control extends Component {
 	}
 
 	protected void doSet(InverterService inverter, Value value) throws EnergyManagementException {
+		onSet(inverter, value);
+	}
+
+	protected void onSet(InverterService inverter, Value value) throws EnergyManagementException {
 		inverter.set(value);
 	}
 
-	protected void onSet(InverterService heating, Value value) throws EnergyManagementException {
-		// Default implementation to be overridden
-	}
-
 	protected void doSet(HeatingService heating, Value value) throws EnergyManagementException {
-		heating.set(value);
+		onSet(heating, value);
 	}
 
 	protected void onSet(HeatingService heating, Value value) throws EnergyManagementException {
-		// Default implementation to be overridden
+		heating.set(value);
 	}
 
 	public final void stop() {
@@ -138,7 +137,6 @@ public abstract class Control extends Component {
 				try {
                     if (heating.getRuntime() >= heating.getMinRuntime()) {
                     	doStop(heating);
-						onStop(heating);
                     }
 				} catch (EnergyManagementException e) {
 					logger.warn("Unable to stop heating \"{}\": {}", heating.getId(), e.getMessage());
@@ -152,11 +150,11 @@ public abstract class Control extends Component {
 	}
 
 	protected void doStop(HeatingService heating) throws EnergyManagementException {
-		heating.stop();
+		onStop(heating);
 	}
 
 	protected void onStop(HeatingService heating) throws EnergyManagementException {
-		// Default implementation to be overridden
+		heating.stop();
 	}
 
 	protected Value getStartValue(HeatingService heating) {

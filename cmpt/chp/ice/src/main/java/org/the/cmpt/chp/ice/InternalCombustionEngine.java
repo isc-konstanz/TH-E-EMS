@@ -27,20 +27,22 @@ import org.the.ems.core.HeatingState;
 public class InternalCombustionEngine extends Cogenerator {
 	private static final Logger logger = LoggerFactory.getLogger(InternalCombustionEngine.class);
 
-	@Configuration(mandatory = false)
-	protected int enableDelay = 5000;
-
-	@Configuration
-	protected Channel enable;
-
-	@Configuration(mandatory = false)
-	protected Channel valve = null;
-
-	@Configuration(mandatory = false)
+	@Configuration(mandatory = false, scale=1000)
 	protected int starterTime = 2500;
 
 	@Configuration(mandatory = false)
 	protected Channel starter = null;
+
+
+	@Configuration(mandatory = false, scale=1000)
+	protected int valveDelay = 5000;
+
+	@Configuration(mandatory = false)
+	protected Channel valve = null;
+
+
+	@Configuration
+	protected Channel engine;
 
 	@Configuration(mandatory = false)
 	protected float tempMax = 90;
@@ -48,7 +50,7 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Configuration(mandatory = false)
 	protected float tempStop = 70;
 
-	@Configuration(value="temp_*")
+	@Configuration(value="temp_max_*")
 	protected ChannelCollection temperatures;
 
 	@Override
@@ -72,10 +74,10 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
 		
-		container.addBoolean(enable, true, time);
+		container.addBoolean(engine, true, time);
 		
 		if (valve != null) {
-			time += enableDelay;
+			time += valveDelay;
 			container.addBoolean(valve, true, time);
 		}
 		if (starter != null) {
@@ -97,8 +99,7 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected void stopEngine(long time) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
 		
-		writeContainer.addBoolean(enable, false, time);
-		writeContainer.addBoolean(enable, false, time);
+		writeContainer.addBoolean(engine, false, time);
 		doWrite(writeContainer);
 		setState(HeatingState.STANDBY);
 	}
@@ -121,19 +122,19 @@ public class InternalCombustionEngine extends Cogenerator {
 					logger.warn("Error while trying to shut down CHP: {}", e.getMessage());
 				}
 			}
-			else {
+			else if (engine.getLatestValue().booleanValue()) {
 				switch(getState()) {
-				case STANDBY:
 				case STOPPING:
-					if (enable.getLatestValue().booleanValue()) {
-						if (value.floatValue() < tempStop) {
+				case STANDBY:
+					if (value.floatValue() < tempStop) {
+						long timestamp = System.currentTimeMillis();
+						if (timestamp - stopTimeLast > valveDelay) {
 							try {
-								stopEngine(System.currentTimeMillis());
+								stopEngine(timestamp);
 								
 							} catch (EnergyManagementException e) {
 								logger.warn("Failed to stop engine: {}", e.getMessage());
 							}
-							setState(HeatingState.STANDBY);
 						}
 					}
 					break;
@@ -142,6 +143,6 @@ public class InternalCombustionEngine extends Cogenerator {
 				}
 			}
 		}
-	}			
+	}
 
 }

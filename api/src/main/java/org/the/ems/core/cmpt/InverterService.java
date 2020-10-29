@@ -21,10 +21,10 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
-import org.the.ems.core.ComponentControlService;
+import org.the.ems.core.ScheduledService;
 import org.the.ems.core.data.Value;
 
-public interface InverterService extends ComponentControlService {
+public interface InverterService extends ScheduledService {
 
 	static final String PID = "org.the.ems.cmpt.inv";
 

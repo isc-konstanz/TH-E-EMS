@@ -99,7 +99,8 @@ public abstract class Component extends Configurable implements ComponentService
 			onActivate(configs);
 			
 		} catch (Exception e) {
-			logger.warn("Error while updating configurations: {}", e.getMessage());
+			logger.warn("Error while updating configurations: {}", 
+					getType().getFullName(), id, e.getMessage());
 		}
 	}
 
@@ -115,6 +116,16 @@ public abstract class Component extends Configurable implements ComponentService
 					getType().getFullName(), id, e.getMessage());
 			
 			throw new org.osgi.service.component.ComponentException(e);
+		}
+	}
+
+	public final void interrupt() throws EnergyManagementException {
+		try {
+			onInterrupt();
+			
+		} catch (Exception e) {
+			logger.warn("Error while interrupting {} {}: {}", 
+					getType().getFullName(), id, e.getMessage());
 		}
 	}
 
@@ -135,6 +146,10 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	protected void onDeactivate() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onInterrupt() throws ComponentException {
 		// Default implementation to be overridden
 	}
 

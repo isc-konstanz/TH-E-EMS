@@ -24,7 +24,6 @@ import java.util.Map;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
@@ -33,8 +32,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentCollection;
-import org.the.ems.core.ComponentControlService;
+import org.the.ems.core.ScheduledService;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
@@ -59,7 +59,7 @@ import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
 
-@Component(
+@org.osgi.service.component.annotations.Component(
 	service = EnergyManagementService.class,
 	immediate = true,
 	property = {
@@ -311,11 +311,17 @@ public final class EnergyManager extends Configurable
 				continue;
 			}
 			try {
+				long timestamp = System.currentTimeMillis();
+				
 				configs.watch();
 				
 				handleComponentEvent();
-				Thread.sleep(interval);
 				
+				long time = System.currentTimeMillis() - timestamp;
+				long sleep = interval - time;
+				if (sleep > 0) {
+					Thread.sleep(interval);
+				}
 			} catch (InterruptedException e) {
 				handleInterruptEvent();
 				continue;
@@ -341,7 +347,7 @@ public final class EnergyManager extends Configurable
 			schedule = scheduleUpdate;
 		}
 		synchronized (components) {
-			for (ComponentControlService component : components.getAll(ComponentControlService.class)) {
+			for (ComponentService component : components.getAll(ComponentService.class)) {
 				try {
 					if (maintenance) {
 						component.setStatus(ComponentStatus.MAINTENANCE);
@@ -352,15 +358,16 @@ public final class EnergyManager extends Configurable
 							component.setStatus(ComponentStatus.ENABLED);
 						}
 						
-						if (scheduleFlag) {
+						if (component instanceof ScheduledService && scheduleFlag) {
 							try {
 								if (schedule.contains(component)) {
-									component.schedule(schedule.get(component));
+									((ScheduledService) component).schedule(schedule.get(component));
 								}
 							} catch (ComponentException e) {
 								logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);
 							}
 						}
+						if (component instanceof Component) ((Component) component).interrupt();
 					}
 				} catch (EnergyManagementException e) {
 					logger.warn("Error while handling event for component \"{}\": ", component.getId(), e);

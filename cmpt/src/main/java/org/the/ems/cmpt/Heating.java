@@ -122,7 +122,7 @@ public abstract class Heating extends Component implements HeatingService {
 	}
 
 	@Override
-	public void onActivate(Configurations configs) throws ComponentException {
+	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		state.registerValueListener(new StateListener());
 		circulation = new Circulation().activate(content).configure(configs);
@@ -130,17 +130,17 @@ public abstract class Heating extends Component implements HeatingService {
 	}
 
 	@Override
-	public void onResume() throws ComponentException {
+	protected void onResume() throws ComponentException {
 		circulationPump.resume();
 	}
 
 	@Override
-	public void onPause() throws ComponentException {
+	protected void onPause() throws ComponentException {
 		circulationPump.pause();
 	}
 
 	@Override
-	public void onDeactivate() throws ComponentException {
+	protected void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		try {
 			stop();
@@ -151,6 +151,25 @@ public abstract class Heating extends Component implements HeatingService {
 		state.deregister();
 		circulation.deactivate();
 		circulationPump.deactivate();
+	}
+
+	@Override
+	protected void onInterrupt() throws ComponentException {
+		super.onInterrupt();
+		switch(getState()) {
+		case STOPPING:
+			if (isStandby()) {
+				doStandby();
+			}
+			break;
+		case STARTING:
+			if (isRunning()) {
+				doRun();
+			}
+			break;
+		default:
+			break;
+		}
 	}
 
 	@Override
@@ -281,6 +300,26 @@ public abstract class Heating extends Component implements HeatingService {
 		// Default implementation to be overridden
 	}
 
+	protected void doRun() throws ComponentException {
+		setState(HeatingState.RUNNING);
+		onRunning();
+	}
+
+	protected void onRunning() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected boolean isRunning() {
+		// Default implementation to be overridden
+		switch(getState()) {
+		case STARTING:
+		case RUNNING:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	@Override
 	public final void stop(long time) throws EnergyManagementException {
 		if (isMaintenance()) {
@@ -323,11 +362,38 @@ public abstract class Heating extends Component implements HeatingService {
 		// Default implementation to be overridden
 	}
 
+	protected void doStandby() throws ComponentException {
+		setState(HeatingState.STANDBY);
+	}
+
+	protected void onStandby() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected boolean isStandby() {
+		// Default implementation to be overridden
+		switch(getState()) {
+		case STANDBY:
+		case STOPPING:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	protected void onStateChanged(Value state) throws EnergyManagementException {
 		if (state.booleanValue()) {
 			if (!circulationPump.isDisabled()) {
 				circulationPump.start();
 			}
+		}
+	}
+
+	protected class PowerListener implements ValueListener {
+
+		@Override
+		public synchronized void onValueReceived(Value value) {
+			
 		}
 	}
 
@@ -353,18 +419,6 @@ public abstract class Heating extends Component implements HeatingService {
 					}
 					onStateChanged(value);
 					
-					if (value.booleanValue()) {
-						startTimeLast = value.getTime();
-						
-						// TODO: Verify if the heating really has started
-						setState(HeatingState.RUNNING);
-					}
-					else {
-						stopTimeLast = value.getTime();
-						
-						// TODO: Verify if the heating really has stopped
-						setState(HeatingState.STANDBY);
-					}
 				} catch (EnergyManagementException e) {
 					state.setLatestValue(new BooleanValue(!value.booleanValue()));
 					logger.warn("Error handling state change: {}", e.getMessage());

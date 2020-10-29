@@ -22,7 +22,7 @@ package org.the.ems.core;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.schedule.Schedule;
 
-public interface ComponentControlService extends ComponentService {
+public interface ScheduledService extends ComponentService {
 
 	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException;
 

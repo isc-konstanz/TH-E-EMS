@@ -309,7 +309,7 @@ public abstract class Heating extends Component implements HeatingService {
 		// Default implementation to be overridden
 	}
 
-	protected boolean isRunning() {
+	protected boolean isRunning() throws ComponentException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STARTING:
@@ -370,7 +370,7 @@ public abstract class Heating extends Component implements HeatingService {
 		// Default implementation to be overridden
 	}
 
-	protected boolean isStandby() {
+	protected boolean isStandby() throws ComponentException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STANDBY:

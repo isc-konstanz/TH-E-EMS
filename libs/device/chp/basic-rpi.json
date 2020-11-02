@@ -52,22 +52,10 @@
             "left": "Off",
             "right": "On",
             "mapping": {
-                "ON": { "channel": "<node>*state", "value": true },
-                "OFF": { "channel": "<node>*state", "value": false }
+                "ON": { "channel": "<node>*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*state", "value": false, "valueType": "BOOLEAN" }
             },
             "input": "<node>*state"
-        },
-        {
-            "id": "engine",
-            "type": "Switch",
-            "label": "Engine",
-            "left": "Off",
-            "right": "On",
-            "mapping": {
-                "ON": { "channel": "<node>*engine*state", "value": true },
-                "OFF": { "channel": "<node>*engine*state", "value": false }
-            },
-            "input": "<node>*engine*state"
         },
         {
             "id": "valve",
@@ -76,15 +64,53 @@
             "left": "Off",
             "right": "On",
             "mapping": {
-                "ON": { "channel": "<node>*gas*valve*state", "value": true },
-                "OFF": { "channel": "<node>*gas*valve*state", "value": false }
+                "ON": { "channel": "<node>*gas*valve*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*gas*valve*state", "value": false, "valueType": "BOOLEAN" }
             },
             "input": "<node>*gas*valve*state"
         },
         {
-            "id": "circulation",
+            "id": "engine",
+            "type": "Switch",
+            "label": "Engine",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*engine*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*engine*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*engine*state"
+        },
+        {
+            "id": "engine-mode",
+            "type": "Switch",
+            "label": "Mode",
+            "left": "Star",
+            "right": "Delta",
+            "mapping": {
+                "ON": { "channel": "<node>*engine*mode*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*engine*mode*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*engine*mode*state",
+            "node": "<node>*engine*mode"
+        },
+        {
+            "id": "engine-pump",
             "type": "Switch",
             "label": "Pump",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*engine*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*engine*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*engine*pump*state",
+            "node": "<node>*engine*pump"
+        },
+        {
+            "id": "circ-pump",
+            "type": "Switch",
+            "label": "Flow",
             "left": "Off",
             "right": "On",
             "mapping": {
@@ -95,9 +121,8 @@
             "node": "<node>*circ"
         },
         {
-            "id": "temperature",
+            "id": "circ-temp",
             "type": "Text",
-            "label": "Flow",
             "format": "%.1f °C",
             "input": "<node>*circ*in*temp",
             "node": "<node>*circ*in"

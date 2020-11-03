@@ -364,6 +364,7 @@ public abstract class Heating extends Component implements HeatingService {
 
 	protected void doStandby() throws ComponentException {
 		setState(HeatingState.STANDBY);
+		onStandby();
 	}
 
 	protected void onStandby() throws ComponentException {

@@ -45,6 +45,19 @@
 
     "items": [
         {
+            "id": "mode",
+            "type": "Text",
+            "label": "Mode",
+            "header": true,
+            "select": {
+                "0":"Star",
+                "1":"Delta"
+            },
+            "default": "Loading",
+            "input": "<node>*engine*mode*state",
+            "node": "<node>*engine*mode"
+        },
+        {
             "id": "enable",
             "type": "Switch",
             "label": "Enable",
@@ -82,35 +95,9 @@
             "input": "<node>*engine*state"
         },
         {
-            "id": "engine-mode",
-            "type": "Switch",
-            "label": "Mode",
-            "left": "Star",
-            "right": "Delta",
-            "mapping": {
-                "ON": { "channel": "<node>*engine*mode*state", "value": true, "valueType": "BOOLEAN" },
-                "OFF": { "channel": "<node>*engine*mode*state", "value": false, "valueType": "BOOLEAN" }
-            },
-            "input": "<node>*engine*mode*state",
-            "node": "<node>*engine*mode"
-        },
-        {
-            "id": "engine-pump",
+            "id": "pump",
             "type": "Switch",
             "label": "Pump",
-            "left": "Off",
-            "right": "On",
-            "mapping": {
-                "ON": { "channel": "<node>*engine*pump*state", "value": true, "valueType": "BOOLEAN" },
-                "OFF": { "channel": "<node>*engine*pump*state", "value": false, "valueType": "BOOLEAN" }
-            },
-            "input": "<node>*engine*pump*state",
-            "node": "<node>*engine*pump"
-        },
-        {
-            "id": "circ-pump",
-            "type": "Switch",
-            "label": "Flow",
             "left": "Off",
             "right": "On",
             "mapping": {
@@ -121,8 +108,9 @@
             "node": "<node>*circ"
         },
         {
-            "id": "circ-temp",
+            "id": "temp",
             "type": "Text",
+            "label": "Flow",
             "format": "%.1f °C",
             "input": "<node>*circ*in*temp",
             "node": "<node>*circ*in"

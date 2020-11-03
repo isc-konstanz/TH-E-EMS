@@ -306,7 +306,7 @@ public final class EnergyManager extends Configurable
 		
 		deactivate = false;
 		while (!deactivate) {
-			if (manager.isInterrupted()) {
+			if (Thread.interrupted()) {
 				handleInterruptEvent();
 				continue;
 			}
@@ -320,7 +320,7 @@ public final class EnergyManager extends Configurable
 				long time = System.currentTimeMillis() - timestamp;
 				long sleep = interval - time;
 				if (sleep > 0) {
-					Thread.sleep(interval);
+					Thread.sleep(sleep);
 				}
 			} catch (InterruptedException e) {
 				handleInterruptEvent();
@@ -347,7 +347,7 @@ public final class EnergyManager extends Configurable
 			schedule = scheduleUpdate;
 		}
 		synchronized (components) {
-			for (ComponentService component : components.getAll(ComponentService.class)) {
+			for (ComponentService component : components.values()) {
 				try {
 					if (maintenance) {
 						component.setStatus(ComponentStatus.MAINTENANCE);

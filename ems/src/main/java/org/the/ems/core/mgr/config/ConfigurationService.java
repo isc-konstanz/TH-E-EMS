@@ -112,7 +112,7 @@ public final class ConfigurationService extends Thread {
 
 	public void watch() {
 		try {
-			WatchKey key = watcher.take();
+			WatchKey key = watcher.poll();
 			if (key == null || !keys.containsKey(key)) {
 				return;
 			}
@@ -142,7 +142,7 @@ public final class ConfigurationService extends Thread {
 			}
 			key.reset();
 			
-		} catch (InterruptedException | ConfigurationException | IOException e) {
+		} catch (ConfigurationException | IOException e) {
 			logger.debug("Error while watching configuration updates");
 		}
 	}

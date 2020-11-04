@@ -44,7 +44,7 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected Channel engineMode = null;
 
 	@Configuration(mandatory = false)
-	protected double engineModeDelay = 500;
+	protected double engineModeDelay = 250;
 
 	@Configuration
 	protected ChannelListener engine;
@@ -60,7 +60,11 @@ public class InternalCombustionEngine extends Cogenerator {
 
 	@Override
 	public Value getElectricalPower() throws ComponentException {
-		return power.getLatestValue();
+		Value powerValue = power.getLatestValue();
+		if (powerValue == null) {
+			throw new ComponentException("Unable to retrieve electrical power");
+		}
+		return powerValue;
 	}
 
 	@Override
@@ -112,7 +116,12 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Override
 	protected boolean isRunning() throws ComponentException {
 		if (powerMin > 0) {
-			return Math.abs(getElectricalPower().doubleValue()) > powerMin;
+			try {
+				return Math.abs(getElectricalPower().doubleValue()) > powerMin;
+				
+			} catch(ComponentException e) {
+				logger.debug("Error while checking run state: {}", e.getMessage());
+			}
 		}
 		return super.isRunning();
 	}
@@ -130,9 +139,6 @@ public class InternalCombustionEngine extends Cogenerator {
 
 	protected void onEngineStop(long time) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		if (valve != null && valve.getLatestValue().booleanValue()) {
-			writeContainer.addBoolean(valve, false, time);
-		}
 		writeContainer.add(engineMode, EngineMode.STAR.getValue(time));
 		doWrite(writeContainer);
 	}
@@ -156,7 +162,13 @@ public class InternalCombustionEngine extends Cogenerator {
 
 	@Override
 	protected boolean isStandby() throws ComponentException {
-		return getElectricalPower().doubleValue() == 0.0;
+		try {
+			return getElectricalPower().doubleValue() == 0.0;
+			
+		} catch(ComponentException e) {
+			logger.debug("Error while checking standby state: {}", e.getMessage());
+		}
+		return super.isStandby();
 	}
 
 	@Override

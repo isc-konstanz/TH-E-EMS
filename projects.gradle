@@ -32,6 +32,7 @@ project.ext {
   distributionProjects = subprojects.findAll {
     it.getPath() == ':cmpt:chp:ice' ||
     it.getPath() == ':cmpt:chp:serenergy' ||
+    it.getPath() == ':cmpt:inv:kaco' ||
     it.getPath() == ':ctrl:mpc' ||
     it.getPath() == ':ctrl:ps'
   }

@@ -18,13 +18,13 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-chp-ice'
-def projectName = 'TH-E-Component-InternalCombustionEngine'
-def projectFullName = 'TH-E EMS Components - Internal Combustion Engine Cogernerator'
-def projectDescription = 'Internal combustion engine cogernerator component for TH-E EMS framework.'
+archivesBaseName = 'th-e-cmpt-inv-kaco'
+def projectName = 'TH-E-Component-KACO'
+def projectFullName = 'TH-E EMS Components - KACO Inverter'
+def projectDescription = 'KACO new energy GmbH inverter component for TH-E EMS framework.'
 
 dependencies {
-  implementation project(':cmpt:chp')
+  implementation project(':cmpt:inv')
 }
 
 eclipse {

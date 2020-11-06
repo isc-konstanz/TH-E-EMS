@@ -32,7 +32,7 @@ public class Command extends Configurable implements ValueListener {
 			command.registerValueListener(this);
 		}
 		else {
-			setDisabled(true);
+			setEnabled(false);
 		}
 	}
 
@@ -46,7 +46,7 @@ public class Command extends Configurable implements ValueListener {
 	}
 
 	public void deactivate() {
-		if (!isDisabled()) {
+		if (isEnabled()) {
 			command.deregister();
 		}
 	}

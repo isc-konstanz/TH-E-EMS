@@ -22,6 +22,7 @@ package org.the.ems.core;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
@@ -70,16 +71,19 @@ public abstract class Component extends Configurable implements ComponentService
 		return componentStatus == ComponentStatus.MAINTENANCE;
 	}
 
+	protected void onResume() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onPause() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
 	@Activate
-	protected final void activate(BundleContext context, Map<String, ?> properties) throws org.osgi.service.component.ComponentException {
+	protected void activate(BundleContext context, Map<String, ?> properties) 
+			throws org.osgi.service.component.ComponentException, ComponentException {
 		try {
-			super.activate(context.getService(context.getServiceReference(ContentManagementService.class)));
-			
-			Configurations configs = Configurations.create(properties);
-			configure(configs);
-			
-			onActivate(configs, context);
-			onActivate(configs);
+			doActivate(context, properties);
 			
 		} catch (Exception e) {
 			logger.warn("Error while activating {} {}: {}", 
@@ -89,14 +93,31 @@ public abstract class Component extends Configurable implements ComponentService
 		}
 	}
 
+	protected final void doActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+		Configurations configs = Configurations.create(properties);
+		doConfigure(context.getService(context.getServiceReference(ContentManagementService.class)), configs);
+		onActivate(context, properties);
+		onActivate(context, configs);
+		onActivate(configs);
+	}
+
+	protected void onActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onActivate(Configurations configs) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
 	@Modified
 	protected void modified(Map<String, ?> properties) {
 		try {
-			Configurations configs = Configurations.create(properties);
-			
-			onDeactivate();
-			configure(configs);
-			onActivate(configs);
+			doDeactivate();
+			doActivate(FrameworkUtil.getBundle(this.getClass()).getBundleContext(), properties);
 			
 		} catch (Exception e) {
 			logger.warn("Error while updating configurations: {}", 
@@ -105,11 +126,9 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	@Deactivate
-	protected final void deactivate() {
-		// Clear up resources
-		this.content = null;
+	protected void deactivate() throws org.osgi.service.component.ComponentException, ComponentException {
 		try {
-			onDeactivate();
+			doDeactivate();
 			
 		} catch (Exception e) {
 			logger.warn("Error while deactivating {} {}: {}", 
@@ -117,6 +136,17 @@ public abstract class Component extends Configurable implements ComponentService
 			
 			throw new org.osgi.service.component.ComponentException(e);
 		}
+	}
+
+	protected final void doDeactivate() throws ComponentException {
+		// Clear up resources
+		this.content = null;
+		
+		onDeactivate();
+	}
+
+	protected void onDeactivate() throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	public final void interrupt() throws EnergyManagementException {
@@ -127,26 +157,6 @@ public abstract class Component extends Configurable implements ComponentService
 			logger.warn("Error while interrupting {} {}: {}", 
 					getType().getFullName(), id, e.getMessage());
 		}
-	}
-
-	protected void onActivate(Configurations configs, BundleContext context) throws ComponentException {
-		// Default implementation to be overridden
-	}
-
-	protected void onActivate(Configurations configs) throws ComponentException {
-		// Default implementation to be overridden
-	}
-
-	protected void onResume() throws ComponentException {
-		// Default implementation to be overridden
-	}
-
-	protected void onPause() throws ComponentException {
-		// Default implementation to be overridden
-	}
-
-	protected void onDeactivate() throws ComponentException {
-		// Default implementation to be overridden
 	}
 
 	protected void onInterrupt() throws ComponentException {

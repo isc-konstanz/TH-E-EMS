@@ -68,10 +68,10 @@ public class TestConfiguration {
 
 	@Test
 	public void testDisabled() {
-		assertTrue(configs.isDisabled("Disabled"));
-		assertTrue(configs.isDisabled("Removed"));
-		assertFalse(configs.isDisabled("Test"));
-		assertFalse(configs.isDisabled("General"));
+		assertFalse(configs.isEnabled("Disabled"));
+		assertFalse(configs.isEnabled("Removed"));
+		assertTrue(configs.isEnabled("Test"));
+		assertTrue(configs.isEnabled("General"));
 	}
 
 	@Test(expected = ConfigurationException.class)

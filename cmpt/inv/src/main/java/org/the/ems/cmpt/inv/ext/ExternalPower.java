@@ -63,8 +63,9 @@ public class ExternalPower extends Configurable implements ValueListener {
 	@Override
 	@SuppressWarnings("unchecked")
 	public ExternalPower configure(Configurations configs) throws ConfigurationException {
-		super.configure(configs);
-		if (!isDisabled()) {
+		if (configs.isEnabled(SECTION)) {
+			super.configure(configs);
+			
 			activePower.registerValueListener(new ActivePowerListener());
 			solarPower.registerValueListener(this);
 			if (solarEnergy != null) {
@@ -93,7 +94,7 @@ public class ExternalPower extends Configurable implements ValueListener {
 	}
 
 	public void deactivate() {
-		if (!isDisabled()) {
+		if (isEnabled()) {
 			activePower.deregister();
 			solarPower.deregister();
 			if (solarEnergy != null) {
@@ -104,7 +105,7 @@ public class ExternalPower extends Configurable implements ValueListener {
 	}
 
 	public boolean isRunning() {
-		return !isDisabled() && running;
+		return isEnabled() && running;
 	}
 
 	public Value getSolar() {

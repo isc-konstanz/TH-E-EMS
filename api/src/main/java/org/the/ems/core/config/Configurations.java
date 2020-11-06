@@ -36,6 +36,7 @@ import java.util.Set;
 public class Configurations extends Dictionary<String, Object> {
 
 	public final static String GENERAL = "general";
+	public final static String ENABLED = "enabled";
 	public final static String DISABLED = "disabled";
 
 	protected final Hashtable<String, Object> configs = new Hashtable<String, Object>();
@@ -219,14 +220,17 @@ public class Configurations extends Dictionary<String, Object> {
 		return configs.isEmpty();
 	}
 
-	public Boolean isDisabled(String section) {
+	public Boolean isEnabled(String section) {
 		if (!contains(section)) {
-			return true;
-		}
-		else if (!contains(section, DISABLED)) {
 			return false;
 		}
-		return getBoolean(section, DISABLED);
+		else if (contains(section, DISABLED)) {
+			return !getBoolean(section, DISABLED);
+		}
+		else if (contains(section, ENABLED)) {
+			return getBoolean(section, ENABLED);
+		}
+		return true;
 	}
 
 	@Override

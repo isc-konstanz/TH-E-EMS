@@ -70,8 +70,9 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	@Override
 	@SuppressWarnings("unchecked")
 	public ConsumptionPower configure(Configurations configs) throws ConfigurationException {
-		super.configure(configs);
-		if (!isDisabled()) {
+		if (configs.isEnabled(SECTION)) {
+			super.configure(configs);
+			
 			consPower.registerValueListener(this);
 			
 			eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
@@ -105,7 +106,7 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	public void deactivate() {
 		consPower.deregister();
 		
-		if (!isDisabled()) {
+		if (isEnabled()) {
 			eesPower.deregister();
 			acPower.deregister();
 			dc1Power.deregister();
@@ -122,7 +123,7 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	}
 
 	public boolean isRunning() {
-		return !isDisabled() && running;
+		return isEnabled() && running;
 	}
 
 	@Override

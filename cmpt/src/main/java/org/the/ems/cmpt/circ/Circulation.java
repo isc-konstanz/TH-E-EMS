@@ -96,8 +96,8 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	@Override
 	@SuppressWarnings("unchecked")
 	public Circulation configure(Configurations configs) throws ConfigurationException {
-		super.configure(configs);
-		if (!isDisabled()) {
+		if (configs.isEnabled(SECTION)) {
+			super.configure(configs);
 			
 			flowCounter.registerValueListener(new FlowCountListener());
 			flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
@@ -115,7 +115,7 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	}
 
 	public void deactivate() {
-		if (!isDisabled()) {
+		if (isEnabled()) {
 			flowCounter.deregister();
 			flowTempIn.deregister();
 			flowTempOut.deregister();

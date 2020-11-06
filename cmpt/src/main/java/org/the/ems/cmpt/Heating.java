@@ -384,7 +384,7 @@ public abstract class Heating extends Component implements HeatingService {
 
 	protected void onStateChanged(Value state) throws EnergyManagementException {
 		if (state.booleanValue()) {
-			if (!circulationPump.isDisabled()) {
+			if (circulationPump.isEnabled()) {
 				circulationPump.start();
 			}
 		}

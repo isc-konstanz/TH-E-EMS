@@ -38,7 +38,7 @@ import org.the.ems.core.data.Value;
 
 public abstract class Configurable {
 
-	private boolean disabled = true;
+	private boolean enabled = false;
 
 	private String section = Configurations.GENERAL;
 
@@ -47,20 +47,51 @@ public abstract class Configurable {
 	protected ContentManagementService content;
 
 	@SuppressWarnings("unchecked")
-	public <C extends Configurable> C activate(ContentManagementService content) throws ComponentException {
+	protected <C extends Configurable> C activate(ContentManagementService content) 
+			throws ComponentException {
 		this.content = content;
 		return (C) this;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
+	protected <C extends Configurable> C activate(ContentManagementService content, Configurations configs) 
+			throws ComponentException {
+		this.doConfigure(content, configs);
+		return (C) this;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
+		this.doConfigure(configs);
+		this.onConfigure(configs);
+		return (C) this;
+	}
+
+	protected final void doConfigure(ContentManagementService content, Configurations configs) 
+			throws ConfigurationException {
+		this.content = content;
+		this.doConfigure(configs);
+	}
+
+	protected final void doConfigure(Configurations configs) throws ConfigurationException {
 		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
-		Class<?> clazz = this.getClass();
-		while(clazz.getSuperclass() != null) {
-			elements.addAll(Arrays.asList(clazz.getDeclaredFields()));
-			elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
-		    clazz = clazz.getSuperclass();
+		Class<?> type = this.getClass();
+		while(type.getSuperclass() != null) {
+			elements.addAll(Arrays.asList(type.getDeclaredFields()));
+			elements.addAll(Arrays.asList(type.getDeclaredMethods()));
+		    type = type.getSuperclass();
 		}
+		configureElements(configs, elements);
+		
+		this.onConfigure(configs);
+	}
+
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		// Default implementation to be overridden
+	}
+
+	protected final void configureElements(Configurations configs, List<AnnotatedElement> elements) 
+			throws ConfigurationException {
 		
 		for (AnnotatedElement element : elements) {
 			Configuration config = element.getAnnotation(Configuration.class);
@@ -72,30 +103,29 @@ public abstract class Configurable {
 			if (section.isEmpty() || section.equals(Configuration.SECTION_DEFAULT)) {
 				section = getConfiguredSection();
 			}
-			if (configs.isDisabled(section)) {
+			if (!configs.isEnabled(section)) {
 				continue;
 			}
 			String[] keys = config.value();
 			
 			boolean configured = false;
 			if (element instanceof Field) {
-				configured = configure(configs, (Field) element, section, keys, config.scale());
+				configured = configureField(configs, (Field) element, section, keys, config.scale());
 			}
 			else {
-				configured = configure(configs, (Method) element, section, keys);
+				configured = configureMethod(configs, (Method) element, section, keys);
 			}
 			if (!configured && config.mandatory()) {
 				throw newConfigException(MessageFormat.format("Mandatory configuration of section \"{0}\" not found: {1}",
 						section, parse(keys, element)));
 			}
 		}
-		if (!configs.isDisabled(section)) {
-			disabled = false;
+		if (configs.isEnabled(section)) {
+			enabled = true;
 		}
-		return (C) this;
 	}
 
-	private boolean configure(Configurations configs, Method method,
+	private boolean configureMethod(Configurations configs, Method method,
 			String section, String[] keys) throws ConfigurationException {
 		
 		if (keys.length > 1) {
@@ -112,7 +142,7 @@ public abstract class Configurable {
 		return false;
 	}
 
-	private boolean configure(Configurations configs, Field field, 
+	private boolean configureField(Configurations configs, Field field, 
 			String section, String[] keys, double scale) throws ConfigurationException {
 		Object value = null;
 		
@@ -321,12 +351,12 @@ public abstract class Configurable {
 		return (C) this;
 	}
 
-	public boolean isDisabled() {
-		return disabled;
+	public boolean isEnabled() {
+		return enabled;
 	}
 
-	public void setDisabled(boolean disabled) {
-		this.disabled = disabled;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	private ConfigurationException newConfigException(String message) {

@@ -19,6 +19,9 @@
  */
 package org.the.ems.cmpt.ees;
 
+import java.util.Map;
+
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.core.Component;
@@ -32,6 +35,7 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
+
 @org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
 	service = ElectricalEnergyStorageService.class,
@@ -41,10 +45,10 @@ import org.the.ems.core.schedule.Schedule;
 public class ElectricalEnergyStorage extends Component implements ElectricalEnergyStorageService {
 
 	@Configuration(mandatory=false)
-	private double socMax = 90;
+	private double socMax = 100;
 
 	@Configuration(mandatory=false)
-	private double socMin = 10;
+	private double socMin = 0;
 
 	@Configuration
 	protected double capacity;
@@ -75,6 +79,14 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	@Configuration(mandatory=false)
 	public Value getVoltage() throws ComponentException { return getConfiguredValue("voltage"); }
+
+	public void activate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+		super.doActivate(context, properties);
+	}
+
+	public void deactivate() throws ComponentException {
+		super.doDeactivate();
+	}
 
     @Override
     public final void schedule(Schedule schedule)

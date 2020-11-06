@@ -37,8 +37,8 @@ public abstract class Control extends Component {
 	}
 
 	@Override
-	public void onActivate(Configurations configs, BundleContext context) throws ComponentException {
-		super.onActivate(configs, context);
+	public void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+		super.onActivate(context, configs);
 		logger.info("Activating TH-E EMS {}: {}", this.getClass().getSimpleName(), getId());
 		
 		EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));

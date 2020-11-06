@@ -74,9 +74,9 @@ public class CirculationPump extends Configurable implements CirculationCallback
 		if (!configs.contains(SECTION, STATE)) {
 			return this;
 		}
-		super.configure(configs);
-		
-		if (!isDisabled()) {
+		if (configs.isEnabled(SECTION)) {
+			super.configure(configs);
+			
 			circulation.register(this);
 			state.registerValueListener(new CirculationPumpStateListener());
 			
@@ -95,7 +95,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	}
 
 	public void deactivate() {
-		if (!isDisabled()) {
+		if (isEnabled()) {
 			circulation.deregister();
 			state.deregister();
 		}
@@ -103,7 +103,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	}
 
 	public boolean isRunning() {
-		return !isDisabled() && running;
+		return isEnabled() && running;
 	}
 
 	public boolean hasRunMinimum() {

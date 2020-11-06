@@ -19,12 +19,20 @@
  */
 package org.the.ems.cmpt.inv;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.cmpt.inv.ext.ConsumptionPower;
 import org.the.ems.cmpt.inv.ext.ExternalPower;
 import org.the.ems.core.Component;
@@ -43,17 +51,21 @@ import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
+
 @org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
 	service = InverterService.class,
 	configurationPid = InverterService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Inverter extends Component implements InverterService, InverterCallbacks, ValueListener {
-	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
+public class Inverter<S extends ElectricalEnergyStorage> extends Component 
+		implements InverterService, InverterCallbacks {
 
-	@Reference(cardinality = ReferenceCardinality.MANDATORY)
-	protected ElectricalEnergyStorageService battery;
+	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
+	
+	private ServiceRegistration<ElectricalEnergyStorageService> storageRegistration;
+
+	protected S storage;
 
 	@Configuration(scale=1000)
 	protected double powerMax;
@@ -62,10 +74,7 @@ public class Inverter extends Component implements InverterService, InverterCall
 	protected double powerMin;
 
 	@Configuration
-	protected Channel setpoint;
-
-	@Configuration
-	protected ChannelListener setpointPower;
+	protected ChannelListener setpoint;
 	protected volatile Value setpointValue = DoubleValue.emptyValue();
 
 	protected ExternalPower external;
@@ -160,13 +169,59 @@ public class Inverter extends Component implements InverterService, InverterCall
 	@Configuration(mandatory=false)
 	public Value getFrequency() throws ComponentException { return getConfiguredValue("frequency"); }
 
+	public S getElectricalEnergyStorage() {
+		return storage;
+	}
+
 	@Override
-	public void onActivate(Configurations configs) throws ComponentException {
+    @SuppressWarnings("unchecked")
+	protected void onActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+		super.onActivate(context, properties);
+		
+		Class<?> type = this.getClass();
+		if (!type.equals(Inverter.class)) {
+	        while (type.getSuperclass() != null) {
+	            if (type.getSuperclass().equals(Inverter.class)) {
+	                break;
+	            }
+	            type = type.getSuperclass();
+	        }
+			try {
+		        // This operation is safe. Because clazz is a direct sub-class, getGenericSuperclass() will
+		        // always return the Type of this class. Because this class is parameterized, the cast is safe
+		        ParameterizedType superclass = (ParameterizedType) type.getGenericSuperclass();
+		        Class<S> storageType = (Class<S>) superclass.getActualTypeArguments()[0];
+		        storage = (S) storageType.getDeclaredConstructor().newInstance();
+				
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| NoSuchMethodException | SecurityException e) {
+				throw new ComponentException(e);
+			}
+		}
+		else {
+			storage = (S) new ElectricalEnergyStorage();
+		}
+		Map<String, Object> configs = new HashMap<String, Object>();
+		configs.put("general.id", ((String) properties.get("general.id")).replace("inv", "ees"));
+		configs.put("general.type", properties.get("general.type"));
+		
+		for (Entry<String, ?> config : properties.entrySet()) {
+			if (config.getKey().startsWith("storage.")) {
+				configs.put(config.getKey().replace("storage.", "general."), config.getValue());
+			}
+		}
+		storage.activate(context, configs);
+        storageRegistration = context.registerService(ElectricalEnergyStorageService.class, storage, 
+				new Hashtable<String, Object>(configs));
+	}
+
+	@Override
+	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
 		external = new ExternalPower().activate(content).configure(configs).register(this);
 		conssumption = new ConsumptionPower().activate(content).configure(configs).register(this);
-		setpointPower.registerValueListener(this);
+		setpoint.registerValueListener(new SetpointListener());
 	}
 
 	@Override
@@ -182,10 +237,16 @@ public class Inverter extends Component implements InverterService, InverterCall
 	}
 
 	@Override
-	public void onDeactivate() {
+	public void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		setpoint.deregister();
+		
+		if (storageRegistration != null) {
+			storageRegistration.unregister();
+		}
+		storage.deactivate();
 		external.deactivate();
 		conssumption.deactivate();
-		setpointPower.deregister();
 	}
 
 	@Override
@@ -237,7 +298,7 @@ public class Inverter extends Component implements InverterService, InverterCall
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);
 		}
 		if (setpoint != setpointValue.doubleValue()) {
-			setpointPower.setLatestValue(value);
+			this.setpoint.setLatestValue(value);
 			return;
 		}
 		if (external.isRunning()) {
@@ -251,14 +312,14 @@ public class Inverter extends Component implements InverterService, InverterCall
 			setpoint = getMinPower();
 		}
 		
-		double soc = battery.getStateOfCharge().doubleValue();
-		if (soc < battery.getMinStateOfCharge() || soc > battery.getMaxStateOfCharge()) {
-			if (this.setpoint.getLatestValue().doubleValue() != 0) {
-				container.add(this.setpoint, new DoubleValue(0));
-			}
-			logger.debug("Requested inverter setpoint not allowed for Battery State of Charge of {}%", soc);
-			return;
-		}
+//		double soc = storage.getStateOfCharge().doubleValue();
+//		if (soc < storage.getMinStateOfCharge() || soc > storage.getMaxStateOfCharge()) {
+//			if (this.setpoint.getLatestValue().doubleValue() != 0) {
+//				container.add(this.setpoint, new DoubleValue(0));
+//			}
+//			logger.debug("Requested inverter setpoint not allowed for Battery State of Charge of {}%", soc);
+//			return;
+//		}
 		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
 	}
 
@@ -273,7 +334,6 @@ public class Inverter extends Component implements InverterService, InverterCall
 
 	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		// TODO: Verify setpoint import/export sign
-		container.add(this.setpoint, value);
 	}
 
 	@Override
@@ -296,12 +356,15 @@ public class Inverter extends Component implements InverterService, InverterCall
 		}
 	}
 
-	@Override
-    public void onValueReceived(Value setpoint) {
-        if (setpointValue.doubleValue() != setpoint.doubleValue()) {
-            setpointValue = setpoint;
-            onSetpointUpdate();
-        }
-    }
+	private class SetpointListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value setpoint) {
+	        if (setpointValue.doubleValue() != setpoint.doubleValue()) {
+	            setpointValue = setpoint;
+	            onSetpointUpdate();
+	        }
+		}
+	}
 
 }

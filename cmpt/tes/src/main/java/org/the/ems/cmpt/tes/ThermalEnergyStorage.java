@@ -83,8 +83,8 @@ public class ThermalEnergyStorage extends Component
 	protected final List<HeatingEnergy> energyValues = new ArrayList<HeatingEnergy>();
 
 	@Override
-	public void onActivate(Configurations configs, BundleContext context) throws ComponentException {
-		super.onActivate(configs, context);
+	public void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+		super.onActivate(context, configs);
 		try {
 			EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
 			for (String heating : heatings) {

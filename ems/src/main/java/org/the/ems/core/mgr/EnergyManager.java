@@ -284,8 +284,8 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Override
-	public List<ComponentService> getComponents(ComponentType type) {
-		return components.getAll(type);
+	public List<ComponentService> getComponents(ComponentType... types) {
+		return components.getAll(types);
 	}
 
 	@Override

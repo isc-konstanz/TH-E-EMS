@@ -150,8 +150,11 @@ public abstract class Configurable {
 		if (ChannelCollection.class.isAssignableFrom(type)) {
 			value = configureChannels(configs, section, keys);
 		}
+		else if (ConfigurationCollection.class.isAssignableFrom(type)) {
+			value = configureCollection(configs, section, keys, type);
+		}
 		else if (Collection.class.isAssignableFrom(type)) {
-			value = configureCollection(configs, section, keys);
+			value = configureList(configs, section, keys);
 		}
 		else {
 			for (String key : keys) {
@@ -226,7 +229,7 @@ public abstract class Configurable {
 		}
 	}
 
-	private Collection<String> configureCollection(Configurations configs, 
+	private Collection<String> configureList(Configurations configs, 
 			String section, String[] keys) throws ConfigurationException {
 		
 		Collection<String> collection = new LinkedList<String>();
@@ -250,6 +253,37 @@ public abstract class Configurable {
 			}
 		}
 		return collection;
+	}
+
+	private ConfigurationCollection<?> configureCollection(Configurations configs, 
+			String section, String[] keys, Class<?> type) throws ConfigurationException {
+		
+        try {
+        	ConfigurationCollection<?> collection = (ConfigurationCollection<?>) type.newInstance();
+    		for (String key : keys) {
+    			try {
+    				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
+    					throw new ConfigurationException("Error configuring empty string collection");
+    				}
+    				else if (key.contains("?") || key.contains("*")) {
+    					for (String k : configs.search(section, key)) {
+    						collection.add(k, configs.get(section, k, String.class));
+    					}
+    				}
+    				else if (configs.contains(section, key)) {
+    					collection.add(key, configs.get(section, key, String.class));
+    				}
+    			} catch (ConfigurationException | IllegalArgumentException | 
+    					NullPointerException | NoSuchFieldException e) {
+    				
+    				throw newConfigException(e.getMessage());
+    			}
+    		}
+    		return collection;
+    		
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+			throw newConfigException(e.getMessage());
+        }
 	}
 
 	private ChannelCollection configureChannels(Configurations configs, 

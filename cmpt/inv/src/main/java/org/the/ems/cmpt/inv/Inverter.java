@@ -106,16 +106,16 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
-	@Configuration(value="dc_energy", mandatory=false)
-	public Value getInputEnergy() throws ComponentException { return getConfiguredValue("dc_energy"); }
-
-	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getImportEnergy() throws ComponentException { return getConfiguredValue("import_energy"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getExportEnergy() throws ComponentException { return getConfiguredValue("export_energy"); }
+
+	@Override
+	@Configuration(value="dc_energy", mandatory=false)
+	public Value getInputEnergy() throws ComponentException { return getConfiguredValue("dc_energy"); }
 
 	@Override
 	@Configuration(value="dc_power", mandatory=false)

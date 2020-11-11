@@ -6,12 +6,14 @@ import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.HeatingService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.ChannelListener;
-import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
+import org.the.ems.core.config.ConfigurationCollection.DoubleCollection;
+import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.ctrl.Control;
+import org.the.ems.ctrl.ControlledHeating;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -21,67 +23,39 @@ import org.the.ems.ctrl.Control;
 public class TwoPointControl extends Control {
 	private final static Logger logger = LoggerFactory.getLogger(TwoPointControl.class);
 
-	@Configuration("temp_max")
-	private double temperatureMax;
+	@Configuration("*_temp_max")
+	private DoubleCollection temperaturesMax;
 
-	@Configuration("temp_min")
-	private double temperatureMin;
+	@Configuration("*_temp_min")
+	private DoubleCollection temperaturesMin;
 
-	@Configuration("temp")
-	private ChannelListener temperature;
-
-	private double temperatureValue = Double.NaN;
+	@Configuration("*_temp")
+	private ChannelCollection temperatures;
 
 	@Override
-	public void onActivate(Configurations configs) throws ComponentException {
-		super.onActivate(configs);
-
-		temperature.registerValueListener(new TemperatureListener());
+	public ControlledHeating onCreate(HeatingService heating) throws ComponentException {
+		String heatingId = heating.getId();
+		
+		Channel temperature = temperatures.get(heatingId+"_temp");
+		if (temperature != null) {
+			if (!temperaturesMax.contains(heatingId+"_temp_max") ||
+					!temperaturesMin.contains(heatingId+"_temp_min")) {
+				throw new ConfigurationException("Unable to configure two-point control for component "
+						+ "with missing temperature bondaries: " + heatingId);
+			}
+			return new TwoPointHeating(this, heating, temperature, 
+					temperaturesMax.get(heatingId+"_temp_max"),
+					temperaturesMin.get(heatingId+"_temp_min"));
+		}
+		logger.warn("Unable to find temperature configurations for heating: {}", heatingId);
+		return super.onCreate(heating);
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		
-		temperature.deregister();
-	}
-
-	protected boolean isMinTemperature() {
-		return isMinTemperature(temperatureValue);
-	}
-
-	protected boolean isMinTemperature(double temperature) {
-		return temperature <= temperatureMin;
-	}
-
-	protected boolean isMaxTemperature() {
-		return isMaxTemperature(temperatureValue);
-	}
-
-	protected boolean isMaxTemperature(double temperature) {
-		return temperature >= temperatureMax;
-	}
-
-	protected void onTemperatureChanged(Value value) {
-		double temperature = value.doubleValue();
-		if (isMinTemperature(temperature)) {
-			start();
-		}
-		else if (isMaxTemperature(temperature)) {
-			stop();
-		}
-	}
-
-	private class TemperatureListener implements ValueListener {
-
-		@Override
-		public void onValueReceived(Value value) {
-			logger.debug("Received temperature value: {}°C", value);
-			if (temperatureValue != value.doubleValue()) {
-				onTemperatureChanged(value);
-			}
-			temperatureValue = value.doubleValue();
-		}
+		temperatures.deregister();
 	}
 
 }

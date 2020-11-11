@@ -35,6 +35,12 @@ public class ComponentCollection extends HashMap<String, ComponentService> {
 		return put(component.getId(), component);
 	}
 
+	public void addAll(List<ComponentService> components) {
+		for (ComponentService component : components) {
+			put(component.getId(), component);
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	public <C extends ComponentService> List<C> getAll(Class<C> type) {
 		List<C> components = new ArrayList<C>();
@@ -46,11 +52,13 @@ public class ComponentCollection extends HashMap<String, ComponentService> {
 		return components;
 	}
 
-	public List<ComponentService> getAll(ComponentType type) {
+	public List<ComponentService> getAll(ComponentType... types) {
 		List<ComponentService> components = new ArrayList<ComponentService>();
 		for (ComponentService component : values()) {
-			if (component.getType() == type) {
-				components.add(component);
+			for (ComponentType type : types) {
+				if (component.getType() == type) {
+					components.add(component);
+				}
 			}
 		}
 		return components;

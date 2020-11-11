@@ -27,6 +27,6 @@ public interface EnergyManagementService {
 
 	public ComponentService getComponent(String id) throws UnknownComponentException;
 
-	public List<ComponentService> getComponents(ComponentType type);
+	public List<ComponentService> getComponents(ComponentType... types);
 
 }

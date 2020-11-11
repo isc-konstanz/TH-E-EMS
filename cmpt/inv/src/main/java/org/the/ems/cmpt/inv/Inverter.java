@@ -122,7 +122,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	public Value getInputPower() throws ComponentException { return getConfiguredValue("dc_power"); }
 
 	@Override
-	@Configuration
+	@Configuration(mandatory=false)
 	public Value getActivePower() throws ComponentException { return getConfiguredValue("active_power"); }
 
 	@Override

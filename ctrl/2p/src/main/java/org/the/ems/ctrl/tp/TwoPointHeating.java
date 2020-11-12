@@ -79,7 +79,7 @@ public class TwoPointHeating extends ControlledHeating {
 
 		@Override
 		public void onValueReceived(Value value) {
-			logger.debug("Received {} temperature value: {}°C", getId(), value);
+			logger.trace("Received {} temperature value: {}°C", getId(), value);
 			
 	        if (temperatureValue != value.doubleValue()) {
 	        	onTemperatureChanged(value);

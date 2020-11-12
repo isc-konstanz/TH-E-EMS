@@ -19,18 +19,11 @@ public class ControlledInverter extends Configurable {
 			put(inverter.getId(), inverter);
 		}
 
-		public void setAll(Value value) {
-			for (ControlledInverter controlledInverter : values()) {
-				controlledInverter.set(value);
-			}
-		}
-
-		public void setFirst(Value value) {
+		public void set(Value value) {
 			for (ControlledInverter controlledInverter : values()) {
 				// TODO: Implement verification, if the inverter is at its 
 				// maximum capacity to react to setpoints or not
 				controlledInverter.set(value);
-				return;
 			}
 		}
 	}

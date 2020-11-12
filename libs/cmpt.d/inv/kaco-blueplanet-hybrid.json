@@ -145,7 +145,7 @@
             "name": "<node>*ac*setpoint",
             "description": "Inverter setpoint",
             "device": "<node>",
-            "address": "INV_SETPOINT",
+            "address": "AC_SETPOINT",
             "configs": {"valueType":"DOUBLE", "unit":"W"}
         },
         {

@@ -43,14 +43,18 @@ public class PeakShavingControl extends TwoPointControl {
 
 
 	@Configuration(mandatory=false, section="PID", value="proportional")
-	protected double controlProportional = 0.15;
+	protected double controlProportional = 0.2;
 
 	@Configuration(mandatory=false, section="PID", value="integral")
-	protected double controlIntegral = 0.015;
+	protected double controlIntegral = 0.04;
 
 	@Configuration(mandatory=false, section="PID", value="derivative")
-	protected double controlDerivative = 1;
+	protected double controlDerivative = 0;
 
+	@Configuration(mandatory=false, section="PID", value="tolerance")
+	protected double controlTolerance = 50;
+
+	@Configuration(mandatory=false, section="PID", value="maximum")
 	protected double controlMax = Double.POSITIVE_INFINITY;
 	protected double controlErrorIntegral = 0;
 	protected double controlError = 0;
@@ -71,35 +75,48 @@ public class PeakShavingControl extends TwoPointControl {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		
-//		if (exportMax == Double.NEGATIVE_INFINITY && components.contains(HeatingService.class)) {
-//			for (HeatingService component : components.getAll(HeatingService.class)) {
-//				exportMax = Math.max(exportMax, -component.getMinPower());
-//			}
-//		}
 		power.registerValueListener(new PowerListener());
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		
 		power.deregister();
 	}
 
-	@SuppressWarnings("unused")
 	protected void set(Value value) {
 		double power = value.doubleValue();
 		long seconds = (value.getTime() - powerValue.getTime())/1000;
+		if (seconds < 1) {
+			seconds = 1;
+		}
 		double error = 0;
-		if (power < exportMax || controlValue > 0) {
+		
+		if (power <= exportMax) {
 			error = exportMax - power;
 		}
-		if (power > importMax || controlValue < 0) {
+		if (power > importMax) {
 			error = importMax - power;
 		}
-		//double controlErrorDerivate = (error - controlError)/seconds*controlDerivative;
-		controlErrorIntegral += error; //*seconds*controlIntegral;
+		
+		if (error != 0 &&
+				(controlValue < 0 && power <= exportMax) || 
+				(controlValue > 0 && power > importMax)) {
+			
+			controlValue = 0;
+			controlError = 0;
+			controlErrorIntegral = 0;
+		}
+		else if (controlValue > 0) {
+			error = exportMax - power;
+		}
+		else if (controlValue < 0) {
+			error = importMax - power;
+		}
+		
+		double controlErrorProportional = error*controlProportional;
+		double controlErrorDerivate = (error - controlError)/seconds*controlDerivative;
+		controlErrorIntegral += error*seconds*controlIntegral;
 		controlError = error;
 		
 		if (controlErrorIntegral > controlMax) {
@@ -108,46 +125,44 @@ public class PeakShavingControl extends TwoPointControl {
 		if (controlErrorIntegral < -controlMax) {
 			controlErrorIntegral = -controlMax;
 		}
-		// TODO: Test and implement complete PID controller
-		//double controlValue = controlProportional*controlError + controlErrorIntegral + controlErrorDerivate;
-		double controlValue = controlErrorIntegral;
-		if ((controlValue == 0 && this.controlValue != 0) ||
-				(controlValue > 0 && this.controlValue < 0) ||
-				(controlValue < 0 && this.controlValue > 0)) {
+		double controlValue = controlErrorProportional + controlErrorIntegral + controlErrorDerivate;
+		if (Math.abs(this.controlValue) < controlTolerance && 
+				Math.abs(controlValue) < controlTolerance &&
+				(this.controlValue > 0 && controlValue < 0) ||
+				(this.controlValue < 0 && controlValue > 0)) {
 			
-			controlErrorIntegral = 0;
-			controlError = 0;
 			controlValue = 0;
+			controlError = 0;
+			controlErrorIntegral = 0;
 		}
-		else if (controlValue > controlMax) {
+		if (controlValue > controlMax) {
 			controlValue = controlMax;
 		}
 		else if (controlValue < -controlMax) {
 			controlValue = -controlMax;
 		}
-		set(controlValue);
 		this.controlValue = controlValue;
+		
+		this.inverters.set(
+				new DoubleValue(controlValue, value.getTime()));
 	}
 
-	protected void set(double value) {
-		if (value == 0) {
-			inverters.setAll(new DoubleValue(value));
-			return;
-		}
-		inverters.setFirst(new DoubleValue(value));
-	}
-
-	protected void onPowerReceived(Value value) {
+	protected void onPowerChanged(Value value) {
 		double power = value.doubleValue();
-		if (power <= exportMax || power > importMax || controlValue != 0) {
-			this.set(value);
+		
+		if ((power > importMax && powerValue.doubleValue() <= importMax) || 
+				(power > exportMax + exportHyst &&
+				heatings.hasStoppable(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP))) {
+			
+			heatings.stopFirst(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP);
 		}
-		if (power <= exportMax) {
+		else if (power <= exportMax && powerValue.doubleValue() <= exportMax &&
+				heatings.hasStartable(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD)) {
+			
 			heatings.startFirst(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD);
 		}
-		else if (power > importMax || (power > exportMax + exportHyst &&
-				heatings.hasStoppable(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP))) {
-			heatings.stopFirst(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP);
+		else if (power <= exportMax || power > importMax || controlValue != 0) {
+			set(value);
 		}
 	}
 
@@ -155,10 +170,15 @@ public class PeakShavingControl extends TwoPointControl {
 
 		@Override
 		public void onValueReceived(Value value) {
-			logger.debug("Received power value: {}W", value);
+			logger.trace("Received power value: {}W", value);
 			
 			Value power = new DoubleValue(value.doubleValue()*powerScale, value.getTime());
-			onPowerReceived(power);
+			if (power.doubleValue() != powerValue.doubleValue()) {
+				// Only update PID control if the power value changed.
+				// Measurements will most probably always differ and only values read via a SCADA
+				// system which are no new measurements can be expected to be exactly the same.
+				onPowerChanged(power);
+			}
 			powerValue = power;
 		}
 	}

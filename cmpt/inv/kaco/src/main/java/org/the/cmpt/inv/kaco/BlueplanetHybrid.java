@@ -28,11 +28,14 @@ import org.the.ems.core.data.WriteContainer;
 public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	private static final Logger logger = LoggerFactory.getLogger(BlueplanetHybrid.class);
 
+	@Configuration(mandatory = false)
+	private boolean activeError = false;
+
+	@Configuration(mandatory = false)
+	private ChannelListener activePower;
+
 	@Configuration("dc_power")
 	private ChannelListener inputPower;
-
-	@Configuration
-	private ChannelListener activePower;
 
 	@Configuration
 	private Channel setpointPower;
@@ -43,7 +46,9 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 		super.onActivate(configs);
 		storage.registerStateofCharge(new StateOfChargeListener());
 		inputPower.registerValueListener(new SetpointUpdater());
-		activePower.registerValueListener(new SetpointUpdater());
+		if (activeError) {
+			activePower.registerValueListener(new SetpointUpdater());
+		}
 	}
 
 	@Override
@@ -56,11 +61,12 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	@Override
 	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
-		onSetpointUpdate(container, setpointValue = value);
+		setpointValue = value;
+		onSetpointUpdate(container);
 	}
 
-	private void onSetpointUpdate(WriteContainer container, Value setpointValue) throws ComponentException {
-		double setpoint = 0;
+	private void onSetpointUpdate(WriteContainer container) throws ComponentException {
+		double setpoint = setpointValue.doubleValue();
 		double setpointLatest = setpointPower.getLatestValue() != null ? 
 				-setpointPower.getLatestValue().doubleValue() : 0;
 		
@@ -71,9 +77,8 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 						storage.getStateOfCharge().doubleValue());
 			}
 		}
-		else if (setpointValue.doubleValue() != 0) {
-			setpoint = setpointLatest 
-					+ setpointValue.doubleValue() - getActivePower().doubleValue();
+		else if (setpoint != 0 && activeError && activePower != null) {
+			setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
 		}
 		if (setpoint != setpointLatest) {
 			
@@ -85,6 +90,10 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 		@Override
 		public void onValueReceived(Value value) {
+			this.onSetpointChange();
+		}
+
+		protected void onSetpointChange() {
 			try {
 		        WriteContainer container = new WriteContainer();
 		        doSetpointUpdate(container);
@@ -96,7 +105,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 		}
 
 		protected void doSetpointUpdate(WriteContainer container) throws ComponentException {
-			onSetpointChanged(container, setpointValue);
+			onSetpointUpdate(container);
 		};
 
 	}
@@ -107,7 +116,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 		public void onValueReceived(Value value) {
 			double soc = value.doubleValue();
 			if (soc < storage.getMinStateOfCharge()) {
-				super.onValueReceived(value);
+				onSetpointChange();
 			}
 		}
 	}

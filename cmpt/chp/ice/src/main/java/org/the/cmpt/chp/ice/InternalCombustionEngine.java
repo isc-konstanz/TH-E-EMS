@@ -43,8 +43,11 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Configuration(mandatory = false)
 	protected Channel engineMode = null;
 
-	@Configuration(mandatory = false)
-	protected double engineModeDelay = 250;
+	@Configuration(mandatory = false, scale=1000)
+	protected double engineModeDelayBefore = 250;
+	
+	@Configuration(mandatory = false, scale=1000)
+	protected double engineModeDelayAfter = 50;
 
 	@Configuration
 	protected ChannelListener engine;
@@ -147,10 +150,10 @@ public class InternalCombustionEngine extends Cogenerator {
 		WriteContainer writeContainer = new WriteContainer();
 		if (valve != null) {
 			writeContainer.addBoolean(valve, false, time);
-			time += (long) engineModeDelay;
+			time += (long) engineModeDelayBefore;
 			
 			writeContainer.add(engineMode, mode.getValue(time));
-			time += (long) engineModeDelay;
+			time += (long) engineModeDelayAfter;
 			
 			writeContainer.addBoolean(valve, true, time);
 		}

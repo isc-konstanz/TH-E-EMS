@@ -297,7 +297,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		if (setpoint > getMaxPower() || setpoint < getMinPower()) {
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);
 		}
-		if (setpoint != setpointValue.doubleValue()) {
+		if (this.setpoint.getLatestValue() == null || !this.setpoint.getLatestValue().equals(value)) {
 			this.setpoint.setLatestValue(value);
 			return;
 		}

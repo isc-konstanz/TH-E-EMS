@@ -70,18 +70,18 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 		double setpointLatest = setpointPower.getLatestValue() != null ? 
 				-setpointPower.getLatestValue().doubleValue() : 0;
 		
-		if (storage.getStateOfCharge().doubleValue() < storage.getMinStateOfCharge()) {
-			setpoint = -Math.max(getInputPower().doubleValue(), storage.getTricklePower());
+		if (setpoint != 0 && activeError && activePower != null) {
+			setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
+		}
+		if (storage.getStateOfCharge().doubleValue() < storage.getMinStateOfCharge() &&
+				setpoint <= 0) {
+			setpoint = Math.max(getInputPower().doubleValue(), storage.getTricklePower());
 			if (logger.isDebugEnabled() && setpointValue.doubleValue() != 0) {
 				logger.debug("Restricting charging power for Battery State of Charge of {}%", 
 						storage.getStateOfCharge().doubleValue());
 			}
 		}
-		else if (setpoint != 0 && activeError && activePower != null) {
-			setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
-		}
 		if (setpoint != setpointLatest) {
-			
 			container.addDouble(setpointPower, -setpoint, setpointValue.getTime());
 		}
 	}

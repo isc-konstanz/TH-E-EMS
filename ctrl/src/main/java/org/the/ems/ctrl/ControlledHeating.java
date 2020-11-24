@@ -54,6 +54,14 @@ public class ControlledHeating {
 			return getAll(types).stream().anyMatch(c -> c.isStartable());
 		}
 
+		public double getStartableMinPower(ComponentType... types) {
+			return getAll(types).stream().mapToDouble(c -> c.getService().getMinPower()).min().orElse(0);
+		}
+
+		public double getStartableMaxPower(ComponentType... types) {
+			return getAll(types).stream().mapToDouble(c -> c.getService().getMaxPower()).max().orElse(Double.MAX_VALUE);
+		}
+
 		public void stopAll(ComponentType... types) {
 			for (ControlledHeating controlledHeating : getAll(types)) {
 				controlledHeating.stop();

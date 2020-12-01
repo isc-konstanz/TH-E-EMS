@@ -72,6 +72,11 @@ public class PeakShavingControl extends TwoPointControl {
 	@Configuration(mandatory=false)
 	protected double powerScale = 1;
 
+	@Configuration(mandatory=false)
+	protected int powerSamples = 5;
+
+	protected double powerAverage = 0;
+
 	protected Value powerValue = DoubleValue.emptyValue();
 
 	@Override
@@ -165,18 +170,25 @@ public class PeakShavingControl extends TwoPointControl {
 
 	protected void onPowerChanged(Value value) {
 		double power = value.doubleValue();
+		this.powerAverage = (power + powerAverage*powerSamples-1)*powerSamples;
 		
-		if ((power > importMax || power > exportMax + exportHyst) &&
+		if ((power >= importMax || power >= exportMax + exportHyst) &&
 				heatings.hasStoppable(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP)) {
 			
 			heatings.stopFirst(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP);
-			logger.debug("Stopping heating due to power boundary infringement: {}", power);
+			logger.debug("Stopping electrical heating due to power boundary infringement: {}", power);
+		}
+		else if ((powerAverage >= importMax) &&
+				heatings.hasStartable(ComponentType.COMBINED_HEAT_POWER)) {
+			
+			heatings.startFirst(ComponentType.COMBINED_HEAT_POWER);
+			logger.debug("Starting cogeneration due to power boundary infringement: {}", power);
 		}
 		else if (power <= exportMax && 
 				power + heatings.getStartableMinPower(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD) <= exportMax + exportHyst) {
 			
 			heatings.startFirst(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD);
-			logger.debug("Starting heating due to power boundary infringement: {}", power);
+			logger.debug("Starting electrical heating due to power boundary infringement: {}", power);
 		}
 		else {
 			set(value);

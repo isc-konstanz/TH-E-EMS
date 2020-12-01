@@ -44,10 +44,10 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected Channel engineMode = null;
 
 	@Configuration(mandatory = false, scale=1000)
-	protected double engineModeDelayBefore = 250;
-	
+	protected int engineModePriorDelay = 250;
+
 	@Configuration(mandatory = false, scale=1000)
-	protected double engineModeDelayAfter = 50;
+	protected int engineModePostDelay = 50;
 
 	@Configuration
 	protected ChannelListener engine;
@@ -141,26 +141,29 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	protected void onEngineStop(long time) throws EnergyManagementException {
-		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(engineMode, EngineMode.STAR.getValue(time));
-		doWrite(writeContainer);
+		if (engineMode != null) {
+			WriteContainer writeContainer = new WriteContainer();
+			writeContainer.add(engineMode, EngineMode.STAR.getValue(time));
+			doWrite(writeContainer);
+		}
 	}
 
 	protected void setEngineMode(long time, EngineMode mode) throws EnergyManagementException {
-		WriteContainer writeContainer = new WriteContainer();
-		if (valve != null) {
-			writeContainer.addBoolean(valve, false, time);
-			time += (long) engineModeDelayBefore;
+		if (engineMode != null) {
+			WriteContainer writeContainer = new WriteContainer();
 			
+			if (valve != null) {
+				writeContainer.addBoolean(valve, false, time);
+				time += engineModePriorDelay;
+			}
 			writeContainer.add(engineMode, mode.getValue(time));
-			time += (long) engineModeDelayAfter;
 			
-			writeContainer.addBoolean(valve, true, time);
+			if (valve != null) {
+				time += engineModePostDelay;
+				writeContainer.addBoolean(valve, true, time);
+			}
+			doWrite(writeContainer);
 		}
-		else {
-			writeContainer.add(engineMode, mode.getValue(time));
-		}
-		doWrite(writeContainer);
 	}
 
 	@Override

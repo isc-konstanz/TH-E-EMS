@@ -184,6 +184,12 @@ public class PeakShavingControl extends TwoPointControl {
 			heatings.startFirst(ComponentType.COMBINED_HEAT_POWER);
 			logger.debug("Starting cogeneration due to power boundary infringement: {}", power);
 		}
+		else if (powerAverage <= exportMax && 
+				heatings.hasStoppable(ComponentType.COMBINED_HEAT_POWER)) {
+			
+			heatings.stopFirst(ComponentType.COMBINED_HEAT_POWER);
+			logger.debug("Stopping cogeneration due to power boundary infringement: {}", power);
+		}
 		else if (power <= exportMax && 
 				power + heatings.getStartableMinPower(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD) <= exportMax + exportHyst) {
 			

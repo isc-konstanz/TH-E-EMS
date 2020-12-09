@@ -11,6 +11,8 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.cmpt.InverterService;
+import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationCollection.BooleanCollection;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Value;
 import org.the.ems.ctrl.ControlledHeating.ControlledHeatings;
@@ -23,6 +25,12 @@ public abstract class Control extends Component implements ControlCallbacks {
 
 	protected final ControlledInverters inverters = new ControlledInverters();
 	protected final ControlledHeatings heatings = new ControlledHeatings();
+
+	@Configuration(value="*_enabled", mandatory=false)
+	private BooleanCollection enabled;
+
+	@Configuration(mandatory=false)
+	protected ControlSeason season = ControlSeason.SUMMER;
 
 	@Override
 	public ComponentType getType() {
@@ -46,6 +54,13 @@ public abstract class Control extends Component implements ControlCallbacks {
 				ComponentType.HEAT_PUMP,
 				ComponentType.HEATING_ROD,
 				ComponentType.COMBINED_HEAT_POWER)) {
+			String componentId = component.getId();
+			if (enabled.contains(componentId+"_enabled") && 
+					!enabled.get(componentId+"_enabled")) {
+				
+				logger.info("Heating configurations disabled: {}", componentId);
+				continue;
+			}
 			ControlledHeating heating = 
 					onCreate((HeatingService) component);
 			this.onActivate(heating);

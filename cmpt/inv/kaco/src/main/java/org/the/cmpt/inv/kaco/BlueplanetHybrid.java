@@ -39,7 +39,13 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	@Configuration
 	private Channel setpointPower;
-	private Value setpointValue = DoubleValue.emptyValue();
+	private Value setpointNode = DoubleValue.emptyValue();
+	
+	@Configuration(mandatory = false)
+	private double socHyst = 2.5;
+	
+	private double soc = 0;
+	private boolean trickleCurrentFlag = false;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
@@ -61,29 +67,33 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	@Override
 	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
-		setpointValue = value;
+		setpointNode = value;
 		onSetpointUpdate(container);
 	}
 
 	private void onSetpointUpdate(WriteContainer container) throws ComponentException {
-		double setpoint = setpointValue.doubleValue();
+		double setpoint = setpointNode.doubleValue();
 		double setpointLatest = setpointPower.getLatestValue() != null ? 
 				-setpointPower.getLatestValue().doubleValue() : 0;
 		
 		if (setpoint != 0 && activeError && activePower != null) {
 			setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
 		}
-		if (storage.getStateOfCharge().doubleValue() < storage.getMinStateOfCharge() &&
-				setpoint <= 0) {
-			setpoint = Math.max(getInputPower().doubleValue(), storage.getTricklePower());
-			if (logger.isDebugEnabled() && setpointValue.doubleValue() != 0) {
-				logger.debug("Restricting charging power for Battery State of Charge of {}%", 
-						storage.getStateOfCharge().doubleValue());
+		
+		
+		if (trickleCurrentFlag) {
+			if (setpoint > storage.getTricklePower()) {
+				setpoint = storage.getChargePower().doubleValue();
+			}
+			else if (setpoint < 0) {
+				setpoint = storage.getTricklePower();
 			}
 		}
+		
 		if (setpoint != setpointLatest) {
-			container.addDouble(setpointPower, -setpoint, setpointValue.getTime());
+			container.addDouble(setpointPower, -setpoint, setpointNode.getTime());
 		}
+		
 	}
 
 	private class SetpointUpdater implements ValueListener {
@@ -114,9 +124,27 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 		@Override
 		public void onValueReceived(Value value) {
-			double soc = value.doubleValue();
-			if (soc < storage.getMinStateOfCharge()) {
-				onSetpointChange();
+			soc = value.doubleValue();
+			WriteContainer container = new WriteContainer();
+			
+			if (soc < storage.getMinStateOfCharge() && !trickleCurrentFlag) {
+				trickleCurrentFlag = true;
+				container.addDouble(setpointPower, -storage.getTricklePower(), System.currentTimeMillis());
+				try {
+					doWrite(container);
+				} catch (EnergyManagementException e) {
+					logger.warn("Could not set trickle current: {}", e.getMessage());
+				}
+			}
+			else if (soc >= storage.getMinStateOfCharge() + socHyst && trickleCurrentFlag) {
+				trickleCurrentFlag = false;
+				container.addDouble(setpointPower, -setpointNode.doubleValue(), System.currentTimeMillis());
+				try {
+					doWrite(container);
+				} catch (EnergyManagementException e) {
+					logger.warn("Could not reset trickle current: {}", e.getMessage());
+				}
+				
 			}
 		}
 	}

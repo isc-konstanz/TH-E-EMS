@@ -33,16 +33,8 @@ public class PeakShavingControl extends TwoPointControl {
 	@Configuration(mandatory=false, scale=1000)
 	protected double exportHyst = 0;
 
-
 	@Configuration(mandatory=false, scale=1000)
 	protected double importMax = 0;
-
-//	@Configuration(mandatory=false, scale=1000)
-//	protected double importMin = Double.NEGATIVE_INFINITY;
-//
-//	@Configuration(mandatory=false, scale=-1000)
-//	protected double importHyst = 0;
-
 
 	@Configuration(mandatory=false, section="PID", value="proportional")
 	protected double controlProportional = 0.2;
@@ -69,6 +61,9 @@ public class PeakShavingControl extends TwoPointControl {
 	@Configuration
 	protected ChannelListener power;
 
+	@Configuration
+	protected ChannelListener powerLimitation;
+	
 	@Configuration(mandatory=false)
 	protected double powerScale = 1;
 
@@ -78,11 +73,16 @@ public class PeakShavingControl extends TwoPointControl {
 	protected double powerAverage = 0;
 
 	protected Value powerValue = DoubleValue.emptyValue();
+	
+	protected double powerLimitationValue = Double.NaN;
+	
+	protected double soc = 0;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		power.registerValueListener(new PowerListener());
+		powerLimitation.registerValueListener(new PowerLimitationListener());
 	}
 
 	@Override
@@ -93,24 +93,20 @@ public class PeakShavingControl extends TwoPointControl {
 
 	protected void set(Value value) {
 		double power = value.doubleValue();
-//		long seconds = (value.getTime() - powerValue.getTime())/1000;
-//		if (seconds < 1) {
-//			seconds = 1;
-//		}
 		double error = 0;
 		
-		if (power <= exportMax) {
-			error = exportMax - power;
-			logger.trace("Power export above {}: {}", abs(exportMax), power);
+		if (power < 0 && power <= getPowerExportMax()) {
+			error = getPowerExportMax() - power;
+			logger.trace("Power export above {}: {}", abs(getPowerExportMax()), power);
 		}
-		if (power > importMax) {
-			error = importMax - power;
-			logger.trace("Power import above {}: {}", abs(importMax), power);
+		if (power >= 0 && power > getPowerImportMax()) {
+			error = getPowerImportMax() - power;
+			logger.trace("Power import above {}: {}", abs(getPowerImportMax()), power);
 		}
 		
 		if (error != 0 &&
-				(controlValue < 0 && power <= exportMax) || 
-				(controlValue > 0 && power > importMax)) {
+				(controlValue < 0 && power <= getPowerExportMax()) || 
+				(controlValue > 0 && power > getPowerImportMax())) {
 			
 			controlValue = 0;
 			controlError = 0;
@@ -119,17 +115,13 @@ public class PeakShavingControl extends TwoPointControl {
 			logger.debug("Power boundary infringement changed extreme. Control values will be resetted.");
 		}
 		else if (controlValue > 0) {
-			error = exportMax - power;
-			logger.trace("Power export error from {}: {}", abs(exportMax), error);
+			error = getPowerExportMax() - power;
+			logger.trace("Power export error from {}: {}", abs(getPowerExportMax()), error);
 		}
 		else if (controlValue < 0) {
-			error = importMax - power;
-			logger.trace("Power import error from {}: {}", abs(importMax), error);
+			error = getPowerImportMax() - power;
+			logger.trace("Power import error from {}: {}", abs(getPowerImportMax()), error);
 		}
-//		double controlErrorProportional = error*controlProportional;
-//		double controlErrorDerivate = (error - controlError)/seconds*controlDerivative;
-//		controlErrorIntegral += error*seconds*controlIntegral;
-//		controlError = error;
 		
 		controlErrorIntegral += error;
 		
@@ -167,24 +159,39 @@ public class PeakShavingControl extends TwoPointControl {
 		}
 		this.inverters.set(new DoubleValue(controlValue, value.getTime()));
 	}
+	
+	protected double getPowerImportMax() {
+		if (!Double.isNaN(powerLimitationValue)) {
+			return Math.min(importMax, powerLimitationValue);
+		}
+		return importMax;
+		
+	}
+	
+	protected double getPowerExportMax() {
+		if (!Double.isNaN(powerLimitationValue)) {
+			return Math.max(exportMax, powerLimitationValue);
+		}
+		return exportMax;
+		
+	}
 
 	protected void onPowerChanged(Value value) {
 		double power = value.doubleValue();
-		this.powerAverage = (power + powerAverage*powerSamples-1)*powerSamples;
 		
-		if ((power >= importMax || power >= exportMax + exportHyst) &&
+		if ((power >= getPowerImportMax() || power >= exportMax + exportHyst) &&
 				heatings.hasStoppable(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP)) {
 			
 			heatings.stopFirst(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP);
 			logger.debug("Stopping electrical heating due to power boundary infringement: {}", power);
 		}
-		else if ((powerAverage >= importMax) &&
+		else if ((power >= getPowerImportMax()) &&
 				heatings.hasStartable(ComponentType.COMBINED_HEAT_POWER)) {
 			
 			heatings.startFirst(ComponentType.COMBINED_HEAT_POWER);
 			logger.debug("Starting cogeneration due to power boundary infringement: {}", power);
 		}
-		else if (powerAverage <= exportMax && 
+		else if (power <= exportMax && 
 				heatings.hasStoppable(ComponentType.COMBINED_HEAT_POWER)) {
 			
 			heatings.stopFirst(ComponentType.COMBINED_HEAT_POWER);
@@ -215,6 +222,18 @@ public class PeakShavingControl extends TwoPointControl {
 				onPowerChanged(power);
 			}
 			powerValue = power;
+		}
+	}
+	
+	private class PowerLimitationListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value value) {
+			logger.trace("Received power limitation value: {}W", value);
+			
+			powerLimitationValue = value.doubleValue();
+			onPowerChanged(powerValue);
+
 		}
 	}
 

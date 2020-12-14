@@ -104,7 +104,7 @@ public class PeakShavingControl extends TwoPointControl {
 			logger.trace("Power import above {}: {}", abs(getPowerImportMax()), power);
 		}
 		
-		if (error != 0 &&
+		if (error != 0.0 &&
 				(controlValue < 0 && power <= getPowerExportMax()) || 
 				(controlValue > 0 && power > getPowerImportMax())) {
 			

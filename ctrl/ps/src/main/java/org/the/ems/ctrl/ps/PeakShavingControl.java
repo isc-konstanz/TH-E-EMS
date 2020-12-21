@@ -161,7 +161,7 @@ public class PeakShavingControl extends TwoPointControl {
 	}
 	
 	protected double getPowerImportMax() {
-		if (!Double.isNaN(powerLimitationValue)) {
+		if (!Double.isNaN(powerLimitationValue) && powerLimitationValue > 0) {
 			return Math.min(importMax, powerLimitationValue);
 		}
 		return importMax;
@@ -169,7 +169,7 @@ public class PeakShavingControl extends TwoPointControl {
 	}
 	
 	protected double getPowerExportMax() {
-		if (!Double.isNaN(powerLimitationValue)) {
+		if (!Double.isNaN(powerLimitationValue) && powerLimitationValue < 0) {
 			return Math.max(exportMax, powerLimitationValue);
 		}
 		return exportMax;
@@ -232,8 +232,6 @@ public class PeakShavingControl extends TwoPointControl {
 			logger.trace("Received power limitation value: {}W", value);
 			
 			powerLimitationValue = value.doubleValue();
-			onPowerChanged(powerValue);
-
 		}
 	}
 

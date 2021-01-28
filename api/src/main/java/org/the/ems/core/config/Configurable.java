@@ -21,6 +21,7 @@ package org.the.ems.core.config;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -259,7 +260,7 @@ public abstract class Configurable {
 			String section, String[] keys, Class<?> type) throws ConfigurationException {
 		
         try {
-        	ConfigurationCollection<?> collection = (ConfigurationCollection<?>) type.newInstance();
+        	ConfigurationCollection<?> collection = (ConfigurationCollection<?>) type.getDeclaredConstructor().newInstance();
     		for (String key : keys) {
     			try {
     				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
@@ -281,7 +282,8 @@ public abstract class Configurable {
     		}
     		return collection;
     		
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | SecurityException e) {
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | 
+        		SecurityException | NoSuchMethodException e) {
 			throw newConfigException(e.getMessage());
         }
 	}

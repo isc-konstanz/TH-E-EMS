@@ -22,6 +22,10 @@ package org.the.ems.core.config;
 import java.util.List;
 
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.config.Configurable;
+import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 

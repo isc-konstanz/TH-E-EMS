@@ -20,8 +20,8 @@
  */
 archivesBaseName = 'th-e-ctrl'
 def projectName = 'TH-E-Control'
-def projectFullName = 'TH-E EMS Core - Controls'
-def projectDescription = 'The core controls of TH-E EMS framework'
+def projectFullName = 'TH-E EMS Control - Core'
+def projectDescription = 'The Control Core of TH-E EMS framework'
 
 dependencies {
   api project(':api')

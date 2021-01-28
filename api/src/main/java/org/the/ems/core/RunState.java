@@ -17,22 +17,11 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.config;
+package org.the.ems.core;
 
-import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
-
-public class TestMandatory extends TestHandler {
-
-	@Configuration(value="test1")
-	private String testString;
-
-	@Configuration(value= {"test1","test2"})
-	private String testSelection;
-
-	public TestMandatory(Configurations configs) throws ConfigurationException {
-		super(configs);
-	}
-
+public enum RunState {
+	STARTING,
+	STOPPING,
+	RUNNING,
+	STANDBY;
 }

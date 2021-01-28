@@ -21,16 +21,17 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
-import org.the.ems.core.SchedulableService;
+import org.the.ems.core.RunnableService;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public interface ElectricalEnergyStorageService extends SchedulableService {
+public interface ElectricVehicleService extends RunnableService {
 
-	static final String PID = "org.the.ems.cmpt.ees";
+	static final String PID = "org.the.ems.cmpt.ev";
 
 	@Override
 	public default ComponentType getType() {
-		return ComponentType.ELECTRICAL_ENERGY_STORAGE;
+		return ComponentType.ELECTRIC_VEHICLE;
 	};
 
 	/*
@@ -39,28 +40,41 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	public double getCapacity();
 
 	/*
-	 * Get the maximum state of charge in percent [%] between 0 and 100% .
+	 * Get the default value with which a component will be started with.
 	 */
-	public double getMaxStateOfCharge() throws ComponentException;
+	@Override
+	public default Value getStartValue(long time) {
+		return new DoubleValue(getStartPower(), time);
+	}
 
 	/*
-	 * Get the minimum state of charge in percent [%] between 0 and 100% .
+	 * Get the default power with which a component will be started with in watts [W].
 	 */
-	public double getMinStateOfCharge() throws ComponentException;
+	public double getStartPower();
+
+	/*
+	 * Get the minimum charging power in watts [W].
+	 */
+	public double getMinPower();
+
+	/*
+	 * Get the maximum charging power in watts [W].
+	 */
+	public double getMaxPower();
+
+	/*
+	 * Get the charged energy in kilowatt hours [kWh].
+	 */
+	public Value getChargedEnergy() throws ComponentException;
+
+	/*
+	 * Get the charging power in watts [W].
+	 */
+	public Value getChargePower() throws ComponentException;
 
 	/*
 	 * Get the state of charge in percent [%] between 0 and 100%.
 	 */
 	public Value getStateOfCharge() throws ComponentException;
-
-	/*
-	 * Get the DC power in watts [W].
-	 */
-	public Value getChargePower() throws ComponentException;
-
-	/*
-	 * Get the Voltage in volts [V].
-	 */
-	public Value getVoltage() throws ComponentException;
 
 }

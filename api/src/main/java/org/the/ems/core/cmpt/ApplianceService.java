@@ -21,46 +21,50 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
-import org.the.ems.core.SchedulableService;
+import org.the.ems.core.RunnableService;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public interface ElectricalEnergyStorageService extends SchedulableService {
+public interface ApplianceService extends RunnableService {
 
-	static final String PID = "org.the.ems.cmpt.ees";
+	static final String PID = "org.the.ems.cmpt.apl";
 
 	@Override
 	public default ComponentType getType() {
-		return ComponentType.ELECTRICAL_ENERGY_STORAGE;
+		return ComponentType.APPLIANCE;
 	};
 
 	/*
-	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
+	 * Get the default value with which a component will be started with.
 	 */
-	public double getCapacity();
+	@Override
+	public default Value getStartValue(long time) {
+		return new DoubleValue(getStartPower(), time);
+	}
 
 	/*
-	 * Get the maximum state of charge in percent [%] between 0 and 100% .
+	 * Get the default power with which a component will be started with in watts [W].
 	 */
-	public double getMaxStateOfCharge() throws ComponentException;
+	public double getStartPower();
 
 	/*
-	 * Get the minimum state of charge in percent [%] between 0 and 100% .
+	 * Get the minimum power in watts [W].
 	 */
-	public double getMinStateOfCharge() throws ComponentException;
+	public double getMinPower();
 
 	/*
-	 * Get the state of charge in percent [%] between 0 and 100%.
+	 * Get the maximum power in watts [W].
 	 */
-	public Value getStateOfCharge() throws ComponentException;
+	public double getMaxPower();
 
 	/*
-	 * Get the DC power in watts [W].
+	 * Get the consumed energy in kilowatt hours [kWh].
 	 */
-	public Value getChargePower() throws ComponentException;
+	public Value getEnergy() throws ComponentException;
 
 	/*
-	 * Get the Voltage in volts [V].
+	 * Get the consumption power in watts [W].
 	 */
-	public Value getVoltage() throws ComponentException;
+	public Value getPower() throws ComponentException;
 
 }

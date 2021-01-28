@@ -18,16 +18,14 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-api'
-def projectName = 'TH-E-API'
-def projectFullName = 'TH-E EMS Application Programming Interface'
-def projectDescription = 'The Application Programming Interface of TH-E EMS framework'
+archivesBaseName = 'th-e-cms'
+def projectName = 'TH-E-CMS'
+def projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
+def projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 
 dependencies {
-  api group: 'org.osgi', name: 'osgi.core', version: '7.0.0'
-  api group: 'org.osgi', name: 'org.osgi.service.component.annotations', version: '1.4.0'
-  api group: 'org.apache.felix', name: 'org.apache.felix.scr', version: '2.1.14'
-  api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+  api project(':api')
+  api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
 }
 
 eclipse {
@@ -40,6 +38,6 @@ jar {
   manifest {
     attributes('Bundle-Name':        projectFullName,
                'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.core.*')
+	           'Export-Package':     '')
   }
 }

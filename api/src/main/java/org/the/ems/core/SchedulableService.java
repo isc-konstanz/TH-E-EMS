@@ -17,22 +17,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.config;
+package org.the.ems.core;
 
-import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.Value;
+import org.the.ems.core.schedule.Schedule;
 
-public class TestMandatory extends TestHandler {
+public interface SchedulableService extends ComponentService {
 
-	@Configuration(value="test1")
-	private String testString;
+	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException;
 
-	@Configuration(value= {"test1","test2"})
-	private String testSelection;
-
-	public TestMandatory(Configurations configs) throws ConfigurationException {
-		super(configs);
-	}
+	public void set(Value value) throws EnergyManagementException, UnsupportedOperationException;
 
 }

@@ -31,28 +31,15 @@ project.ext {
 
   distributionProjects = subprojects.findAll {
     it.getPath() == ':api' ||
+    it.getPath() == ':core' ||
     it.getPath() == ':cmpt' ||
-    it.getPath() == ':cmpt:chp' ||
-    it.getPath() == ':cmpt:hr' ||
-    it.getPath() == ':cmpt:hp' ||
-    it.getPath() == ':cmpt:inv' ||
-    it.getPath() == ':cmpt:tes' ||
-    it.getPath() == ':cmpt:vnt' ||
-    it.getPath() == ':ems' ||
-    it.getPath() == ':cms' ||
     it.getPath() == ':ctrl' ||
-    it.getPath() == ':ctrl:2p'
+    it.getPath() == ':cms'
   }
 
   javadocProjects = distributionProjects.findAll {
     it.getPath() == ':api' ||
     it.getPath() == ':cmpt' ||
-    it.getPath() == ':cmpt:chp' ||
-    it.getPath() == ':cmpt:hr' ||
-    it.getPath() == ':cmpt:hp' ||
-    it.getPath() == ':cmpt:inv' ||
-    it.getPath() == ':cmpt:tes' ||
-    it.getPath() == ':cmpt:vnt' ||
     it.getPath() == ':ctrl'
   }
 

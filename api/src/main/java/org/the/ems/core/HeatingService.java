@@ -19,41 +19,33 @@
  */
 package org.the.ems.core;
 
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 
-public interface HeatingService extends ScheduledService {
-
-	public HeatingState getState();
+public interface HeatingService extends RunnableService {
 
 	/*
-	 * Get the current runtime in milliseconds [ms].
+	 * Get the default value with which a component will be started with.
 	 */
-	public int getRuntime();
+	@Override
+	public default Value getStartValue(long time) {
+		return new DoubleValue(getStartPower(), time);
+	}
 
 	/*
-	 * Get the minimum runtime in milliseconds [ms].
+	 * Get the default power with which a component will be started with in watts [W].
 	 */
-	public int getMinRuntime();
-
-	/*
-	 * Get the current idletime in milliseconds [ms].
-	 */
-	public int getIdletime();
-
-	/*
-	 * Get the minimum idletime in milliseconds [ms].
-	 */
-	public int getMinIdletime();
-
-	/*
-	 * Get the maximum power in watts [W].
-	 */
-	public double getMaxPower();
+	public double getStartPower();
 
 	/*
 	 * Get the minimum power in watts [W].
 	 */
 	public double getMinPower();
+
+	/*
+	 * Get the maximum power in watts [W].
+	 */
+	public double getMaxPower();
 
 	/*
 	 * Get the generated thermal energy in kilowatt hours [kWh].
@@ -64,19 +56,5 @@ public interface HeatingService extends ScheduledService {
 	 * Get the generated thermal power in watts [W].
 	 */
 	public Value getThermalPower() throws ComponentException;
-
-	/*
-	 * Start the generation.
-	 */
-	public void start(Value value) throws EnergyManagementException;
-
-	/*
-	 * Stop the generation.
-	 */
-	public void stop(long time) throws EnergyManagementException;
-
-	public default void stop() throws EnergyManagementException {
-		stop(System.currentTimeMillis());
-	}
 
 }

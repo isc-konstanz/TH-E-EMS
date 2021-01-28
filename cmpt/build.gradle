@@ -18,10 +18,10 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-core-cmpt'
+archivesBaseName = 'th-e-cmpt'
 def projectName = 'TH-E-Component'
-def projectFullName = 'TH-E EMS Core - Component'
-def projectDescription = 'The core components of TH-E EMS framework'
+def projectFullName = 'TH-E EMS Component - Core'
+def projectDescription = 'The Component Core of TH-E EMS framework'
 
 dependencies {
   api project(':api')

@@ -20,25 +20,17 @@
  */
 rootProject.name = 'TH-E-CMPT'
 
-include 'api', 'cmpt', 'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 'cmpt:hp', 'cmpt:inv', 'cmpt:inv:kaco', 'cmpt:tes', 'cms', 'cms:mockup', 'ctrl', 'ctrl:2p', 'ctrl:ps', 'ctrl:mpc', 'ems'
+include 'api', 'core', 'cmpt', 
+		'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 'cmpt:hp', 
+		'cmpt:inv', 'cmpt:inv:kaco', 
+		'cmpt:tes', 'cmpt:vnt', 'cmpt:apl', 'cmpt:ev', 
+        'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
+		'cms', 'cms:mockup'
 
-def coreDir = '../TH-E-EMS'
-project(':api').projectDir = file(coreDir+'/api')
-project(':cmpt').projectDir = file(coreDir+'/cmpt')
-project(':cmpt:chp').projectDir = file(coreDir+'/cmpt/chp')
-project(':cmpt:chp:ice').projectDir = file('cmpt/chp/ice')
-project(':cmpt:chp:serenergy').projectDir = file('cmpt/chp/serenergy')
-project(':cmpt:hp').projectDir = file(coreDir+'/cmpt/hp')
-project(':cmpt:inv').projectDir = file(coreDir+'/cmpt/inv')
-project(':cmpt:inv:kaco').projectDir = file('cmpt/inv/kaco')
-project(':cmpt:tes').projectDir = file(coreDir+'/cmpt/tes')
+def emsDir = '../TH-E-EMS'
+project(':api').projectDir = file(emsDir+'/api')
+project(':core').projectDir = file(emsDir+'/core')
+project(':cmpt').projectDir = file(emsDir+'/cmpt')
+project(':ctrl').projectDir = file(emsDir+'/ctrl')
+project(':cms').projectDir = file(emsDir+'/cms')
 
-project(':cms').projectDir = file(coreDir+'/cms/openmuc')
-project(':cms:mockup').projectDir = file('cms/mockup')
-
-project(':ctrl').projectDir = file(coreDir+'/ctrl')
-project(':ctrl:2p').projectDir = file(coreDir+'/ctrl/2p')
-project(':ctrl:ps').projectDir = file('ctrl/ps')
-project(':ctrl:mpc').projectDir = file('ctrl/mpc')
-
-project(':ems').projectDir = file(coreDir+'/ems')

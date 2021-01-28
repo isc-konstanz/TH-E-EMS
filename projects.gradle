@@ -30,11 +30,16 @@ project.ext {
   copyDependencies = false
 
   distributionProjects = subprojects.findAll {
+    it.getPath() == ':cmpt:chp' ||
     it.getPath() == ':cmpt:chp:ice' ||
     it.getPath() == ':cmpt:chp:serenergy' ||
+    it.getPath() == ':cmpt:hp' ||
+    it.getPath() == ':cmpt:inv' ||
     it.getPath() == ':cmpt:inv:kaco' ||
+    it.getPath() == ':cmpt:tes' ||
     it.getPath() == ':ctrl:mpc' ||
-    it.getPath() == ':ctrl:ps'
+    it.getPath() == ':ctrl:ps' ||
+    it.getPath() == ':ctrl:tp'
   }
 
   javadocProjects = distributionProjects.findAll {

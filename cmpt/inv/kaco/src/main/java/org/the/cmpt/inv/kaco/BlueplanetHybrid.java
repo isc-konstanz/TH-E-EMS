@@ -39,12 +39,11 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	@Configuration
 	private Channel setpointPower;
-	
 	private Value setpointControl = DoubleValue.emptyValue();
-	
+
 	@Configuration(mandatory = false)
 	private double socHyst = 2.5;
-	
+
 	private double soc = 0;
 	private boolean trickleCurrentFlag = false;
 

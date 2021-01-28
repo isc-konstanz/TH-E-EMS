@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.HeatingState;
+import org.the.ems.core.RunState;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
@@ -191,13 +191,13 @@ public class InternalCombustionEngine extends Cogenerator {
 			case STOPPING:
 			case STANDBY:
 				if (state) {
-					setState(HeatingState.STARTING);
+					setState(RunState.STARTING);
 				}
 				break;
 			case STARTING:
 			case RUNNING:
 				if (!state) {
-					setState(HeatingState.STOPPING);
+					setState(RunState.STOPPING);
 				}
 				break;
 			}

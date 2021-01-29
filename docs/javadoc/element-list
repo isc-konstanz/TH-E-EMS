@@ -1,0 +1,8 @@
+org.the.ems.cmpt
+org.the.ems.cmpt.circ
+org.the.ems.core
+org.the.ems.core.cmpt
+org.the.ems.core.config
+org.the.ems.core.data
+org.the.ems.core.schedule
+org.the.ems.ctrl

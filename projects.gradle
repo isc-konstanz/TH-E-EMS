@@ -20,7 +20,7 @@
  */
 project.ext {
 
-  projectVersion = '0.5.0'
+  projectVersion = '1.0.0'
 
   projectGroup = 'org.the.ems'
 
@@ -43,6 +43,10 @@ project.ext {
   }
 
   javadocProjects = distributionProjects.findAll {
+    it.getPath() == ':cmpt:chp' ||
+    it.getPath() == ':cmpt:hp' ||
+    it.getPath() == ':cmpt:inv' ||
+    it.getPath() == ':cmpt:tes'
   }
 
 }

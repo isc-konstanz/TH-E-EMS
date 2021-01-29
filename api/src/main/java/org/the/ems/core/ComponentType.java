@@ -24,16 +24,16 @@ import java.util.Map;
 
 public enum ComponentType {
 	GENERAL("cmpt", "Component"),
-	CONTROL("ctrl", "Control"),
-	INVERTER("inv", "Inverter"),
-	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
-	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
+	APPLIANCE("apl", "Appliance"),
 	ELECTRIC_VEHICLE("ev", "Electric Vehicle"),
 	COMBINED_HEAT_POWER("chp", "Cogenerator"),
 	HEAT_PUMP("hp", "Heat Pump"),
 	HEATING_ROD("hr", "Heating Rod"),
 	VENTILATION("vnt", "Ventilation"),
-	APPLIANCE("apl", "Appliance");
+	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
+	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
+	INVERTER("inv", "Inverter"),
+	CONTROL("ctrl", "Control");
 
 	private static final Map<String, ComponentType> keys = new HashMap<String, ComponentType>();
 

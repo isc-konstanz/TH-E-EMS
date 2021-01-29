@@ -19,10 +19,6 @@
  */
 package org.the.ems.core.config;
 
-import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
-
 public class TestMandatory extends TestHandler {
 
 	@Configuration(value="test1")

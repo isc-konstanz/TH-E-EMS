@@ -25,8 +25,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ValueType;
 
 public class TestConfiguration {

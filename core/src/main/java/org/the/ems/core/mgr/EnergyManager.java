@@ -43,7 +43,9 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.SchedulableService;
 import org.the.ems.core.UnknownComponentException;
+import org.the.ems.core.cmpt.ApplianceService;
 import org.the.ems.core.cmpt.CogeneratorService;
+import org.the.ems.core.cmpt.ElectricVehicleService;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.cmpt.HeatingRodService;
@@ -163,39 +165,27 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
+		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindInverterService(InverterService inverterService) {
-		bindComponentService(inverterService);
+	protected void bindApplianceService(ApplianceService applianceService) {
+		bindComponentService(applianceService);
 	}
 
-	protected void unbindInverterService(InverterService inverterService) {
-		unbindComponentService(inverterService);
+	protected void unbindApplianceService(ApplianceService applianceService) {
+		unbindComponentService(applianceService);
 	}
 
 	@Reference(
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindElectricalStorageService(ElectricalEnergyStorageService storageService) {
-		bindComponentService(storageService);
+	protected void bindElectricVehicleService(ElectricVehicleService electricVehicleService) {
+		bindComponentService(electricVehicleService);
 	}
 
-	protected void unbindElectricalStorageService(ElectricalEnergyStorageService storageService) {
-		unbindComponentService(storageService);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindThermalStorageService(ThermalEnergyStorageService storageService) {
-		bindComponentService(storageService);
-	}
-
-	protected void unbindThermalStorageService(ThermalEnergyStorageService storageService) {
-		unbindComponentService(storageService);
+	protected void unbindElectricVehicleService(ElectricVehicleService electricVehicleService) {
+		unbindComponentService(electricVehicleService);
 	}
 
 	@Reference(
@@ -214,18 +204,6 @@ public final class EnergyManager extends Configurable
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
-		bindComponentService(heatingRodService);
-	}
-
-	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
-		unbindComponentService(heatingRodService);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
 	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
 		bindComponentService(heatPumpService);
 	}
@@ -238,12 +216,60 @@ public final class EnergyManager extends Configurable
 		cardinality = ReferenceCardinality.MULTIPLE,
 		policy = ReferencePolicy.DYNAMIC
 	)
+	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
+		bindComponentService(heatingRodService);
+	}
+
+	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
+		unbindComponentService(heatingRodService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
 	protected void bindVentilationService(VentilationService ventilationService) {
 		bindComponentService(ventilationService);
 	}
 
 	protected void unbindVentilationService(VentilationService ventilationService) {
 		unbindComponentService(ventilationService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindThermalStorageService(ThermalEnergyStorageService storageService) {
+		bindComponentService(storageService);
+	}
+
+	protected void unbindThermalStorageService(ThermalEnergyStorageService storageService) {
+		unbindComponentService(storageService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindElectricalStorageService(ElectricalEnergyStorageService storageService) {
+		bindComponentService(storageService);
+	}
+
+	protected void unbindElectricalStorageService(ElectricalEnergyStorageService storageService) {
+		unbindComponentService(storageService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindInverterService(InverterService inverterService) {
+		bindComponentService(inverterService);
+	}
+
+	protected void unbindInverterService(InverterService inverterService) {
+		unbindComponentService(inverterService);
 	}
 
 	@Reference(

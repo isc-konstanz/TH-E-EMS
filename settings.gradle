@@ -20,10 +20,11 @@
  */
 rootProject.name = 'TH-E-CMPT'
 
-include 'api', 'core', 'cmpt', 
-		'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 'cmpt:hp', 
+include 'api', 'core', 'cmpt', 'cmpt:apl', 'cmpt:ev', 
+		'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
+		'cmpt:hp', 'cmpt:hr', 
+		'cmpt:vnt', 'cmpt:tes', 
 		'cmpt:inv', 'cmpt:inv:kaco', 
-		'cmpt:tes', 'cmpt:vnt', 'cmpt:apl', 'cmpt:ev', 
         'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
 		'cms', 'cms:mockup'
 

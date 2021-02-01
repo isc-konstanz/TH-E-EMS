@@ -20,18 +20,19 @@
  */
 rootProject.name = 'TH-E-CMPT'
 
-include 'api', 'core', 'cmpt', 'cmpt:apl', 'cmpt:ev', 
-		'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
-		'cmpt:hp', 'cmpt:hr', 
-		'cmpt:vnt', 'cmpt:tes', 
-		'cmpt:inv', 'cmpt:inv:kaco', 
+include 'api', 'main', 
+        'cmpt', 'cmpt:apl', 'cmpt:ev', 
+        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
+        'cmpt:hp', 'cmpt:hr', 
+        'cmpt:vnt', 'cmpt:tes', 
+        'cmpt:inv', 'cmpt:inv:kaco', 
         'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
-		'cms', 'cms:mockup'
+        'cms', 'cms:mockup'
 
 def emsDir = '../TH-E-EMS'
 project(':api').projectDir = file(emsDir+'/api')
-project(':core').projectDir = file(emsDir+'/core')
 project(':cmpt').projectDir = file(emsDir+'/cmpt')
 project(':ctrl').projectDir = file(emsDir+'/ctrl')
 project(':cms').projectDir = file(emsDir+'/cms')
+project(':main').projectDir = file(emsDir+'/main')
 

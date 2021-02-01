@@ -24,14 +24,14 @@ import java.util.Map;
 
 public enum ComponentType {
 	GENERAL("cmpt", "Component"),
+	VENTILATION("vnt", "Ventilation"),
 	APPLIANCE("apl", "Appliance"),
 	ELECTRIC_VEHICLE("ev", "Electric Vehicle"),
-	COMBINED_HEAT_POWER("chp", "Cogenerator"),
-	HEAT_PUMP("hp", "Heat Pump"),
-	HEATING_ROD("hr", "Heating Rod"),
-	VENTILATION("vnt", "Ventilation"),
-	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
 	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
+	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),
+	COMBINED_HEAT_POWER("chp", "Cogenerator"),
+	HEATING_ROD("hr", "Heating Rod"),
+	HEAT_PUMP("hp", "Heat Pump"),
 	INVERTER("inv", "Inverter"),
 	CONTROL("ctrl", "Control");
 

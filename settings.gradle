@@ -20,4 +20,4 @@
  */
 rootProject.name = 'TH-E-EMS'
 
-include 'api', 'core', 'cmpt', 'ctrl', 'cms'
+include 'api', 'cmpt', 'ctrl', 'cms', 'main'

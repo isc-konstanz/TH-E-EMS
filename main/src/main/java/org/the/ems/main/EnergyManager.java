@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.mgr;
+package org.the.ems.main;
 
 import java.util.List;
 import java.util.Map;
@@ -56,10 +56,10 @@ import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.mgr.config.ConfigurationService;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
+import org.the.ems.main.config.ConfigurationService;
 
 @org.osgi.service.component.annotations.Component(
 	service = EnergyManagementService.class,

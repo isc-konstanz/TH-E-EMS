@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.mgr.config;
+package org.the.ems.main.config;
 
 import java.io.File;
 import java.io.IOException;

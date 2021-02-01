@@ -20,7 +20,7 @@
  */
 project.ext {
 
-  projectVersion = '1.0.0'
+  projectVersion = '1.0.1'
 
   projectGroup = 'org.the.ems'
 
@@ -31,10 +31,10 @@ project.ext {
 
   distributionProjects = subprojects.findAll {
     it.getPath() == ':api' ||
-    it.getPath() == ':core' ||
     it.getPath() == ':cmpt' ||
     it.getPath() == ':ctrl' ||
-    it.getPath() == ':cms'
+    it.getPath() == ':cms' ||
+    it.getPath() == ':main'
   }
 
   javadocProjects = distributionProjects.findAll {

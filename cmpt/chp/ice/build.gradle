@@ -19,7 +19,7 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-chp-ice'
-def projectName = 'TH-E-Components-InternalCombustionEngine'
+def projectName = 'TH-E-Component-InternalCombustionEngine'
 def projectFullName = 'TH-E EMS Components - Internal Combustion Engine Cogernerator'
 def projectDescription = 'Internal combustion engine cogernerator component for TH-E EMS framework.'
 

@@ -53,20 +53,6 @@ public class Effekta extends Inverter {
 //	
 //	protected final List<PowerListener> powerListeners = new ArrayList<PowerListener>();
 
-
-	@Override
-	public void onActivate(Configurations configs) throws ComponentException  {
-		super.onActivate(configs);
-		
-	}
-	
-	
-	@Override
-	public void onDeactivate() {
-		super.onDeactivate();
-
-	}
-	
 	
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
@@ -86,7 +72,7 @@ public class Effekta extends Inverter {
 				container.addDouble(operationMode, 0x0100L, time + 700);
 				
 				container.addDouble(chargeCurrent, value.doubleValue(), time + 800);
-				container.addDouble(batteryKeepVoltage, battery.getVoltage().doubleValue()+2, time + 90);
+				container.addDouble(batteryKeepVoltage, storage.getVoltage().doubleValue()+2, time + 90);
 //				container.addDouble(batteryKeepVoltage, 52, time + 900);
 				
 			}
@@ -243,17 +229,5 @@ public class Effekta extends Inverter {
 //			battery.setMode(container, Mode.DEFAULT);
 //		}
 //	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MANDATORY,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindElectricalEnergyStorageService(ElectricalEnergyStorageService service) {
-		battery = service;
-	}
-
-	protected void unbindElectricalEnergyStorageService(ElectricalEnergyStorageService service) {
-		battery = null;
-	}
 
 }

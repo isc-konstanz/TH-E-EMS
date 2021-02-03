@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.HeatingState;
+import org.the.ems.core.RunState;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
@@ -43,8 +43,11 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Configuration(mandatory = false)
 	protected Channel engineMode = null;
 
-	@Configuration(mandatory = false)
-	protected double engineModeDelay = 500;
+	@Configuration(mandatory = false, scale=1000)
+	protected int engineModePriorDelay = 250;
+
+	@Configuration(mandatory = false, scale=1000)
+	protected int engineModePostDelay = 50;
 
 	@Configuration
 	protected ChannelListener engine;
@@ -60,7 +63,11 @@ public class InternalCombustionEngine extends Cogenerator {
 
 	@Override
 	public Value getElectricalPower() throws ComponentException {
-		return power.getLatestValue();
+		Value powerValue = power.getLatestValue();
+		if (powerValue == null) {
+			throw new ComponentException("Unable to retrieve electrical power");
+		}
+		return powerValue;
 	}
 
 	@Override
@@ -112,7 +119,12 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Override
 	protected boolean isRunning() throws ComponentException {
 		if (powerMin > 0) {
-			return Math.abs(getElectricalPower().doubleValue()) > powerMin;
+			try {
+				return Math.abs(getElectricalPower().doubleValue()) > powerMin;
+				
+			} catch(ComponentException e) {
+				logger.debug("Error while checking run state: {}", e.getMessage());
+			}
 		}
 		return super.isRunning();
 	}
@@ -129,34 +141,40 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	protected void onEngineStop(long time) throws EnergyManagementException {
-		WriteContainer writeContainer = new WriteContainer();
-		if (valve != null && valve.getLatestValue().booleanValue()) {
-			writeContainer.addBoolean(valve, false, time);
+		if (engineMode != null) {
+			WriteContainer writeContainer = new WriteContainer();
+			writeContainer.add(engineMode, EngineMode.STAR.getValue(time));
+			doWrite(writeContainer);
 		}
-		writeContainer.add(engineMode, EngineMode.STAR.getValue(time));
-		doWrite(writeContainer);
 	}
 
 	protected void setEngineMode(long time, EngineMode mode) throws EnergyManagementException {
-		WriteContainer writeContainer = new WriteContainer();
-		if (valve != null) {
-			writeContainer.addBoolean(valve, false, time);
-			time += (long) engineModeDelay;
+		if (engineMode != null) {
+			WriteContainer writeContainer = new WriteContainer();
 			
+			if (valve != null) {
+				writeContainer.addBoolean(valve, false, time);
+				time += engineModePriorDelay;
+			}
 			writeContainer.add(engineMode, mode.getValue(time));
-			time += (long) engineModeDelay;
 			
-			writeContainer.addBoolean(valve, true, time);
+			if (valve != null) {
+				time += engineModePostDelay;
+				writeContainer.addBoolean(valve, true, time);
+			}
+			doWrite(writeContainer);
 		}
-		else {
-			writeContainer.add(engineMode, mode.getValue(time));
-		}
-		doWrite(writeContainer);
 	}
 
 	@Override
 	protected boolean isStandby() throws ComponentException {
-		return getElectricalPower().doubleValue() == 0.0;
+		try {
+			return getElectricalPower().doubleValue() == 0.0;
+			
+		} catch(ComponentException e) {
+			logger.debug("Error while checking standby state: {}", e.getMessage());
+		}
+		return super.isStandby();
 	}
 
 	@Override
@@ -173,13 +191,13 @@ public class InternalCombustionEngine extends Cogenerator {
 			case STOPPING:
 			case STANDBY:
 				if (state) {
-					setState(HeatingState.STARTING);
+					setState(RunState.STARTING);
 				}
 				break;
 			case STARTING:
 			case RUNNING:
 				if (!state) {
-					setState(HeatingState.STOPPING);
+					setState(RunState.STOPPING);
 				}
 				break;
 			}

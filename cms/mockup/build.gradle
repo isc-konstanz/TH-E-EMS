@@ -18,8 +18,8 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-mock-cms'
-def projectName = 'TH-E-Core-Mockup'
+archivesBaseName = 'th-e-cms-mock'
+def projectName = 'TH-E-CMS-Mockup'
 def projectFullName = 'TH-E EMS Content Managment System - OpenMUC Mockup'
 def projectDescription = 'The OpenMUC Content Management System Mockup of TH-E EMS framework'
 

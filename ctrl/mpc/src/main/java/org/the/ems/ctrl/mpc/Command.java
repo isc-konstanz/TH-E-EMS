@@ -1,8 +1,8 @@
 package org.the.ems.ctrl.mpc;
 
+import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
@@ -32,7 +32,7 @@ public class Command extends Configurable implements ValueListener {
 			command.registerValueListener(this);
 		}
 		else {
-			setDisabled(true);
+			setEnabled(false);
 		}
 	}
 
@@ -46,7 +46,7 @@ public class Command extends Configurable implements ValueListener {
 	}
 
 	public void deactivate() {
-		if (!isDisabled()) {
+		if (isEnabled()) {
 			command.deregister();
 		}
 	}

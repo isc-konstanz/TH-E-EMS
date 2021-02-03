@@ -20,11 +20,11 @@
  */
 archivesBaseName = 'th-e-ctrl-ps'
 def projectName = 'TH-E-Control-PeakShaving'
-def projectFullName = 'TH-E Peak Shaving Control'
+def projectFullName = 'TH-E EMS Control - Peak Shaving'
 def projectDescription = 'The Peak Shaving Control of TH-E EMS framework'
 
 dependencies {
-  implementation project(':ctrl:2p')
+  implementation project(':ctrl:tp')
 }
 
 eclipse {

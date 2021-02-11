@@ -2,101 +2,134 @@ package org.the.ems.cmpt.inv.effekta;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.inv.Inverter;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelCollection;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-@Component(
-	scope = ServiceScope.BUNDLE,
-	service = InverterService.class,
-	configurationPid = InverterService.PID+".effekta",
-	configurationPolicy = ConfigurationPolicy.REQUIRE
-)
-public class Effekta extends Inverter {
+@Component(scope = ServiceScope.BUNDLE, service = InverterService.class, configurationPid = InverterService.PID
+		+ ".effekta", configurationPolicy = ConfigurationPolicy.REQUIRE)
+public class Effekta extends Inverter<EffektaBattery> {
 	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
+	protected Mode mode = Mode.DEFAULT;
+	private Value setpoint = DoubleValue.emptyValue();
+	private long delay = 0;
+	private double soc = 0;
+
+	@Configuration(mandatory = false)
+	private boolean activeError = false;
 
 	@Configuration
-	protected Channel dischargeCurrent;
-	
+	private Channel dischargeCurrent;
+
 	@Configuration
-	protected Channel chargeCurrent;
-	
+	private Channel chargeCurrent;
+
 	@Configuration
-	protected Channel batteryKeepVoltage;
-	
+	private Channel batteryKeepVoltage;
+
 	@Configuration
-	protected Channel operationMode;
-	
-	
+	private Channel operationMode;
+
+	@Configuration
+	protected long messagesDelay;
+
 //	@Configuration(value="power_*")
 //	protected ChannelCollection power;
-//
-// 
-//	protected Value acPowerLast = IntValue.emptyValue();
-//	protected Value dc1PowerLast = IntValue.emptyValue();
-//	protected Value dc2PowerLast = IntValue.emptyValue();
-//	
-//	
-//	protected final List<PowerListener> powerListeners = new ArrayList<PowerListener>();
 
-	
+	@Override
+	public void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		storage.registerStateOfChargeListener(new StateOfChargeListener());
+//		inputPower.registerValueListener(new SetpointUpdater());
+//		if (activeError) {
+//			activePower.registerValueListener(new SetpointUpdater());
+//		}
+	}
+
+	@Override
+	public void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		storage.deregister();
+//		inputPower.deregister();
+//		activePower.deregister();
+	}
+
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
-		long time = value.getTime();
-		
-		try {
-			if (value.doubleValue() >= 0) {
-				// draw energy from grid (normal mode)
-				container.addDouble(operationMode, 0x8000L, time + 0);
-				container.addDouble(operationMode, 0xbfffL, time + 100);
-				container.addDouble(operationMode, 0x2000L, time + 200);
-				container.addDouble(operationMode, 0x1000L, time + 300);
-				
-				container.addDouble(operationMode, 0x0800L, time + 400);
-				container.addDouble(operationMode, 0xfbffL, time + 500);
-				container.addDouble(operationMode, 0xfdffL, time + 600);
-				container.addDouble(operationMode, 0x0100L, time + 700);
-				
-				container.addDouble(chargeCurrent, value.doubleValue(), time + 800);
-				container.addDouble(batteryKeepVoltage, storage.getVoltage().doubleValue()+2, time + 90);
-//				container.addDouble(batteryKeepVoltage, 52, time + 900);
-				
-			}
-			else {
-				// feed energy into grid (feed-into-the-grid-mode)			
-				container.addDouble(operationMode, 0x7fffL, time + 0);
-				container.addDouble(operationMode, 0xbfffL, time + 100);
-				container.addDouble(operationMode, 0x2000L, time + 200);
-				container.addDouble(operationMode, 0x1000L, time + 300);
-				
-				container.addDouble(operationMode, 0x0800L, time + 400);
-				container.addDouble(operationMode, 0x0400L, time + 500);
-				container.addDouble(operationMode, 0x0200L, time + 600);
-				container.addDouble(operationMode, 0x0100L, time + 700);
-				
-				container.addDouble(dischargeCurrent, value.doubleValue(), time + 800);
-			}
-			
-		} catch (Exception e) {
-			logger.debug("Unable to updating inverter setpoint: {}", e.getMessage());
+		setpoint = value;
+		onSetpointUpdate(container);
+	}
+
+	private void onSetpointUpdate(WriteContainer container) throws ComponentException {
+		long time = setpoint.getTime();
+		updateMode(container);
+
+		switch (mode) {
+		case DEFAULT:
+		case CHARGE_FROM_GRID:
+			//TODO: abfragen ob alle channels (setpoint,storage) schon einen wert haben!
+			container.addDouble(chargeCurrent, setpoint.doubleValue(), time + delay);
+			container.addDouble(batteryKeepVoltage, storage.getChargeVoltage(), time + delay + 100);
+			break;
+		case FEED_INTO_GRID:
+			container.addDouble(dischargeCurrent, setpoint.doubleValue(), time + delay);
+			container.addDouble(batteryKeepVoltage, storage.getDischargeVoltage(), time + delay + 100);
+			break;
+		case DISABLED:
+			// TODO: what to do if disabled?
+			break;
 		}
 	}
-	
-//	
+
+	private void updateMode(WriteContainer container) {
+		long time = setpoint.getTime();
+		delay = 0;
+
+		if (setpoint.doubleValue() >= 0 && mode != Mode.CHARGE_FROM_GRID) {
+			container.addDouble(operationMode, 0x8000L, time + messagesDelay * 0);
+			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 1);
+			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 2);
+			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 3);
+			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 4);
+			container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 5);
+			container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 6);
+			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 7);
+
+			setMode(Mode.CHARGE_FROM_GRID);
+			delay = messagesDelay * 8;
+		}
+
+		if (setpoint.doubleValue() < 0 && mode != Mode.FEED_INTO_GRID) {
+			container.addDouble(operationMode, 0x7fffL, time + messagesDelay * 0);
+			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 1);
+			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 2);
+			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 3);
+			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 4);
+			container.addDouble(operationMode, 0x0400L, time + messagesDelay * 5);
+			container.addDouble(operationMode, 0x0200L, time + messagesDelay * 6);
+			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 7);
+
+			setMode(Mode.FEED_INTO_GRID);
+			delay = messagesDelay * 8;
+		}
+	}
+
+	private void setMode(Mode operationMode) {
+		mode = operationMode;
+	}
+
+
 //	private class PowerValueListener implements ValueListener{
 //
 //		@Override
@@ -138,96 +171,58 @@ public class Effekta extends Inverter {
 //		}
 //		
 //	}
-	
 
+	private class SetpointUpdater implements ValueListener {
 
+		@Override
+		public void onValueReceived(Value value) {
+			this.onSetpointChange();
+		}
 
-//	private int getBatteryPower (int dcPower, int consumption, int objective) {
-//		int power = Math.abs(consumption + objective - dcPower);
-//		return power;
-//	}
-//
-//	@Override
-//	public void onPowerValueReceived(PowerType type, Value power) {
-//		switch(type) {
-//		case AC:
-//			acPowerLast = power;
-//			break;
-//		case DC1:
-//			dc1PowerLast = power;
-//			break;
-//		case DC2:
-//			dc2PowerLast = power;
-//			break;
-//		default:
-//			break;
-//		}
-//		if (acPowerLast.getTime() == dc1PowerLast.getTime() &&
-//				acPowerLast.getTime() == dc2PowerLast.getTime()) {
-//			
-////			double consumption = acPowerLast.doubleValue();
-////			if (consumption > 0) {
-////				consumption += dc1PowerLast.doubleValue();
-////			}
-////			consumption -= dc2PowerLast.doubleValue();
-////			
-////			if (consumption < 0) {
-////				consumption = 0;
-////			}
-////			Value value = new DoubleValue(consumption, acPowerLast.getTime());
-////			
-////			this.consumption.setLatestValue(value);
-////			for (ValueListener listener : listeners) {
-////				listener.onValueReceived(value);
-////			}
-//		}
-//		
-//		onUpdate();
-//	}
-//
-//	@Override
-//	public void objective(ComponentWriteContainer container, Value value) throws ComponentException {
-//		int objective = value.intValue();
-//		int dcPower = dc1PowerLast.intValue() + dc2PowerLast.intValue();
-//		int consumption = acPowerLast.intValue();
-//		Value batteryPower = new IntValue(getBatteryPower(dcPower, consumption, objective));
-//		
-//		// Inverter firmware does not except to set the charge/discharge current below 10A
-//		if (battery.getMinimumPower() > batteryPower.intValue()) { 
-//			battery.setMode(container, Mode.DISABLED);
-//		}
-//		else if (objective < 0) { // receive energy from grid
-//			int objectiveReceive = Math.abs(objective);
-//			
-//			if (objectiveReceive > consumption - dcPower) {
-//				battery.setChargeCurrent(container, batteryPower);
-//				battery.setMode(container, Mode.CHARGE_FROM_GRID);
+		protected void onSetpointChange() {
+			try {
+				WriteContainer container = new WriteContainer();
+				doSetpointUpdate(container);
+				doWrite(container);
+
+			} catch (EnergyManagementException e) {
+				logger.warn("Error updating value: {}", e.getMessage());
+			}
+		}
+
+		protected void doSetpointUpdate(WriteContainer container) throws ComponentException {
+			onSetpointUpdate(container);
+		};
+
+	}
+
+	private class StateOfChargeListener extends SetpointUpdater {
+
+		@Override
+		public void onValueReceived(Value value) {
+			soc = value.doubleValue();
+			WriteContainer container = new WriteContainer();
+			
+//			if (soc < storage.getMinStateOfCharge() && !trickleCurrentFlag) {
+//				trickleCurrentFlag = true;
+//				container.addDouble(setpointPower, -storage.getTricklePower(), System.currentTimeMillis());
+//				try {
+//					doWrite(container);
+//				} catch (EnergyManagementException e) {
+//					logger.warn("Could not set trickle current: {}", e.getMessage());
+//				}
 //			}
-//			else {
-//				battery.setDischargeCurrent(container, batteryPower);
-//				battery.setMode(container, Mode.DEFAULT);			
-//			}	
-//		}
-//		else if (objective > 0) { //feed energy to grid
-//			if (objective > dcPower - consumption){
-//				battery.setDischargeCurrent(container, batteryPower);
-//				battery.setMode(container, Mode.DISCHARGE_TO_GRID);
+//			else if (soc >= storage.getMinStateOfCharge() + socHyst && trickleCurrentFlag) {
+//				trickleCurrentFlag = false;
+//				container.addDouble(setpointPower, -setpointControl.doubleValue(), System.currentTimeMillis());
+//				try {
+//					doWrite(container);
+//				} catch (EnergyManagementException e) {
+//					logger.warn("Could not reset trickle current: {}", e.getMessage());
+//				}
+//				
 //			}
-//			else {
-//				battery.setChargeCurrent(container, batteryPower);
-//				battery.setMode(container, Mode.DEFAULT);	
-//			}
-//		}
-//		else { // default
-//			if (dcPower > consumption){
-//				battery.setChargeCurrent(container, batteryPower);
-//			}
-//			else {
-//				battery.setDischargeCurrent(container, batteryPower);
-//			}
-//			
-//			battery.setMode(container, Mode.DEFAULT);
-//		}
-//	}
+		}
+	}
 
 }

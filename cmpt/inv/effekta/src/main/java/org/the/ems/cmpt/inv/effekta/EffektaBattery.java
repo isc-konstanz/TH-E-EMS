@@ -9,13 +9,6 @@ import org.the.ems.core.data.ValueListener;
 
 
 public class EffektaBattery extends ElectricalEnergyStorage {
-	
-//	@Configuration(mandatory=false)
-//	public final static short CURRENT_MIN = 10;
-	
-//	@Configuration(mandatory=false)
-//	public final static short CURRENT_MAX = 100;
-	
 	@Configuration
 	private double chargeVoltageMax = 53;
 	
@@ -24,12 +17,15 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	
 	@Configuration
 	private Channel voltage;
+
+	@Configuration
+	private Channel dischargeCurrent;
+
+	@Configuration
+	private Channel chargeCurrent;
 	
 	@Configuration
 	protected ChannelListener soc;
-	
-	@Configuration
-	private Channel power;
 
 	@Override
 	public Value getVoltage() {
@@ -39,11 +35,6 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Override
 	public Value getStateOfCharge() {
 		return soc.getLatestValue();
-	}
-	
-	@Override
-	public Value getChargePower() {
-		return power.getLatestValue();
 	}
 	
 	void registerStateOfChargeListener(ValueListener listener) {
@@ -61,5 +52,12 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	public double getDischargeVoltage() {
 		return chargeVoltageMin;
 	}
-
+	
+	public Channel getChargeCurrent() {
+		return chargeCurrent;
+	}
+	
+	public Channel getDischargeCurrent() {
+		return dischargeCurrent;
+	}
 }

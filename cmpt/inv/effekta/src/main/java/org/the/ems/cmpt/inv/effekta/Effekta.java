@@ -30,19 +30,13 @@ public class Effekta extends Inverter<EffektaBattery> {
 	private boolean activeError = false;
 
 	@Configuration
-	private Channel dischargeCurrent;
-
-	@Configuration
-	private Channel chargeCurrent;
-
-	@Configuration
-	private Channel batteryKeepVoltage;
+	protected long messagesDelay;
 
 	@Configuration
 	private Channel operationMode;
 
-	@Configuration
-	protected long messagesDelay;
+//	@Configuration
+//	private Channel batteryKeepVoltage;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
@@ -61,14 +55,18 @@ public class Effekta extends Inverter<EffektaBattery> {
 		setpointPower = value;
 
 		try {
-			if (setpointPower.doubleValue() >= 0 && mode != Mode.CHARGE_FROM_GRID) {
+			if (mode == Mode.DEFAULT || setpointPower.doubleValue() == 0) {
+				setMode(container, Mode.DEFAULT);
+			}
+
+			if (setpointPower.doubleValue() > 0 && mode != Mode.CHARGE_FROM_GRID) {
 				setMode(container, Mode.CHARGE_FROM_GRID);
 			} else if (setpointPower.doubleValue() < 0 && mode != Mode.FEED_INTO_GRID
 					&& soc >= storage.getMinStateOfCharge()) {
 				setMode(container, Mode.FEED_INTO_GRID);
 			}
 		} catch (Exception e) {
-			logger.warn("Obligatory storage value missing: {}", e.getMessage());
+			logger.warn("Could not set power setpoint. Obligatory storage value missing: {}", e.getMessage());
 		}
 		onSetpointUpdate(container);
 	}
@@ -79,22 +77,22 @@ public class Effekta extends Inverter<EffektaBattery> {
 		switch (mode) {
 		case DEFAULT:
 		case CHARGE_FROM_GRID:
-			container.addDouble(chargeCurrent, setpointPower.doubleValue() / storage.getChargeVoltage(), time + delay);
-			container.addDouble(batteryKeepVoltage, storage.getChargeVoltage(), time + delay + 100);
+			container.addDouble(storage.getChargeCurrent(), setpointPower.doubleValue() / storage.getChargeVoltage(),
+					time + delay);
+//			container.addDouble(batteryKeepVoltage, storage.getChargeVoltage(), time + delay + 100);
 			break;
 		case FEED_INTO_GRID:
 			try {
 				if (storage.getStateOfCharge().doubleValue() >= storage.getMinStateOfCharge()) {
-					container.addDouble(dischargeCurrent, -setpointPower.doubleValue() / storage.getChargeVoltage(),
-							time + delay);
-					container.addDouble(batteryKeepVoltage, storage.getDischargeVoltage(), time + delay + 100);
+					container.addDouble(storage.getDischargeCurrent(),
+							-setpointPower.doubleValue() / storage.getChargeVoltage(), time + delay);
+//					container.addDouble(batteryKeepVoltage, storage.getDischargeVoltage(), time + delay + 100);
 				}
 			} catch (Exception e) {
 				logger.warn("Obligatory storage value missing: {}", e.getMessage());
 			}
 			break;
 		case DISABLED:
-			// TODO: what to do if disabled?
 			break;
 		}
 	}
@@ -105,18 +103,20 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 		switch (mode) {
 		case DEFAULT:
+			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 4);
+			container.addDouble(operationMode, 0x0400L, time + messagesDelay * 5);
+			container.addDouble(operationMode, 0x0200L, time + messagesDelay * 6);
+			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 7);
+			break;
+
 		case CHARGE_FROM_GRID:
 			container.addDouble(operationMode, 0x8000L, time + messagesDelay * 0);
 			container.addDouble(operationMode, 0x4000L, time + messagesDelay * 1);
 			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 2);
 			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 3);
-			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 4);
-			container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 5);
-			container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 6);
-			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 7);
 
 			this.mode = Mode.CHARGE_FROM_GRID;
-			delay = messagesDelay * 8;
+			delay = messagesDelay * 4;
 			break;
 
 		case FEED_INTO_GRID:
@@ -124,16 +124,20 @@ public class Effekta extends Inverter<EffektaBattery> {
 			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 1);
 			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 2);
 			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 3);
-			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 4);
-			container.addDouble(operationMode, 0x0400L, time + messagesDelay * 5);
-			container.addDouble(operationMode, 0x0200L, time + messagesDelay * 6);
-			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 7);
 
 			this.mode = Mode.FEED_INTO_GRID;
-			delay = messagesDelay * 8;
+			delay = messagesDelay * 4;
 			break;
 
 		case DISABLED:
+			container.addDouble(operationMode, 0x7fffL, time + messagesDelay * 0);
+			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 1);
+			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 2);
+			container.addDouble(operationMode, 0xefffL, time + messagesDelay * 3);
+			container.addDouble(operationMode, 0xf7ffL, time + messagesDelay * 4);
+			container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 5);
+			container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 6);
+			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 7);
 			break;
 		}
 	}
@@ -214,8 +218,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 			try {
 				if (soc < storage.getMinStateOfCharge() && mode == Mode.FEED_INTO_GRID) {
-					container.addDouble(chargeCurrent, 1, time + delay);
-					container.addDouble(batteryKeepVoltage, storage.getVoltage().doubleValue(), time + delay + 100);
+					container.addDouble(storage.getChargeCurrent(), 10, time + delay);
+//					container.addDouble(batteryKeepVoltage, storage.getVoltage().doubleValue(), time + delay + 100);
 					setMode(container, Mode.CHARGE_FROM_GRID);
 					try {
 						doWrite(container);

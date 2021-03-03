@@ -26,6 +26,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 	private double soc = 0;
 	private double voltage = 0;
 	private double current = 0;
+	private Channel socEstimation;
 
 	@Configuration(mandatory = false)
 	private boolean activeError = false;
@@ -42,6 +43,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 		storage.registerStateOfChargeListener(new StateOfChargeListener());
 		storage.registerVoltageListener(new VoltageListener());
 		storage.registerCurrentListener(new CurrentListener());
+		socEstimation.setLatestValue(new DoubleValue(0.5));
 	}
 
 	@Override
@@ -200,9 +202,28 @@ public class Effekta extends Inverter<EffektaBattery> {
 		@Override
 		public void onValueReceived(Value value) {
 			long time = value.getTime();
+			long socTime = socEstimation.getLatestValue().getTime();
 			WriteContainer container = new WriteContainer();
+			double energy;
+			double socEstimationNew;
+
 			try {
 				if (voltage != value.doubleValue()) {
+
+					if (value.doubleValue() >= storage.getChargeVoltage()) {
+						socEstimation.setLatestValue(new DoubleValue(1));
+					}
+					if (value.doubleValue() <= storage.getDischargeVoltage()) {
+						socEstimation.setLatestValue(new DoubleValue(0));
+					}
+					if (value.doubleValue() < storage.getChargeVoltage()
+							&& value.doubleValue() > storage.getDischargeVoltage()) {
+						energy = current * voltage * (time - socTime) / (1000 * 3600);
+						socEstimationNew = socEstimation.getLatestValue().doubleValue()
+								+ energy / (storage.getCapacity() * 1000);
+						socEstimation.setLatestValue(new DoubleValue(socEstimationNew));
+					}
+
 					if (mode == Mode.CHARGE_FROM_GRID) {
 						container.addDouble(storage.getChargeCurrent(), setpointPower.doubleValue() / voltage, time);
 					}
@@ -230,8 +251,18 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 		@Override
 		public void onValueReceived(Value value) {
-//			
-//			storage.setSocEstimation();
+			double energy;
+			double socEstimationNew;
+			long time = value.getTime();
+			long socTime = socEstimation.getLatestValue().getTime();
+
+			if (value.doubleValue() != 0) {
+				energy = current * voltage * (time - socTime) / (1000 * 3600);
+				socEstimationNew = socEstimation.getLatestValue().doubleValue()
+						+ energy / (storage.getCapacity() * 1000);
+				socEstimation.setLatestValue(new DoubleValue(socEstimationNew));
+			}
+
 			if (value.doubleValue() != current) {
 				current = value.doubleValue();
 				storage.setPower(new DoubleValue(current * voltage));

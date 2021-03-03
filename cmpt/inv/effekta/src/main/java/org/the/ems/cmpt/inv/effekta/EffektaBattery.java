@@ -34,9 +34,6 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
 	protected ChannelListener soc;
-
-	@Configuration
-	protected Channel socEstimation;
 	
 
 	@Override
@@ -65,14 +62,6 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		soc.deregister();
 		voltage.deregister();
 		current.deregister();
-	}
-
-	public void setSocEstimation(Value value) {
-		socEstimation.setLatestValue(value);
-	}
-	
-	public Value getSocEstimation() {
-		return socEstimation.getLatestValue();
 	}
 	
 	public Value getCurrent() {

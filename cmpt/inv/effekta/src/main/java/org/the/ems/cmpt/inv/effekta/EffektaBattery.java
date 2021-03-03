@@ -7,57 +7,103 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-
 public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration
 	private double chargeVoltageMax = 53;
-	
+
 	@Configuration
-	private double chargeVoltageMin = 48;
-	
-	@Configuration
-	private Channel voltage;
+	private double dischargeVoltageMin = 48;
 
 	@Configuration
 	private Channel dischargeCurrent;
 
 	@Configuration
+	private Channel voltageSetpoint;
+
+	@Configuration
 	private Channel chargeCurrent;
-	
+
+	@Configuration
+	private Channel power;
+
+	@Configuration
+	protected ChannelListener current;
+
+	@Configuration
+	protected ChannelListener voltage;
+
 	@Configuration
 	protected ChannelListener soc;
+
+	@Configuration
+	protected Channel socEstimation;
+	
 
 	@Override
 	public Value getVoltage() {
 		return voltage.getLatestValue();
 	}
-	
+
 	@Override
 	public Value getStateOfCharge() {
 		return soc.getLatestValue();
 	}
-	
+
 	void registerStateOfChargeListener(ValueListener listener) {
 		soc.registerValueListener(listener);
 	}
-	
+
+	void registerVoltageListener(ValueListener listener) {
+		voltage.registerValueListener(listener);
+	}
+
+	void registerCurrentListener(ValueListener listener) {
+		current.registerValueListener(listener);
+	}
+
 	void deregister() {
 		soc.deregister();
+		voltage.deregister();
+		current.deregister();
+	}
+
+	public void setSocEstimation(Value value) {
+		socEstimation.setLatestValue(value);
 	}
 	
+	public Value getSocEstimation() {
+		return socEstimation.getLatestValue();
+	}
+	
+	public Value getCurrent() {
+		return current.getLatestValue();
+	}
+	
+	public double getPower() {
+		return current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue();
+	}
+
 	public double getChargeVoltage() {
 		return chargeVoltageMax;
 	}
-	
+
 	public double getDischargeVoltage() {
-		return chargeVoltageMin;
+		return dischargeVoltageMin;
 	}
-	
+
 	public Channel getChargeCurrent() {
 		return chargeCurrent;
 	}
-	
+
 	public Channel getDischargeCurrent() {
 		return dischargeCurrent;
+	}
+
+	public Channel getVoltageSetpoint() {
+		return voltageSetpoint;
+	}
+
+	public void setPower(Value value) {
+		power.setLatestValue(value);
 	}
 }

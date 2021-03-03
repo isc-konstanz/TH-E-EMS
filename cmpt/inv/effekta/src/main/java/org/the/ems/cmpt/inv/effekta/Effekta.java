@@ -24,6 +24,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 	protected Mode mode = Mode.DEFAULT;
 	private Value setpointPower = DoubleValue.emptyValue();
 	private double soc = 0;
+	private double voltage = 0;
+	private double current = 0;
 
 	@Configuration(mandatory = false)
 	private boolean activeError = false;
@@ -34,13 +36,12 @@ public class Effekta extends Inverter<EffektaBattery> {
 	@Configuration
 	private Channel operationMode;
 
-//	@Configuration
-//	private Channel batteryKeepVoltage;
-
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		storage.registerStateOfChargeListener(new StateOfChargeListener());
+		storage.registerVoltageListener(new VoltageListener());
+		storage.registerCurrentListener(new CurrentListener());
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		setpointPower = value;
-		
+
 		if (setpointPower.doubleValue() == 0 && mode != Mode.DEFAULT) {
 			setMode(container, Mode.DEFAULT);
 		} else if (setpointPower.doubleValue() > 0 && mode != Mode.CHARGE_FROM_GRID) {
@@ -61,7 +62,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 				&& soc >= storage.getMinStateOfCharge()) {
 			setMode(container, Mode.FEED_INTO_GRID);
 		}
-		
+
 		onSetpointUpdate(container);
 	}
 
@@ -71,16 +72,14 @@ public class Effekta extends Inverter<EffektaBattery> {
 		switch (mode) {
 		case DEFAULT:
 		case CHARGE_FROM_GRID:
-			container.addDouble(storage.getChargeCurrent(), setpointPower.doubleValue() / storage.getChargeVoltage(),
-					time);
-//			container.addDouble(batteryKeepVoltage, storage.getChargeVoltage(), time + delay + 100);
+			container.addDouble(storage.getChargeCurrent(), setpointPower.doubleValue() / voltage, time);
 			break;
 		case FEED_INTO_GRID:
 			try {
 				if (storage.getStateOfCharge().doubleValue() >= storage.getMinStateOfCharge()) {
-					container.addDouble(storage.getDischargeCurrent(),
-							-setpointPower.doubleValue() / storage.getChargeVoltage(), time);
-//					container.addDouble(batteryKeepVoltage, storage.getDischargeVoltage(), time + delay + 100);
+					container.addDouble(storage.getDischargeCurrent(), -setpointPower.doubleValue() / voltage, time);
+					container.addDouble(storage.getVoltageSetpoint(), storage.getDischargeVoltage(),
+							time + messagesDelay);
 				}
 			} catch (Exception e) {
 				logger.warn("Obligatory storage value missing: {}", e.getMessage());
@@ -107,28 +106,29 @@ public class Effekta extends Inverter<EffektaBattery> {
 			break;
 
 		case CHARGE_FROM_GRID:
-			container.addDouble(operationMode, 0x8000L, time + messagesDelay);
-			container.addDouble(operationMode, 0x4000L, time + messagesDelay * 2);
-			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 3);
-			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 4);
-            container.addDouble(operationMode, 0x0800L, time + messagesDelay * 5);
-            container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 6);
-            container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 7);
-            container.addDouble(operationMode, 0x0100L, time + messagesDelay * 8);
+			container.addDouble(storage.getVoltageSetpoint(), storage.getChargeVoltage(), time + messagesDelay);
+			container.addDouble(operationMode, 0x8000L, time + messagesDelay * 2);
+			container.addDouble(operationMode, 0x4000L, time + messagesDelay * 3);
+//			  container.addDouble(operationMode, 0x2000L, time + messagesDelay * 4);
+//			  container.addDouble(operationMode, 0x1000L, time + messagesDelay * 5);
+//            container.addDouble(operationMode, 0x0800L, time + messagesDelay * 6);
+			container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 4);
+			container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 5);
+//            container.addDouble(operationMode, 0x0100L, time + messagesDelay * 9);
 
 			this.mode = Mode.CHARGE_FROM_GRID;
 			break;
 
 		case FEED_INTO_GRID:
-			container.addDouble(operationMode, 0x7fffL, time + messagesDelay);
-			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 2);
-			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 3);
-			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 4);
-            container.addDouble(operationMode, 0x0800L, time + messagesDelay * 5);
-            container.addDouble(operationMode, 0x0400L, time + messagesDelay * 6);
-            container.addDouble(operationMode, 0x0200L, time + messagesDelay * 7);
-            container.addDouble(operationMode, 0x0100L, time + messagesDelay * 8);
-            
+			container.addDouble(operationMode, 0x7fffL, time + messagesDelay * 2);
+			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 3);
+//			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 4);
+//			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 5);
+//            container.addDouble(operationMode, 0x0800L, time + messagesDelay * 6);
+			container.addDouble(operationMode, 0x0400L, time + messagesDelay * 4);
+			container.addDouble(operationMode, 0x0200L, time + messagesDelay * 5);
+//            container.addDouble(operationMode, 0x0100L, time + messagesDelay * 9);
+
 			this.mode = Mode.FEED_INTO_GRID;
 			break;
 
@@ -144,48 +144,6 @@ public class Effekta extends Inverter<EffektaBattery> {
 			break;
 		}
 	}
-
-//	private class PowerValueListener implements ValueListener{
-//
-//		@Override
-//		public void onValueReceived(Value value) {
-//			switch(type) {
-//			case AC:
-//				acPowerLast = power;
-//				break;
-//			case DC1:
-//				dc1PowerLast = power;
-//				break;
-//			case DC2:
-//				dc2PowerLast = power;
-//				break;
-//			default:
-//				break;
-//			}
-//			if (acPowerLast.getTime() == dc1PowerLast.getTime() &&
-//					acPowerLast.getTime() == dc2PowerLast.getTime()) {
-//				
-////				double consumption = acPowerLast.doubleValue();
-////				if (consumption > 0) {
-////					consumption += dc1PowerLast.doubleValue();
-////				}
-////				consumption -= dc2PowerLast.doubleValue();
-////				
-////				if (consumption < 0) {
-////					consumption = 0;
-////				}
-////				Value value = new DoubleValue(consumption, acPowerLast.getTime());
-////				
-////				this.consumption.setLatestValue(value);
-////				for (ValueListener listener : listeners) {
-////					listener.onValueReceived(value);
-////				}
-//			}
-//			
-//			onUpdate();
-//		}
-//		
-//	}
 
 	private class SetpointUpdater implements ValueListener {
 
@@ -222,7 +180,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 			try {
 				if (soc < storage.getMinStateOfCharge() && mode == Mode.FEED_INTO_GRID) {
 					container.addDouble(storage.getChargeCurrent(), 10, time);
-//					container.addDouble(batteryKeepVoltage, storage.getVoltage().doubleValue(), time + delay + 100);
+					container.addDouble(storage.getVoltageSetpoint(), voltage, time + 100);
 					setMode(container, Mode.CHARGE_FROM_GRID);
 					try {
 						doWrite(container);
@@ -237,4 +195,48 @@ public class Effekta extends Inverter<EffektaBattery> {
 		}
 	}
 
+	private class VoltageListener extends SetpointUpdater {
+
+		@Override
+		public void onValueReceived(Value value) {
+			long time = value.getTime();
+			WriteContainer container = new WriteContainer();
+			try {
+				if (voltage != value.doubleValue()) {
+					if (mode == Mode.CHARGE_FROM_GRID) {
+						container.addDouble(storage.getChargeCurrent(), setpointPower.doubleValue() / voltage, time);
+					}
+					if (mode == Mode.FEED_INTO_GRID) {
+						container.addDouble(storage.getDischargeCurrent(), -setpointPower.doubleValue() / voltage,
+								time);
+					}
+
+					try {
+						doWrite(container);
+					} catch (EnergyManagementException e) {
+						logger.warn("Could not set new value: {}", e.getMessage());
+					}
+					voltage = value.doubleValue();
+					storage.setPower(new DoubleValue(voltage * current));
+				}
+			} catch (Exception e) {
+				logger.warn("Obligatory storage value missing: {}", e.getMessage());
+			}
+
+		}
+	}
+
+	private class CurrentListener extends SetpointUpdater {
+
+		@Override
+		public void onValueReceived(Value value) {
+//			
+//			storage.setSocEstimation();
+			if (value.doubleValue() != current) {
+				current = value.doubleValue();
+				storage.setPower(new DoubleValue(current * voltage));
+			}
+
+		}
+	}
 }

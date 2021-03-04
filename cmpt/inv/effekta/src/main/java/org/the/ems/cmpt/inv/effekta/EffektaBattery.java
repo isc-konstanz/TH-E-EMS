@@ -50,6 +50,10 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		soc.registerValueListener(listener);
 	}
 
+	void deregisterStateOfChargeListener() {
+		soc.deregister();
+	}
+
 	void registerVoltageListener(ValueListener listener) {
 		voltage.registerValueListener(listener);
 	}

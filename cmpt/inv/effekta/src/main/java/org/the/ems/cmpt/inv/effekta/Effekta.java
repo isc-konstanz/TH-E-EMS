@@ -26,6 +26,9 @@ public class Effekta extends Inverter<EffektaBattery> {
 	private double soc = 0;
 	private double voltage = 0;
 	private double current = 0;
+	private boolean initialized = false;
+
+	@Configuration
 	private Channel socEstimation;
 
 	@Configuration(mandatory = false)
@@ -43,7 +46,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 		storage.registerStateOfChargeListener(new StateOfChargeListener());
 		storage.registerVoltageListener(new VoltageListener());
 		storage.registerCurrentListener(new CurrentListener());
-		socEstimation.setLatestValue(new DoubleValue(0.5));
+		socEstimation.setLatestValue(new DoubleValue(50));
 	}
 
 	@Override
@@ -194,6 +197,11 @@ public class Effekta extends Inverter<EffektaBattery> {
 				logger.warn("Obligatory storage value missing: {}", e.getMessage());
 			}
 
+			if (!initialized) {
+				socEstimation.setLatestValue(value);
+				initialized = true;
+				logger.info("soc initialisiert mit {}", value.doubleValue());
+			}
 		}
 	}
 
@@ -210,18 +218,22 @@ public class Effekta extends Inverter<EffektaBattery> {
 			try {
 				if (voltage != value.doubleValue()) {
 
-					if (value.doubleValue() >= storage.getChargeVoltage()) {
-						socEstimation.setLatestValue(new DoubleValue(1));
-					}
-					if (value.doubleValue() <= storage.getDischargeVoltage()) {
-						socEstimation.setLatestValue(new DoubleValue(0));
-					}
-					if (value.doubleValue() < storage.getChargeVoltage()
-							&& value.doubleValue() > storage.getDischargeVoltage()) {
-						energy = current * voltage * (time - socTime) / (1000 * 3600);
-						socEstimationNew = socEstimation.getLatestValue().doubleValue()
-								+ energy / (storage.getCapacity() * 1000);
-						socEstimation.setLatestValue(new DoubleValue(socEstimationNew));
+					if (initialized) {
+						if (value.doubleValue() >= storage.getChargeVoltage()) {
+							socEstimation.setLatestValue(new DoubleValue(100));
+						}
+						if (value.doubleValue() <= storage.getDischargeVoltage()) {
+							socEstimation.setLatestValue(new DoubleValue(0));
+						}
+						if (value.doubleValue() < storage.getChargeVoltage()
+								&& value.doubleValue() > storage.getDischargeVoltage()) {
+							energy = current * voltage * (time - socTime) / (1000 * 3600);
+							socEstimationNew = socEstimation.getLatestValue().doubleValue()
+									+ energy / (storage.getCapacity() * 1000) * 100;
+							socEstimationNew = Math.max(0, socEstimationNew);
+							socEstimationNew = Math.min(100, socEstimationNew);
+							socEstimation.setLatestValue(new DoubleValue(socEstimationNew));
+						}
 					}
 
 					if (mode == Mode.CHARGE_FROM_GRID) {
@@ -256,18 +268,19 @@ public class Effekta extends Inverter<EffektaBattery> {
 			long time = value.getTime();
 			long socTime = socEstimation.getLatestValue().getTime();
 
-			if (value.doubleValue() != 0) {
-				energy = current * voltage * (time - socTime) / (1000 * 3600);
-				socEstimationNew = socEstimation.getLatestValue().doubleValue()
-						+ energy / (storage.getCapacity() * 1000);
-				socEstimation.setLatestValue(new DoubleValue(socEstimationNew));
-			}
+			if (value.doubleValue() != current || time - socTime >= 60000) {
+				if (initialized) {
+					energy = current * voltage * (time - socTime) / (1000 * 3600);
+					socEstimationNew = socEstimation.getLatestValue().doubleValue()
+							+ energy / (storage.getCapacity() * 1000) * 100;
+					socEstimationNew = Math.max(0, socEstimationNew);
+					socEstimationNew = Math.min(100, socEstimationNew);
+					socEstimation.setLatestValue(new DoubleValue(socEstimationNew));
+				}
 
-			if (value.doubleValue() != current) {
 				current = value.doubleValue();
 				storage.setPower(new DoubleValue(current * voltage));
 			}
-
 		}
 	}
 }

@@ -30,6 +30,8 @@ project.ext {
   copyDependencies = false
 
   distributionProjects = subprojects.findAll {
+    it.getPath() == ':cmpt:ev' ||
+    it.getPath() == ':cmpt:ev:chargebig' ||
     it.getPath() == ':cmpt:chp' ||
     it.getPath() == ':cmpt:chp:ice' ||
     it.getPath() == ':cmpt:chp:serenergy' ||

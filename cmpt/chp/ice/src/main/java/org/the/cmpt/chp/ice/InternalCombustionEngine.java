@@ -200,6 +200,8 @@ public class InternalCombustionEngine extends Cogenerator {
 					setState(RunState.STOPPING);
 				}
 				break;
+			default:
+				break;
 			}
 			if (!state) {
 				try {

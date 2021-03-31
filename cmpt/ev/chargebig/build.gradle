@@ -18,22 +18,25 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-CMPT'
+archivesBaseName = 'th-e-cmpt-ev-chargebig'
+def projectName = 'TH-E-Component-ChargeBIG'
+def projectFullName = 'TH-E EMS Components - chargeBIG Electric Vehicle'
+def projectDescription = 'ChargeBIG electric vehicle component for TH-E EMS framework.'
 
-include 'api', 'main', 
-        'cmpt', 'cmpt:apl', 
-		'cmpt:ev', 'cmpt:ev:chargebig', 
-        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
-        'cmpt:hp', 'cmpt:hr', 
-        'cmpt:vnt', 'cmpt:tes', 
-        'cmpt:inv', 'cmpt:inv:kaco', 
-        'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
-        'cms', 'cms:mockup'
+dependencies {
+  implementation project(':cmpt:ev')
+}
 
-def emsDir = '../TH-E-EMS'
-project(':api').projectDir = file(emsDir+'/api')
-project(':cmpt').projectDir = file(emsDir+'/cmpt')
-project(':ctrl').projectDir = file(emsDir+'/ctrl')
-project(':cms').projectDir = file(emsDir+'/cms')
-project(':main').projectDir = file(emsDir+'/main')
+eclipse {
+  project {
+    name = projectName
+  }
+}
 
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     '')
+  }
+}

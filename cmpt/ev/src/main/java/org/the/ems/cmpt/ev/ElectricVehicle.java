@@ -41,11 +41,14 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
 	@Configuration(scale=1000)
 	protected double powerMin;
 
-	@Configuration
-	protected double capacity;
+	@Configuration(mandatory=false)
+	protected double capacity = Double.NaN;
 
 	@Override
-	public double getCapacity() {
+	public double getCapacity() throws ComponentException {
+		if (capacity == Double.NaN) {
+			throw new ComponentException("Unable to retrieve unconfigured capacity");
+		}
 		return capacity;
 	}
 

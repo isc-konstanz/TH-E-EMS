@@ -20,6 +20,7 @@
 package org.the.ems.core;
 
 public enum RunState {
+	DEFAULT,
 	STARTING,
 	STOPPING,
 	RUNNING,

@@ -48,10 +48,10 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Configuration(mandatory=false, scale=6000) // Default idletime minimum of 1 minute
 	protected int idletimeMin = 60000;
 
-	@Configuration
+	@Configuration(mandatory=false)
 	protected ChannelListener state;
 
-	protected volatile RunState runState = RunState.STANDBY;
+	protected volatile RunState runState = RunState.DEFAULT;
 
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
@@ -95,7 +95,10 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		state.registerValueListener(new StateListener());
+		if (state != null) {
+			state.registerValueListener(new StateListener());
+		}
+		runState = RunState.STANDBY;
 	}
 
 	@Override
@@ -107,7 +110,9 @@ public abstract class Runnable extends Component implements RunnableService {
 		} catch (EnergyManagementException e) {
 			logger.warn("Error while stopping {} during deactivation: {}", id, e.getMessage());
 		}
-		state.deregister();
+		if (state != null) {
+			state.deregister();
+		}
 	}
 
 	@Override
@@ -186,9 +191,6 @@ public abstract class Runnable extends Component implements RunnableService {
 				}
 				doStart(value);
 			}
-			else {
-				doSet(value);
-			}
 			break;
 		case STARTING:
 		case RUNNING:
@@ -200,7 +202,10 @@ public abstract class Runnable extends Component implements RunnableService {
 				doStop(value.getTime());
 			}
 			break;
+		default:
+			break;
 		}
+		doSet(value);
 	}
 
 	protected void doSet(Value value) throws EnergyManagementException {
@@ -352,6 +357,8 @@ public abstract class Runnable extends Component implements RunnableService {
 						if (!value.booleanValue()) {
 							doStop(System.currentTimeMillis());
 						}
+						break;
+					default:
 						break;
 					}
 					onStateChanged(value);

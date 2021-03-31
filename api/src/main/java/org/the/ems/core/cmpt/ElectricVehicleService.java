@@ -37,7 +37,7 @@ public interface ElectricVehicleService extends RunnableService {
 	/*
 	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
 	 */
-	public double getCapacity();
+	public double getCapacity() throws ComponentException;
 
 	/*
 	 * Get the default value with which a component will be started with.

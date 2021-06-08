@@ -13,6 +13,9 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
 	private double dischargeVoltageMin = 48;
+	
+	@Configuration
+	private Channel currentMax;
 
 	@Configuration
 	private Channel dischargeCurrent;
@@ -35,7 +38,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration
 	protected ChannelListener soc;
 	
-
+	
 	@Override
 	public Value getVoltage() {
 		return voltage.getLatestValue();
@@ -68,6 +71,10 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		current.deregister();
 	}
 	
+	public Channel getMaxCurrent() {
+		return currentMax;
+	}
+	
 	public Value getCurrent() {
 		return current.getLatestValue();
 	}
@@ -76,11 +83,11 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue();
 	}
 
-	public double getChargeVoltage() {
+	public double getMaxVoltage() {
 		return chargeVoltageMax;
 	}
 
-	public double getDischargeVoltage() {
+	public double getMinVoltage() {
 		return dischargeVoltageMin;
 	}
 

@@ -32,6 +32,8 @@ import org.the.ems.core.data.WriteContainer;
 public class ChargeBig extends ElectricVehicle implements ValueListener {
 	private static final Logger logger = LoggerFactory.getLogger(ChargeBig.class);
 
+	private static final double GRID_POWER_TOLERANCE = 50;
+
 	private static final double PHASE_CURRENT_MIN = 0;
 	private static final double PHASE_CURRENT_MAX = 200;
 	private static final double PHASE_VOLTAGE = 230;
@@ -39,6 +41,8 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration(mandatory = false, scale=1000)
 	private double setpointPowerMax = PHASE_CURRENT_MAX*PHASE_VOLTAGE*PHASE_COUNT;
+	private double setpointPowerValue = setpointPowerMax;
+	private double setpointPowerError = 0;
 
 	@Configuration
 	private Channel setpointPower;
@@ -222,19 +226,24 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		public void onValueReceived(Value powerValue) {
 			double gridPower = powerValue.doubleValue();
 			double gridPowerBound = gridPowerMax - setpointPowerMax;
-			
-			double setpointError = gridPower - gridPowerBound;
-			double setpoint = setpointPowerMax - setpointError;
-			if (setpoint > setpointPowerMax) {
-				setpoint = setpointPowerMax;
-			}
-			if (setpoint < 0) {
-				setpoint = 0;
-			}
-			
-			Value setpointValue = new DoubleValue(setpoint, powerValue.getTime());
 			try {
-				if (setpoint != getSetpointPower().doubleValue()) {
+				if (getChargePower().doubleValue() > GRID_POWER_TOLERANCE) {
+					
+					setpointPowerError += (gridPower - gridPowerBound);
+				}
+				else {
+					setpointPowerError = gridPower - gridPowerBound;
+				}
+				setpointPowerValue = setpointPowerMax - setpointPowerError;
+				if (setpointPowerValue > setpointPowerMax) {
+					setpointPowerValue = setpointPowerMax;
+				}
+				if (setpointPowerValue < 0) {
+					setpointPowerValue = 0;
+				}
+				
+				Value setpointValue = new DoubleValue(setpointPowerValue, powerValue.getTime());
+				if (setpointPowerValue != getSetpointPower().doubleValue()) {
 					setpointPower.setLatestValue(setpointValue);
 					set(setpointValue);
 				}

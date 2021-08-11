@@ -73,8 +73,8 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	public Value getStateOfCharge() throws ComponentException { return getConfiguredValue("soc"); }
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getChargePower() throws ComponentException { return getConfiguredValue("charge_power"); }
+	@Configuration(mandatory=false, value="power")
+	public Value getChargePower() throws ComponentException { return getConfiguredValue("power"); }
 
 	@Override
 	@Configuration(mandatory=false)

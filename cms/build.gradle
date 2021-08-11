@@ -18,18 +18,26 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-EMS'
+archivesBaseName = 'th-e-cms'
+def projectName = 'TH-E-CMS'
+def projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
+def projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 
-include 'api', 
-        'main', 
-        'cmpt',
-        'cmpt:apl', 
-        'cmpt:ev', 'cmpt:ev:chargebig', 
-        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
-        'cmpt:hp',
-        'cmpt:hr', 
-        'cmpt:vnt', 
-        'cmpt:tes', 
-        'cmpt:inv', 'cmpt:inv:kaco', 'cmpt:inv:effekta',
-        'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
-        'cms', 'cms:mockup'
+dependencies {
+  api project(':api')
+  api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+}
+
+eclipse {
+  project {
+    name = projectName
+  }
+}
+
+jar {
+  manifest {
+    attributes('Bundle-Name':        projectFullName,
+               'Bundle-Description': projectDescription,
+	           'Export-Package':     '')
+  }
+}

@@ -1,4 +1,4 @@
-This repository provides components for [TH-E-EMS](https://github.com/isc-konstanz/TH-E-EMS), a software framework based on Java and OSGi, providing simplified development of control mechanisms.
+This repository provides a set of core functions for the software framework of TH-E Products, based on Java and OSGi, providing simplified development of control mechanisms.
 
 More detailed information and specifics about how to use the package will be added here in the future.
 

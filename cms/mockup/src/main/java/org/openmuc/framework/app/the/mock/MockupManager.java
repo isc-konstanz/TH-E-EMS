@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.openmuc.framework.app.the.mock.MockupChannel.ChannelCallbacks;
+import org.openmuc.framework.app.the.ems.ChannelWrapper;
+import org.openmuc.framework.app.the.ems.ChannelWrapper.ChannelCallbacks;
 import org.openmuc.framework.config.ChannelConfig;
 import org.openmuc.framework.config.ConfigService;
 import org.openmuc.framework.config.ConfigWriteException;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueList;
@@ -60,7 +62,7 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 	private final static List<String> SEPARATORS = Arrays.asList("-", "_", ".", ":" ,"/");
 	private final static String VIRTUAL = "virtual";
 
-	private final Map<String, MockupChannel> channels = new HashMap<String, MockupChannel>();
+	private final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
 
 	private ExecutorService executor = null;
 
@@ -125,7 +127,7 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 			if (!access.getAllIds().contains(id)) {
 				throw new UnknownChannelException("Unknown channel for id: " + id);
 			}
-			MockupChannel channel = new MockupChannel(this, access.getChannel(id));
+			ChannelWrapper channel = new ChannelWrapper(this, access.getChannel(id));
 			channels.put(id, channel);
 			
 			return channel;
@@ -145,12 +147,12 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 	}
 
 	@Override
-	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException {
+	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException, InvalidValueException {
 		return getChannel(id).getLatestValue(listener);
 	}
 
 	@Override
-	public Value getLatestValue(String id) throws UnknownChannelException {
+	public Value getLatestValue(String id) throws UnknownChannelException, InvalidValueException {
 		return getChannel(id).getLatestValue();
 	}
 

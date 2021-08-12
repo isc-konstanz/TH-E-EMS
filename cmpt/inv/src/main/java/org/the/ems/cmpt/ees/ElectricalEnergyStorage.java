@@ -31,6 +31,7 @@ import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
@@ -43,6 +44,10 @@ import org.the.ems.core.schedule.Schedule;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class ElectricalEnergyStorage extends Component implements ElectricalEnergyStorageService {
+
+	protected static final String STATE_VALUE = "soc";
+	protected static final String POWER_VALUE = "power";
+	protected static final String VOLTAGE_VALUE = "voltage";
 
 	@Configuration(mandatory=false)
 	private double socMax = 100;
@@ -69,16 +74,22 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	}
 
 	@Override
-	@Configuration("soc")
-	public Value getStateOfCharge() throws ComponentException { return getConfiguredValue("soc"); }
+	@Configuration(value=STATE_VALUE)
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(STATE_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false, value="power")
-	public Value getChargePower() throws ComponentException { return getConfiguredValue("power"); }
+	@Configuration(value=POWER_VALUE, mandatory=false)
+	public Value getPower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(POWER_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getVoltage() throws ComponentException { return getConfiguredValue("voltage"); }
+	@Configuration(value=VOLTAGE_VALUE, mandatory=false)
+	public Value getVoltage() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_VALUE);
+	}
 
 	public void activate(BundleContext context, Map<String, ?> properties) throws ComponentException {
 		super.doActivate(context, properties);

@@ -19,6 +19,8 @@ import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.Error;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -31,6 +33,14 @@ import org.the.ems.core.data.WriteContainer;
 )
 public class ChargeBig extends ElectricVehicle implements ValueListener {
 	private static final Logger logger = LoggerFactory.getLogger(ChargeBig.class);
+
+	private static final String CHARGE_POWER_L1_VALUE = "charge_power_l1";
+	private static final String CHARGE_POWER_L2_VALUE = "charge_power_l2";
+	private static final String CHARGE_POWER_L3_VALUE = "charge_power_l3";
+
+	private static final String CHARGE_CURRENT_L1_VALUE = "charge_current_l1";
+	private static final String CHARGE_CURRENT_L2_VALUE = "charge_current_l2";
+	private static final String CHARGE_CURRENT_L3_VALUE = "charge_current_l3";
 
 	private static final double GRID_POWER_TOLERANCE = 50;
 
@@ -66,46 +76,46 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	private Channel chargeCurrent;
 
 	@Override
-	public Value getChargePower() throws ComponentException {
-		Value chargePowerValue = chargePower.getLatestValue();
-		if (chargePowerValue == null) {
-			throw new ComponentException("Unable to retrieve charge power");
-		}
-		return chargePowerValue;
+	public Value getChargePower() throws ComponentException, InvalidValueException {
+		return chargePower.getLatestValue();
 	}
 
-	@Configuration(value="charge_power_l1")
-	public Value getChargePowerL1() throws ComponentException { return getConfiguredValue("charge_power_l1"); }
-
-	@Configuration(value="charge_power_l2")
-	public Value getChargePowerL2() throws ComponentException { return getConfiguredValue("charge_power_l2"); }
-
-	@Configuration(value="charge_power_l3")
-	public Value getChargePowerL3() throws ComponentException { return getConfiguredValue("charge_power_l3"); }
-
-	public Value getChargeCurrent() throws ComponentException {
-		Value chargeCurrentValue = chargeCurrent.getLatestValue();
-		if (chargeCurrentValue == null) {
-			throw new ComponentException("Unable to retrieve charge current");
-		}
-		return chargeCurrentValue;
+	@Configuration(value=CHARGE_POWER_L1_VALUE)
+	public Value getChargePowerL1() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_POWER_L1_VALUE);
 	}
 
-	@Configuration(value="charge_current_l1")
-	public Value getChargeCurrentL1() throws ComponentException { return getConfiguredValue("charge_current_l1"); }
+	@Configuration(value=CHARGE_POWER_L2_VALUE)
+	public Value getChargePowerL2() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_POWER_L2_VALUE);
+	}
 
-	@Configuration(value="charge_current_l2")
-	public Value getChargeCurrentL2() throws ComponentException { return getConfiguredValue("charge_current_l2"); }
+	@Configuration(value=CHARGE_POWER_L3_VALUE)
+	public Value getChargePowerL3() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_POWER_L3_VALUE);
+	}
 
-	@Configuration(value="charge_current_l3")
-	public Value getChargeCurrentL3() throws ComponentException { return getConfiguredValue("charge_current_l3"); }
+	public Value getChargeCurrent() throws ComponentException, InvalidValueException {
+		return chargeCurrent.getLatestValue();
+	}
 
-	public Value getSetpointPower() throws ComponentException {
-		Value setpointPowerValue = setpointPower.getLatestValue();
-		if (setpointPowerValue == null) {
-			throw new ComponentException("Unable to retrieve setpoint power");
-		}
-		return setpointPowerValue;
+	@Configuration(value=CHARGE_CURRENT_L1_VALUE)
+	public Value getChargeCurrentL1() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_CURRENT_L1_VALUE);
+	}
+
+	@Configuration(value=CHARGE_CURRENT_L2_VALUE)
+	public Value getChargeCurrentL2() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_CURRENT_L2_VALUE);
+	}
+
+	@Configuration(value=CHARGE_CURRENT_L3_VALUE)
+	public Value getChargeCurrentL3() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_CURRENT_L3_VALUE);
+	}
+
+	public Value getSetpointPower() throws ComponentException, InvalidValueException {
+		return setpointPower.getLatestValue();
 	}
 
 	private Value getSetpointPower(Value currentValue) throws ComponentException {
@@ -160,8 +170,37 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	@Override
-	@SuppressWarnings("serial")
 	protected void onInterrupt() {
+		updateChargePower();
+		updateChargeCurrent();
+		updateSetpointPower();
+	}
+
+	@Override
+	protected void onSet(WriteContainer container, Value setpointPower) throws ComponentException {
+		container.add(setpointCurrent, getSetpointCurrent(setpointPower));
+	}
+
+//	@Override
+//	public void onValueChanged(Value value) {
+//		if (!value.booleanValue()) {
+//			enable();
+//		}
+//	}
+
+	@Override
+	public void onError(Error error) {
+		enable();
+	}
+
+	private void enable() {
+		logger.info("Enabling chargeBIG setpoint");
+		setpointEnabled.write(new BooleanValue(true));
+		setpointCurrent.write(new DoubleValue(setpointPowerMax/PHASE_VOLTAGE/PHASE_COUNT));
+	}
+
+	@SuppressWarnings("serial")
+	private void updateChargeCurrent() {
 		try {
 			List<Value> chargeCurrents = new ArrayList<Value>() {
 				{
@@ -175,10 +214,20 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 						.mapToDouble(p -> p.doubleValue())
 						.sum()));
 			}
+		} catch (InvalidValueException e) {
+			switch (e.getSeverity()) {
+			case ERROR:
+				logger.warn("Failed to retrieve value for channel {}: {}", e.getSource().getId(), e.getMessage());
+			default:
+				break;
+			}
 		} catch (ComponentException e) {
-			logger.warn("Error updating charge current value: {}", e.getMessage());
+			logger.warn("Failed to update charge current value: {}", e.getMessage());
 		}
-		
+	}
+
+	@SuppressWarnings("serial")
+	private void updateChargePower() {
 		try {
 			List<Value> chargePowers = new ArrayList<Value>() {
 				{
@@ -192,31 +241,33 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 						.mapToDouble(p -> p.doubleValue())
 						.sum()));
 			}
-		} catch (ComponentException e) {
-			logger.warn("Error updating charge power value: {}", e.getMessage());
-		}
-		
-		try {
-			Value setpointCurrentValue = setpointCurrent.getLatestValue();
-			if (setpointCurrentValue != null) {
-				setpointPower.setLatestValue(getSetpointPower(setpointCurrentValue));
+		} catch (InvalidValueException e) {
+			switch (e.getSeverity()) {
+			case ERROR:
+				logger.warn("Failed to retrieve value for channel {}: {}", e.getSource().getId(), e.getMessage());
+			default:
+				break;
 			}
 		} catch (ComponentException e) {
-			logger.warn("Error updating setpoint power value: {}", e.getMessage());
+			logger.warn("Failed to update charge power value: {}", e.getMessage());
 		}
 	}
 
-	@Override
-	protected void onSet(WriteContainer container, Value setpointPower) throws ComponentException {
-		container.add(setpointCurrent, getSetpointCurrent(setpointPower));
-	}
-
-	@Override
-	public void onValueReceived(Value value) {
-		if (value == null || !value.booleanValue()) {
-			logger.info("Enabling chargeBIG setpoint");
-			setpointEnabled.write(new BooleanValue(true));
-			setpointCurrent.write(new DoubleValue(setpointPowerMax/PHASE_VOLTAGE/PHASE_COUNT));
+	private void updateSetpointPower() {
+		try {
+			Value setpointCurrentValue = setpointCurrent.getLatestValue();
+			Value setpointPowerValue = getSetpointPower(setpointCurrentValue);
+			setpointPower.setLatestValue(setpointPowerValue);
+			
+		} catch (InvalidValueException e) {
+			switch (e.getSeverity()) {
+			case ERROR:
+				logger.warn("Failed to retrieve value for channel {}: {}", e.getSource().getId(), e.getMessage());
+			default:
+				break;
+			}
+		} catch (ComponentException e) {
+			logger.warn("Failed to update setpoint power value: {}", e.getMessage());
 		}
 	}
 
@@ -224,6 +275,8 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 		@Override
 		public void onValueReceived(Value powerValue) {
+			long timestamp = System.currentTimeMillis();
+			
 			double gridPower = powerValue.doubleValue();
 			double gridPowerBound = gridPowerMax - setpointPowerMax;
 			try {
@@ -242,10 +295,17 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 					setpointPowerValue = 0;
 				}
 				
-				Value setpointValue = new DoubleValue(setpointPowerValue, powerValue.getTime());
+				Value setpointValue = new DoubleValue(setpointPowerValue, timestamp);
 				if (setpointPowerValue != getSetpointPower().doubleValue()) {
 					setpointPower.setLatestValue(setpointValue);
 					set(setpointValue);
+				}
+			} catch (InvalidValueException e) {
+				switch (e.getSeverity()) {
+				case ERROR:
+					logger.warn("Error retrieving value for channel {}: {}", e.getSource().getId(), e.getMessage());
+				default:
+					break;
 				}
 			} catch (EnergyManagementException e) {
 				logger.warn("Error updating setpoint value: {}", e.getMessage());

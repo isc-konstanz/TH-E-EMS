@@ -20,16 +20,16 @@
  */
 rootProject.name = 'TH-E-EMS'
 
-include 'api', 
-        'main', 
+include 'api',
+        'main',
         'cmpt',
-        'cmpt:apl', 
-        'cmpt:ev', 'cmpt:ev:chargebig', 
-        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
+        'cmpt:apl',
+        'cmpt:ev', 'cmpt:ev:chargebig',
+        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy',
         'cmpt:hp',
-        'cmpt:hr', 
-        'cmpt:vnt', 
-        'cmpt:tes', 
+        'cmpt:hr',
+        'cmpt:vnt',
+        'cmpt:tes',
         'cmpt:inv', 'cmpt:inv:kaco', 'cmpt:inv:effekta',
-        'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
+        'ctrl', 'ctrl:tp', 'ctrl:ps', 'ctrl:mpc',
         'cms', 'cms:mockup'

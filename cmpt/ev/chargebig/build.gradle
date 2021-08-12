@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-ev-chargebig'
-def projectName = 'TH-E-Component-ChargeBIG'
-def projectFullName = 'TH-E EMS Components - chargeBIG Electric Vehicle'
-def projectDescription = 'ChargeBIG electric vehicle component for TH-E EMS framework.'
-
-dependencies {
-  implementation project(':cmpt:ev')
+project.ext {
+    projectName = 'TH-E-Component-ChargeBIG'
+    projectFullName = 'TH-E EMS Components - chargeBIG Electric Vehicle'
+    projectDescription = 'ChargeBIG electric vehicle component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    implementation project(':cmpt:ev')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     '')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

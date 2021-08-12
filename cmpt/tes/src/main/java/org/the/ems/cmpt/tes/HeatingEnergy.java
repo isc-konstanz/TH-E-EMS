@@ -3,6 +3,7 @@ package org.the.ems.cmpt.tes;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public class HeatingEnergy {
@@ -19,7 +20,7 @@ public class HeatingEnergy {
 		return component;
 	}
 
-	public Value getValue() throws ComponentException {
+	public Value getValue() throws ComponentException, InvalidValueException {
 		Value value = component.getThermalEnergy();
 		double energyDelta = 0;
 		if (!energy.isNaN()) {

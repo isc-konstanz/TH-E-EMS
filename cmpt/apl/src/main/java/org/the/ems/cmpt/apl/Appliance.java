@@ -27,6 +27,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.ApplianceService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.BooleanValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 
@@ -37,6 +38,9 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class Appliance extends Runnable implements ApplianceService {
+
+	protected static final String ENERGY_VALUE="energy";
+	protected static final String POWER_VALUE="power";
 
 	@Configuration(scale=1000)
 	protected double powerMax;
@@ -63,12 +67,16 @@ public class Appliance extends Runnable implements ApplianceService {
     }
 
 	@Override
-	@Configuration(value="power", mandatory=false)
-	public Value getPower() throws ComponentException { return getConfiguredValue("power"); }
+	@Configuration(value=POWER_VALUE, mandatory=false)
+	public Value getPower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(POWER_VALUE);
+	}
 
 	@Override
-	@Configuration(value="energy", mandatory=false)
-	public Value getEnergy() throws ComponentException { return getConfiguredValue("energy"); }
+	@Configuration(value=ENERGY_VALUE, mandatory=false)
+	public Value getEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ENERGY_VALUE);
+	}
 
 	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {

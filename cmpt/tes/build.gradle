@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-tes'
-def projectName = 'TH-E-Component-ThermalEnergyStorage'
-def projectFullName = 'TH-E EMS Component - Thermal Energy Storage'
-def projectDescription = 'Thermal energy storage component for TH-E EMS framework.'
-
-dependencies {
-  api project(':cmpt')
+project.ext {
+    projectName = 'TH-E-Component-ThermalEnergyStorage'
+    projectFullName = 'TH-E EMS Component - Thermal Energy Storage'
+    projectDescription = 'Thermal energy storage component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':cmpt')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.tes.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.tes.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

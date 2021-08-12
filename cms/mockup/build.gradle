@@ -11,7 +11,7 @@
  * 
  * TH-E EMS is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
@@ -19,25 +19,35 @@
  *
  */
 archivesBaseName = 'th-e-cms-mock'
-def projectName = 'TH-E-CMS-Mockup'
-def projectFullName = 'TH-E EMS Content Managment System - OpenMUC Mockup'
-def projectDescription = 'The OpenMUC Content Management System Mockup of TH-E EMS framework'
+project.ext {
+    projectName = 'TH-E-CMS-Mockup'
+    projectFullName = 'TH-E EMS Content Managment System - OpenMUC Mockup'
+    projectDescription = 'The OpenMUC Content Management System Mockup of TH-E EMS framework'
+}
+configurations.create('embed')
+configurations.embed.transitive = false;
 
 dependencies {
-  api project(':api')
-  api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
-}
+    api fileTree(dir: '../libs/openmuc', include: ['*.jar'])
+    api project(':api')
 
-eclipse {
-  project {
-    name = projectName
-  }
+    implementation project(':cms')
+    embed          project(':cms')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
-  }
+    into('lib') {
+        from configurations.embed
+    }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Bundle-ClassPath':   '.,lib/th-e-cms-' + projectVersion + '.jar',
+        'Import-Package':     '!org.openmuc.framework.app.the.ems*,*',
+        'Export-Package':     '')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

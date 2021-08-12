@@ -29,6 +29,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -109,8 +110,11 @@ public class ExternalPower extends Configurable implements ValueListener {
 	}
 
 	public Value getSolar() {
-		Value value = solarPower.getLatestValue();
-		if (value == null) {
+		Value value;
+		try {
+			value = solarPower.getLatestValue();
+			
+		} catch (InvalidValueException e) {
 			value = DoubleValue.emptyValue();
 		}
 		return value;

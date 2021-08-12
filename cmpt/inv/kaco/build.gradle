@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-inv-kaco'
-def projectName = 'TH-E-Component-KACO'
-def projectFullName = 'TH-E EMS Components - KACO Inverter'
-def projectDescription = 'KACO new energy GmbH inverter component for TH-E EMS framework.'
-
-dependencies {
-  implementation project(':cmpt:inv')
+project.ext {
+    projectName = 'TH-E-Component-KACO'
+    projectFullName = 'TH-E EMS Components - KACO Inverter'
+    projectDescription = 'KACO new energy GmbH inverter component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    implementation project(':cmpt:inv')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     '')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

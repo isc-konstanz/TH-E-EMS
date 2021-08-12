@@ -62,22 +62,6 @@ public class HeatPump extends Heating implements HeatPumpService {
 	}
 
 	@Override
-	@Configuration(value="th_energy", mandatory=false)
-	public Value getThermalEnergy() throws ComponentException { return getConfiguredValue("th_energy"); }
-
-	@Override
-	@Configuration(value="th_power", mandatory=false)
-	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
-
-	@Override
-	@Configuration(value="el_energy", mandatory=false)
-	public Value getElectricalEnergy() throws ComponentException { return getConfiguredValue("el_energy"); }
-
-	@Override
-	@Configuration(value="el_power", mandatory=false)
-	public Value getElectricalPower() throws ComponentException { return getConfiguredValue("el_power"); }
-
-	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 

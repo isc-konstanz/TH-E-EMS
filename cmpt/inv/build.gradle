@@ -19,25 +19,25 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-inv'
-def projectName = 'TH-E-Component-Inverter'
-def projectFullName = 'TH-E EMS Component - Inverter'
-def projectDescription = 'Inverter component for TH-E EMS framework.'
-
-dependencies {
-  api project(':cmpt')
+project.ext {
+    projectName = 'TH-E-Component-Inverter'
+    projectFullName = 'TH-E EMS Component - Inverter'
+    projectDescription = 'Inverter component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':cmpt')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.inv.*,' +
-	                                 'org.the.ems.cmpt.ees.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.inv.*,' +
+	                          'org.the.ems.cmpt.ees.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

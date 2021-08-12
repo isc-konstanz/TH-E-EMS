@@ -28,6 +28,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.schedule.NamedThreadFactory;
@@ -168,12 +169,12 @@ public class ThermalEnergyStorage extends Component
 	}
 
 	@Override
-	public Value getThermalPower() throws ComponentException {
+	public Value getThermalPower() throws ComponentException, InvalidValueException {
 		return power.getLatestValue();
 	}
 
 	@Override
-	public Value getTemperature() throws ComponentException {
+	public Value getTemperature() throws ComponentException, InvalidValueException {
 		return temperature.getLatestValue();
 	}
 
@@ -181,10 +182,12 @@ public class ThermalEnergyStorage extends Component
 		int tempCount = 0;
 		double tempSum = 0;
 		for (Channel channel : temperatures.values()) {
-			Value temp = channel.getLatestValue();
-			if (temp != null) {
-				tempSum += temp.doubleValue();
+			try {
+				tempSum += channel.getLatestValue().doubleValue();
 				tempCount++;
+				
+			} catch (InvalidValueException e) {
+				// Do nothing
 			}
 		}
 		return tempSum/tempCount;		
@@ -194,12 +197,16 @@ public class ThermalEnergyStorage extends Component
 	public void onValueReceived(Value value) {
 		long timeMax = -1;
 		for (Channel channel : temperatures.values()) {
-			Value temp = channel.getLatestValue();
-			if (temp == null || temp.getTime() <= timestampLast) {
+			try {
+				Value temperatureValue = channel.getLatestValue();
+				if (temperatureValue.getTime() <= timestampLast) {
+					return;
+				}
+				if (temperatureValue.getTime() > timeMax) {
+					timeMax = temperatureValue.getTime();
+				}
+			} catch (InvalidValueException e) {
 				return;
-			}
-			else if (temp.getTime() > timeMax) {
-				timeMax = temp.getTime();
 			}
 		}
 		timestampLast = timeMax;

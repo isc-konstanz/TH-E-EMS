@@ -55,22 +55,6 @@ public class Cogenerator extends Heating implements CogeneratorService {
 	}
 
 	@Override
-	@Configuration(value="el_energy", mandatory=false)
-	public Value getElectricalEnergy() throws ComponentException { return getConfiguredValue("el_energy"); }
-
-	@Override
-	@Configuration(value="th_energy", mandatory=false)
-	public Value getThermalEnergy() throws ComponentException { return getConfiguredValue("th_energy"); }
-
-	@Override
-	@Configuration(value="el_power", mandatory=false)
-	public Value getElectricalPower() throws ComponentException { return getConfiguredValue("el_power"); }
-
-	@Override
-	@Configuration(value="th_power", mandatory=false)
-	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
-
-	@Override
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		container.add(state, new BooleanValue(true, value.getTime()));
 	}

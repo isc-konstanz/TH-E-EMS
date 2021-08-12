@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-ctrl-tp'
-def projectName = 'TH-E-Control-TwoPoint'
-def projectFullName = 'TH-E EMS Control - Two-Point'
-def projectDescription = 'The Two-Point Control of TH-E EMS framework'
-
-dependencies {
-  api project(':ctrl')
+project.ext {
+    projectName = 'TH-E-Control-TwoPoint'
+    projectFullName = 'TH-E EMS Control - Two-Point'
+    projectDescription = 'The Two-Point Control of TH-E EMS framework'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':ctrl')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.ctrl.tp.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.ctrl.tp.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

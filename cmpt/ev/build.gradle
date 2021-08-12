@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-ev'
-def projectName = 'TH-E-Component-ElectricVehicle'
-def projectFullName = 'TH-E EMS Component - Electric Vehicle'
-def projectDescription = 'Electric vehicle component for TH-E EMS framework.'
-
-dependencies {
-  api project(':cmpt')
+project.ext {
+    projectName = 'TH-E-Component-ElectricVehicle'
+    projectFullName = 'TH-E EMS Component - Electric Vehicle'
+    projectDescription = 'Electric vehicle component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':cmpt')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.ev.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.ev.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

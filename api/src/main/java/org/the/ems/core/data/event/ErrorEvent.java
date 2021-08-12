@@ -17,22 +17,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.data;
+package org.the.ems.core.data.event;
 
-import org.the.ems.core.data.event.EventListener;
+import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.Error;
 
-public interface ValueListener extends EventListener {
+public class ErrorEvent extends Event {
 
-	public default void onValueReceived(Value value) {
-		// Default implementation to be overridden
+	public ErrorEvent(Channel source, String message) {
+		super(source, new Error(message), EventType.ERROR);
 	}
 
-	public default void onValueChanged(Value value) {
-		// Default implementation to be overridden
-	}
-
-	public default void onError(Error error) {
-		// Default implementation to be overridden
+	public Error getError() {
+		return (Error) value;
 	}
 
 }

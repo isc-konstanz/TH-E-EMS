@@ -32,12 +32,19 @@ import org.the.ems.core.RunState;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
 public abstract class Heating extends Runnable implements HeatingService {
 	private final static Logger logger = LoggerFactory.getLogger(Heating.class);
+
+	protected static final String ELECTRICAL_ENERGY_VALUE = "el_energy";
+	protected static final String ELECTRICAL_POWER_VALUE = "el_power";
+
+	protected static final String THERMAL_ENERGY_VALUE = "th_energy";
+	protected static final String THERMAL_POWER_VALUE = "th_power";
 
 	@Configuration(scale=1000)
 	protected double powerMax;
@@ -47,6 +54,26 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	protected Circulation circulation;
 	protected CirculationPump circulationPump;
+
+	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)
+	public Value getElectricalEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE);
+	}
+
+	@Configuration(value=THERMAL_ENERGY_VALUE, mandatory=false)
+	public Value getThermalEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(THERMAL_ENERGY_VALUE);
+	}
+
+	@Configuration(value=ELECTRICAL_POWER_VALUE, mandatory=false)
+	public Value getElectricalPower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ELECTRICAL_POWER_VALUE);
+	}
+
+	@Configuration(value=THERMAL_POWER_VALUE, mandatory=false)
+	public Value getThermalPower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(THERMAL_POWER_VALUE);
+	}
 
     @Override
     public double getStartPower() {

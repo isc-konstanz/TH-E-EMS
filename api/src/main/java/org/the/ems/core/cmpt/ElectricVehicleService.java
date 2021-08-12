@@ -23,6 +23,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.RunnableService;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface ElectricVehicleService extends RunnableService {
@@ -65,16 +66,16 @@ public interface ElectricVehicleService extends RunnableService {
 	/*
 	 * Get the charged energy in kilowatt hours [kWh].
 	 */
-	public Value getChargedEnergy() throws ComponentException;
+	public Value getChargedEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the charging power in watts [W].
 	 */
-	public Value getChargePower() throws ComponentException;
+	public Value getChargePower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the state of charge in percent [%] between 0 and 100%.
 	 */
-	public Value getStateOfCharge() throws ComponentException;
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException;
 
 }

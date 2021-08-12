@@ -20,6 +20,7 @@
 package org.the.ems.core;
 
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface HeatingService extends RunnableService {
@@ -50,11 +51,11 @@ public interface HeatingService extends RunnableService {
 	/*
 	 * Get the generated thermal energy in kilowatt hours [kWh].
 	 */
-	public Value getThermalEnergy() throws ComponentException;
+	public Value getThermalEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the generated thermal power in watts [W].
 	 */
-	public Value getThermalPower() throws ComponentException;
+	public Value getThermalPower() throws ComponentException, InvalidValueException;
 
 }

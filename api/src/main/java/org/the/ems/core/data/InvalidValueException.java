@@ -19,20 +19,42 @@
  */
 package org.the.ems.core.data;
 
-import org.the.ems.core.data.event.EventListener;
+import org.the.ems.core.EnergyManagementException;
 
-public interface ValueListener extends EventListener {
+public class InvalidValueException extends EnergyManagementException {
+	private static final long serialVersionUID = 3548783014820967687L;
 
-	public default void onValueReceived(Value value) {
-		// Default implementation to be overridden
+	public static enum Severity {
+		INFO, WARNING, ERROR;
 	}
 
-	public default void onValueChanged(Value value) {
-		// Default implementation to be overridden
+	private final Severity severity;
+	private final Channel source;
+
+	public InvalidValueException(Channel source, Severity severity) {
+		super();
+		this.severity = severity;
+		this.source = source;
 	}
 
-	public default void onError(Error error) {
-		// Default implementation to be overridden
+	public InvalidValueException(Channel source, Severity severity, String str) {
+		super(str);
+		this.severity = severity;
+		this.source = source;
+	}
+
+	public InvalidValueException(Channel source, Severity severity, Throwable cause) {
+		super(cause);
+		this.severity = severity;
+		this.source = source;
+	}
+
+	public Severity getSeverity() {
+		return severity;
+	}
+
+	public Channel getSource() {
+		return source;
 	}
 
 }

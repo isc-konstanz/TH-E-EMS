@@ -23,6 +23,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.RunnableService;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface ApplianceService extends RunnableService {
@@ -60,11 +61,11 @@ public interface ApplianceService extends RunnableService {
 	/*
 	 * Get the consumed energy in kilowatt hours [kWh].
 	 */
-	public Value getEnergy() throws ComponentException;
+	public Value getEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the consumption power in watts [W].
 	 */
-	public Value getPower() throws ComponentException;
+	public Value getPower() throws ComponentException, InvalidValueException;
 
 }

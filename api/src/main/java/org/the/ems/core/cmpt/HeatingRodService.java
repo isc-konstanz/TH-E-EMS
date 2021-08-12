@@ -22,6 +22,7 @@ package org.the.ems.core.cmpt;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.HeatingService;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface HeatingRodService extends HeatingService {
@@ -36,11 +37,11 @@ public interface HeatingRodService extends HeatingService {
 	/*
 	 * Get the consumed electrical energy in kilowatt hours [kWh].
 	 */
-	public Value getElectricalEnergy() throws ComponentException;
+	public Value getElectricalEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the consumed electrical power in watts [W].
 	 */
-	public Value getElectricalPower() throws ComponentException;
+	public Value getElectricalPower() throws ComponentException, InvalidValueException;
 
 }

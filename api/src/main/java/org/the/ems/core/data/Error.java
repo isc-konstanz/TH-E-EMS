@@ -19,20 +19,16 @@
  */
 package org.the.ems.core.data;
 
-import org.the.ems.core.data.event.EventListener;
+public class Error {
 
-public interface ValueListener extends EventListener {
+	private final String message;
 
-	public default void onValueReceived(Value value) {
-		// Default implementation to be overridden
+	public Error(String message) {
+		this.message = message;
 	}
 
-	public default void onValueChanged(Value value) {
-		// Default implementation to be overridden
-	}
-
-	public default void onError(Error error) {
-		// Default implementation to be overridden
+	public String getMessage() {
+		return message;
 	}
 
 }

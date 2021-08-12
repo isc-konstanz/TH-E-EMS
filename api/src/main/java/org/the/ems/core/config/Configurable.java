@@ -36,6 +36,7 @@ import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.InvalidValueException;
 
 public abstract class Configurable {
 
@@ -344,11 +345,11 @@ public abstract class Configurable {
 		return this.getConfiguredChannel(key);
 	}
 
-	protected Value getConfiguredValue(String key) throws ComponentException {
+	protected Value getConfiguredValue(String key) throws ComponentException, InvalidValueException {
 		return getConfiguredChannel(key).getLatestValue();
 	}
 
-	protected Value getConfiguredValue() throws ComponentException {
+	protected Value getConfiguredValue() throws ComponentException, InvalidValueException {
 		return getConfiguredChannel().getLatestValue();
 	}
 

@@ -37,6 +37,7 @@ import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.schedule.NamedThreadFactory;
@@ -95,12 +96,12 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 	}
 
 	@Override
-	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException {
+	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException, InvalidValueException {
 		return getChannel(id).getLatestValue(listener);
 	}
 
 	@Override
-	public Value getLatestValue(String id) throws UnknownChannelException {
+	public Value getLatestValue(String id) throws UnknownChannelException, InvalidValueException {
 		return getChannel(id).getLatestValue();
 	}
 

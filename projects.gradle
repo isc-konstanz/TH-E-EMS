@@ -20,27 +20,27 @@
  */
 project.ext {
 
-  projectVersion = '1.0.1'
+    projectVersion = '1.1.0'
 
-  projectGroup = 'org.the.ems'
+    projectGroup = 'org.the.ems'
 
-  projectVendor = 'ISC Konstanz e.V.'
-  projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
+    projectVendor = 'ISC Konstanz e.V.'
+    projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
 
-  copyDependencies = false
+    copyDependencies = false
 
-  distributionProjects = subprojects.findAll {
-    it.getPath() == ':api' ||
-    it.getPath() == ':cmpt' ||
-    it.getPath() == ':ctrl' ||
-    it.getPath() == ':cms' ||
-    it.getPath() == ':main'
-  }
+    distributionProjects = subprojects.findAll {
+        it.getPath() == ':api' ||
+        it.getPath() == ':cmpt' ||
+        it.getPath() == ':ctrl' ||
+        it.getPath() == ':cms' ||
+        it.getPath() == ':main'
+    }
 
-  javadocProjects = distributionProjects.findAll {
-    it.getPath() == ':api' ||
-    it.getPath() == ':cmpt' ||
-    it.getPath() == ':ctrl'
-  }
+    javadocProjects = distributionProjects.findAll {
+        it.getPath() == ':api' ||
+        it.getPath() == ':cmpt' ||
+        it.getPath() == ':ctrl'
+    }
 
 }

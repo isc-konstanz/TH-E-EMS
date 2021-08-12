@@ -22,6 +22,7 @@ package org.the.ems.core.cmpt;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.SchedulableService;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface ElectricalEnergyStorageService extends SchedulableService {
@@ -51,16 +52,16 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	/*
 	 * Get the state of charge in percent [%] between 0 and 100%.
 	 */
-	public Value getStateOfCharge() throws ComponentException;
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the DC power in watts [W].
 	 */
-	public Value getChargePower() throws ComponentException;
+	public Value getPower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the Voltage in volts [V].
 	 */
-	public Value getVoltage() throws ComponentException;
+	public Value getVoltage() throws ComponentException, InvalidValueException;
 
 }

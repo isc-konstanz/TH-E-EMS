@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt'
-def projectName = 'TH-E-Component'
-def projectFullName = 'TH-E EMS Component - Core'
-def projectDescription = 'The Component Core of TH-E EMS framework'
-
-dependencies {
-  api project(':api')
+project.ext {
+    projectName = 'TH-E-Component'
+    projectFullName = 'TH-E EMS Component - Core'
+    projectDescription = 'The Component Core of TH-E EMS framework'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':api')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

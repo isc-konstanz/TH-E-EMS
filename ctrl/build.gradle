@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-ctrl'
-def projectName = 'TH-E-Control'
-def projectFullName = 'TH-E EMS Control - Core'
-def projectDescription = 'The Control Core of TH-E EMS framework'
-
-dependencies {
-  api project(':api')
+project.ext {
+    projectName = 'TH-E-Control'
+    projectFullName = 'TH-E EMS Control - Core'
+    projectDescription = 'The Control Core of TH-E EMS framework'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':api')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.ctrl.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.ctrl.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

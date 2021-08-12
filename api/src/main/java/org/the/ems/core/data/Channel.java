@@ -23,9 +23,9 @@ public interface Channel {
 
 	public String getId();
 
-	public Value getLatestValue();
+	public Value getLatestValue() throws InvalidValueException;
 
-	public Value getLatestValue(ValueListener listener);
+	public Value getLatestValue(ValueListener listener) throws InvalidValueException;
 
 	public void registerValueListener(ValueListener listener);
 

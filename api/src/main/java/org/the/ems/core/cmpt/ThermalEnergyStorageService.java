@@ -22,6 +22,7 @@ package org.the.ems.core.cmpt;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentType;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface ThermalEnergyStorageService extends ComponentService {
@@ -41,11 +42,11 @@ public interface ThermalEnergyStorageService extends ComponentService {
 	/*
 	 * Get the thermal power in watts [W].
 	 */
-	public Value getThermalPower() throws ComponentException;
+	public Value getThermalPower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the average temperature in degree celsius [°C].
 	 */
-	public Value getTemperature() throws ComponentException;
+	public Value getTemperature() throws ComponentException, InvalidValueException;
 
 }

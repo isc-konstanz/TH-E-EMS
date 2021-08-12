@@ -38,12 +38,12 @@ public class ChannelListener implements Channel {
 	}
 
 	@Override
-	public Value getLatestValue() {
+	public Value getLatestValue() throws InvalidValueException {
 		return channel.getLatestValue();
 	}
 
 	@Override
-	public Value getLatestValue(ValueListener listener) {
+	public Value getLatestValue(ValueListener listener) throws InvalidValueException {
 		this.registerValueListener(listener);
 		return channel.getLatestValue(listener);
 	}

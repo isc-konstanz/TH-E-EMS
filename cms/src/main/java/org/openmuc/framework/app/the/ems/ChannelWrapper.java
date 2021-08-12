@@ -19,6 +19,10 @@
  */
 package org.openmuc.framework.app.the.ems;
 
+import static org.the.ems.core.data.InvalidValueException.Severity.ERROR;
+import static org.the.ems.core.data.InvalidValueException.Severity.INFO;
+import static org.the.ems.core.data.InvalidValueException.Severity.WARNING;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,11 +38,16 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.FloatValue;
 import org.the.ems.core.data.IntValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.LongValue;
 import org.the.ems.core.data.ShortValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
+import org.the.ems.core.data.event.ErrorEvent;
+import org.the.ems.core.data.event.Event;
+import org.the.ems.core.data.event.EventType;
+import org.the.ems.core.data.event.ValueEvent;
 
 public class ChannelWrapper implements Channel, RecordListener {
 
@@ -53,10 +62,12 @@ public class ChannelWrapper implements Channel, RecordListener {
 	/**
 	 * The Channels' current callback object, which is notified of changed temperatures
 	 */
-	private final ChannelCallbacks callbacks;
+	protected final ChannelCallbacks callbacks;
 
-	private final org.openmuc.framework.dataaccess.Channel channel;
-	private final List<ValueListener> listeners;
+	protected final org.openmuc.framework.dataaccess.Channel channel;
+	protected final List<ValueListener> listeners;
+
+	protected Value lastValue = null;
 
 	public ChannelWrapper(ChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
 		this.callbacks = callbacks;
@@ -70,13 +81,13 @@ public class ChannelWrapper implements Channel, RecordListener {
 	}
 
 	@Override
-	public Value getLatestValue() {
-		Record record = channel.getLatestRecord();
-		return ChannelWrapper.decodeRecord(record, channel.getValueType());
+	public Value getLatestValue() throws InvalidValueException {
+		return decodeRecord(channel.getLatestRecord(), 
+							channel.getValueType());
 	}
 
 	@Override
-	public Value getLatestValue(ValueListener listener) {
+	public Value getLatestValue(ValueListener listener) throws InvalidValueException {
 		registerValueListener(listener);
 		return getLatestValue();
 	}
@@ -108,7 +119,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	@Override
 	public void setLatestValue(Value value) {
 		Runnable task = () -> {
-			channel.setLatestRecord(ChannelWrapper.encodeRecord(value));
+			channel.setLatestRecord(encodeRecord(value));
 		};
 		callbacks.doExecute(task);
 	}
@@ -117,10 +128,10 @@ public class ChannelWrapper implements Channel, RecordListener {
 	public void write(Value value) {
 		Runnable task = () -> {
 			if (value.getTime() <= System.currentTimeMillis()) {
-				channel.write(ChannelWrapper.encodeValue(value));
+				channel.write(encodeValue(value));
 			}
 			else {
-				channel.writeFuture(ChannelWrapper.encodeFutureValueList(new ValueList(value)));
+				channel.writeFuture(encodeFutureValueList(new ValueList(value)));
 			}
 		};
 		callbacks.doExecute(task);
@@ -137,62 +148,145 @@ public class ChannelWrapper implements Channel, RecordListener {
 				if(value.getTime() <= time) {
 					iter.remove();
 					
-					channel.write(ChannelWrapper.encodeValue(value));
+					channel.write(encodeValue(value));
 				}
 			}
-			channel.writeFuture(ChannelWrapper.encodeFutureValueList(values));
+			channel.writeFuture(encodeFutureValueList(values));
 		};
 		callbacks.doExecute(task);
 	}
 
 	@Override
 	public void newRecord(Record record) {
-		Value value = ChannelWrapper.decodeRecord(record, channel.getValueType());
-		if (value != null) {
-			for (ValueListener listener : listeners) {
-				listener.onValueReceived(value);
+		try {
+			Value newValue = decodeRecord(record, channel.getValueType());
+			newValueEvent(newValue, EventType.RECEIVED);
+			if (hasValueChanged(newValue)) {
+				newValueEvent(newValue, EventType.CHANGED);
 			}
-		}
-		// TODO: implement error warnings for certain flags
-	}
-
-	public static Value decodeRecord(org.openmuc.framework.data.Record record, org.openmuc.framework.data.ValueType type) {
-		if (record.getFlag() == Flag.VALID) {
-			Long time = record.getTimestamp();
+			lastValue = newValue;
 			
-			org.openmuc.framework.data.Value value = record.getValue();
-			if (value != null) {
-				try {
-					switch(type) {
-					case BOOLEAN:
-						return new BooleanValue(value.asBoolean(), time);
-					case BYTE:
-						return new ByteValue(value.asByte(), time);
-					case SHORT:
-						return new ShortValue(value.asShort(), time);
-					case INTEGER:
-						return new IntValue(value.asInt(), time);
-					case LONG:
-						return new LongValue(value.asLong(), time);
-					case FLOAT:
-						return new FloatValue(value.asFloat(), time);
-					default:
-						return new DoubleValue(value.asDouble(), time);
-					}
-				}
-				catch (ClassCastException e) {
-				}
+		} catch (InvalidValueException e) {
+			switch (e.getSeverity()) {
+			case ERROR:
+				newErrorEvent(e.getMessage());
+			default:
+				break;
 			}
 		}
-		return null;
 	}
 
-	public static org.openmuc.framework.data.Record encodeRecord(Value value) {
-		org.openmuc.framework.data.Value recordValue = ChannelWrapper.encodeValue(value);
+	private void newValueEvent(Value value, EventType type) {
+		newEvent(new ValueEvent(this, value, type));
+	}
+
+	private void newErrorEvent(String message) {
+		newEvent(new ErrorEvent(this, message));
+	}
+
+	private void newEvent(Event event) {
+		for (ValueListener valueListener : listeners) {
+			valueListener.onEvent(event);
+			
+			switch (event.getType()) {
+			case RECEIVED:
+				valueListener.onValueReceived(((ValueEvent) event).getValue());
+				break;
+			case CHANGED:
+				valueListener.onValueChanged(((ValueEvent) event).getValue());
+				break;
+			case ERROR:
+				valueListener.onError(((ErrorEvent) event).getError());
+				break;
+			}
+		}
+	}
+
+	private boolean hasValueChanged(Value newValue) {
+		if (this.lastValue == null) {
+			return true;
+		}
+		switch(channel.getValueType()) {
+		case BOOLEAN:
+			return newValue.booleanValue() != lastValue.booleanValue();
+		case BYTE:
+			return newValue.byteValue() != lastValue.byteValue();
+		case SHORT:
+			return newValue.shortValue() != lastValue.shortValue();
+		case INTEGER:
+			return newValue.intValue() != lastValue.intValue();
+		case LONG:
+			return newValue.longValue() != lastValue.longValue();
+		case FLOAT:
+			return newValue.floatValue() != lastValue.floatValue();
+		default:
+			return newValue.doubleValue() != lastValue.doubleValue();
+		}
+	}
+
+	private Value decodeRecord(org.openmuc.framework.data.Record record, org.openmuc.framework.data.ValueType type) 
+			throws InvalidValueException {
+		
+		if (record == null) {
+			throw new InvalidValueException(this, ERROR, "Record is null");
+		}
+		if (Flag.VALID != record.getFlag()) {
+			Flag flag = record.getFlag();
+			String message = record.getFlag().toString();
+			message = message.toLowerCase().replaceAll("_", " ");
+			message = message.substring(0, 1).toUpperCase() + message.substring(1);
+			
+			switch(flag) {
+			case VALID:
+				break;
+			case DISABLED:
+			case DRIVER_UNAVAILABLE:
+			case NO_VALUE_RECEIVED_YET:
+			case SAMPLING_AND_LISTENING_DISABLED:
+				throw new InvalidValueException(this, INFO, message);
+			case CONNECTING:
+			case DISCONNECTING:
+			case WAITING_FOR_CONNECTION_RETRY:
+				throw new InvalidValueException(this, WARNING, message);
+			default:
+				throw new InvalidValueException(this, ERROR, message);
+			}
+		}
+		org.openmuc.framework.data.Value value = record.getValue();
+		if (value == null) {
+			throw new InvalidValueException(this, ERROR, "Value is null");
+		}
+		
+		Long time = record.getTimestamp();
+		try {
+			switch(type) {
+			case BOOLEAN:
+				return new BooleanValue(value.asBoolean(), time);
+			case BYTE:
+				return new ByteValue(value.asByte(), time);
+			case SHORT:
+				return new ShortValue(value.asShort(), time);
+			case INTEGER:
+				return new IntValue(value.asInt(), time);
+			case LONG:
+				return new LongValue(value.asLong(), time);
+			case FLOAT:
+				return new FloatValue(value.asFloat(), time);
+			default:
+				return new DoubleValue(value.asDouble(), time);
+			}
+		}
+		catch (ClassCastException e) {
+			throw new InvalidValueException(this, ERROR, e);
+		}
+	}
+
+	private static org.openmuc.framework.data.Record encodeRecord(Value value) {
+		org.openmuc.framework.data.Value recordValue = encodeValue(value);
 		return new org.openmuc.framework.data.Record(recordValue, value.getTime(), Flag.VALID);
 	}
 
-	public static List<org.openmuc.framework.data.FutureValue> encodeFutureValueList(ValueList values) {
+	private static List<org.openmuc.framework.data.FutureValue> encodeFutureValueList(ValueList values) {
 		List<org.openmuc.framework.data.FutureValue> futures = new LinkedList<>();
 		for (Value value : values) {
 			org.openmuc.framework.data.FutureValue future = encodeFutureValue(value);
@@ -203,7 +297,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 		return futures;
 	}
 
-	public static org.openmuc.framework.data.FutureValue encodeFutureValue(Value value) {
+	private static org.openmuc.framework.data.FutureValue encodeFutureValue(Value value) {
 		org.openmuc.framework.data.Value future = encodeValue(value);
 		if (future != null) {
 			return new org.openmuc.framework.data.FutureValue(future, value.getTime());
@@ -211,7 +305,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 		return null;
 	}
 
-	public static org.openmuc.framework.data.Value encodeValue(Value value) {
+	private static org.openmuc.framework.data.Value encodeValue(Value value) {
 		if (value != null) {
 			try {
 				switch(value.getType()) {

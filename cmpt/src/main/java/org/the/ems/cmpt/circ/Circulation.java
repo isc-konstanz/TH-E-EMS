@@ -32,6 +32,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -155,7 +156,7 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 				// Flow since last calculation in kilogram
 				double flowMass = (counter.doubleValue() - flowCounterLast)*flowDensity;
 				
-				double tempDelta = 0;
+				double tempDelta;
 				if (flowTempValues.size() > 0) {
 					tempDelta = 0;
 					for (double temp : flowTempValues) {
@@ -165,8 +166,12 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 					flowTempValues.clear();
 				}
 				else {
-					Value value = flowTempDelta.getLatestValue();
-					if (value != null) tempDelta = value.doubleValue();
+					try {
+						tempDelta = flowTempDelta.getLatestValue().doubleValue();
+						
+					} catch (InvalidValueException e) {
+						tempDelta = 0;
+					}
 				}
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energy = flowSpecificHeat*flowMass*tempDelta;

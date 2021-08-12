@@ -19,25 +19,25 @@
  *
  */
 archivesBaseName = 'th-e-cms'
-def projectName = 'TH-E-CMS'
-def projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
-def projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
-
-dependencies {
-  api project(':api')
-  api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+project.ext {
+    projectName = 'TH-E-CMS'
+    projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
+    projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 }
-
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+    api project(':api')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Import-Package':     'org.openmuc.framework.*;version=0,*',
+        'Export-Package':     '')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

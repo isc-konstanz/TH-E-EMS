@@ -22,6 +22,7 @@ package org.the.ems.core.cmpt;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.SchedulableService;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public interface InverterService extends SchedulableService {
@@ -56,86 +57,86 @@ public interface InverterService extends SchedulableService {
 	/*
 	 * Get the setpoint power value to control the import/export power in watts [W].
 	 */
-	public Value getSetpoint() throws ComponentException;
+	public Value getSetpoint() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the generated DC input energy in kilowatt hours [kWh].
 	 */
-	public Value getInputEnergy() throws ComponentException;
+	public Value getInputEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the imported energy in kilowatt hours [kWh].
 	 */
-	public Value getImportEnergy() throws ComponentException;
+	public Value getImportEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the exported energy in kilowatt hours [kWh].
 	 */
-	public Value getExportEnergy() throws ComponentException;
+	public Value getExportEnergy() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the generated DC input power in watts [W].
 	 */
-	public Value getInputPower() throws ComponentException;
+	public Value getInputPower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the active power in [W].
 	 */
-	public Value getActivePower() throws ComponentException;
+	public Value getActivePower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the active power on L1 in [var].
 	 */
-	public Value getActivePowerL1() throws ComponentException;
+	public Value getActivePowerL1() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the active power on L2 in [var].
 	 */
-	public Value getActivePowerL2() throws ComponentException;
+	public Value getActivePowerL2() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the active power on L3 in [var].
 	 */
-	public Value getActivePowerL3() throws ComponentException;
+	public Value getActivePowerL3() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the reactive power in [var].
 	 */
-	public Value getReactivePower() throws ComponentException;
+	public Value getReactivePower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the reactive power on L1 in [var].
 	 */
-	public Value getReactivePowerL1() throws ComponentException;
+	public Value getReactivePowerL1() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the reactive power on L2 in [var].
 	 */
-	public Value getReactivePowerL2() throws ComponentException;
+	public Value getReactivePowerL2() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the reactive power on L3 in [var].
 	 */
-	public Value getReactivePowerL3() throws ComponentException;
+	public Value getReactivePowerL3() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the voltage on L1 in [V].
 	 */
-	public Value getVoltageL1() throws ComponentException;
+	public Value getVoltageL1() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the voltage on L2 in [V].
 	 */
-	public Value getVoltageL2() throws ComponentException;
+	public Value getVoltageL2() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the voltage on L3 in [V].
 	 */
-	public Value getVoltageL3() throws ComponentException;
+	public Value getVoltageL3() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the frequency of the grid in [Hz].
 	 */
-	public Value getFrequency() throws ComponentException;
+	public Value getFrequency() throws ComponentException, InvalidValueException;
 
 }

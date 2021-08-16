@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS

@@ -89,6 +89,19 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 
 	@Override
 	public Channel getChannel(String id) throws UnknownChannelException {
+		if (!channels.containsKey(id)) {
+			if (!access.getAllIds().contains(id)) {
+				createChannel(id);
+			}
+			ChannelWrapper channel = new ChannelWrapper(this, access.getChannel(id));
+			channels.put(id, channel);
+			
+			return channel;
+		}
+		return channels.get(id);
+	}
+
+	private void createChannel(String id) throws UnknownChannelException {
 		String separator = "/";
 	    for (int i = 0; i < id.length(); i++) {
 	    	String ch = String.valueOf(id.charAt(i));
@@ -123,17 +136,6 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 		} catch (IdCollisionException | ConfigWriteException e) {
 			throw new UnknownChannelException("Unable to instantiate channel for id: " + id);
 		}
-		if (!channels.containsKey(id)) {
-			if (!access.getAllIds().contains(id)) {
-				throw new UnknownChannelException("Unknown channel for id: " + id);
-			}
-			ChannelWrapper channel = new ChannelWrapper(this, access.getChannel(id));
-			channels.put(id, channel);
-			
-			return channel;
-		}
-		
-		return channels.get(id);
 	}
 
 	@Override

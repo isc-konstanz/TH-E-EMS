@@ -51,7 +51,6 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration(mandatory = false, scale=1000)
 	private double setpointPowerMax = PHASE_CURRENT_MAX*PHASE_VOLTAGE*PHASE_COUNT;
-	private double setpointPowerValue = setpointPowerMax;
 	private double setpointPowerError = 0;
 
 	@Configuration
@@ -275,19 +274,20 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 		@Override
 		public void onValueReceived(Value powerValue) {
-			long timestamp = System.currentTimeMillis();
+			long timestamp = powerValue.getTime();
+			//long timestamp = System.currentTimeMillis();
 			
 			double gridPower = powerValue.doubleValue();
-			double gridPowerBound = gridPowerMax - setpointPowerMax;
+            double gridPowerBound = gridPowerMax - setpointPowerMax;
 			try {
 				if (getChargePower().doubleValue() > GRID_POWER_TOLERANCE) {
 					
-					setpointPowerError += (gridPower - gridPowerBound);
+					setpointPowerError += gridPower - gridPowerBound;
 				}
 				else {
 					setpointPowerError = gridPower - gridPowerBound;
 				}
-				setpointPowerValue = setpointPowerMax - setpointPowerError;
+				double setpointPowerValue = setpointPowerMax - setpointPowerError;
 				if (setpointPowerValue > setpointPowerMax) {
 					setpointPowerValue = setpointPowerMax;
 				}
@@ -296,8 +296,9 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 				}
 				
 				Value setpointValue = new DoubleValue(setpointPowerValue, timestamp);
-				if (setpointPowerValue != getSetpointPower().doubleValue()) {
-					setpointPower.setLatestValue(setpointValue);
+				boolean setpointChanged = setpointPowerValue != getSetpointPower().doubleValue();
+				setpointPower.setLatestValue(setpointValue);
+				if (setpointChanged) {
 					set(setpointValue);
 				}
 			} catch (InvalidValueException e) {

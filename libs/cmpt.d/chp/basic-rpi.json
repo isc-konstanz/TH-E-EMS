@@ -30,14 +30,14 @@
         {
             "id": "engine",
             "name": "Engine pin",
-            "description": "The Pin number to switch the engine, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "description": "The Pin number to switch the engine, according to the <a href='https://pi4j.com/1.4/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
             "type": "text",
             "mandatory": true
         },
         {
             "id": "valve",
             "name": "Gas valve pin",
-            "description": "The pin number to switch the gas valve, according to the <a href='http://pi4j.com/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "description": "The pin number to switch the gas valve, according to the <a href='https://pi4j.com/1.4/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
             "type": "text",
             "mandatory": true
         }

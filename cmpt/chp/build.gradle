@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-19 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-chp'
-def projectName = 'TH-E-Component-Cogenerator'
-def projectFullName = 'TH-E EMS Component - Cogenerator'
-def projectDescription = 'Cogenerator component for TH-E EMS framework.'
-
-dependencies {
-  api project(':cmpt')
+project.ext {
+    projectName = 'TH-E-Component-Cogenerator'
+    projectFullName = 'TH-E EMS Component - Cogenerator'
+    projectDescription = 'Cogenerator component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':cmpt')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.chp.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.chp.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

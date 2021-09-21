@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -25,6 +25,7 @@ import org.the.ems.cmpt.Runnable;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.ElectricVehicleService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 @org.osgi.service.component.annotations.Component(
@@ -35,17 +36,24 @@ import org.the.ems.core.data.Value;
 )
 public class ElectricVehicle extends Runnable implements ElectricVehicleService {
 
+	protected static final String CHARGE_ENERGY_VALUE = "charge_energy";
+	protected static final String CHARGE_POWER_VALUE = "charge_power";
+	protected static final String CHARGE_STATE_VALUE = "soc";
+
 	@Configuration(scale=1000)
 	protected double powerMax;
 
 	@Configuration(scale=1000)
 	protected double powerMin;
 
-	@Configuration
-	protected double capacity;
+	@Configuration(mandatory=false)
+	protected double capacity = Double.NaN;
 
 	@Override
-	public double getCapacity() {
+	public double getCapacity() throws ComponentException {
+		if (capacity == Double.NaN) {
+			throw new ComponentException("Unable to retrieve unconfigured capacity");
+		}
 		return capacity;
 	}
 
@@ -65,15 +73,21 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
     }
 
 	@Override
-	@Configuration(value="charge_energy", mandatory=false)
-	public Value getChargedEnergy() throws ComponentException { return getConfiguredValue("charge_energy"); }
+	@Configuration(value=CHARGE_ENERGY_VALUE, mandatory=false)
+	public Value getChargedEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_ENERGY_VALUE);
+	}
 
 	@Override
-	@Configuration(value="charge_power", mandatory=false)
-	public Value getChargePower() throws ComponentException { return getConfiguredValue("charge_power"); }
+	@Configuration(value=CHARGE_POWER_VALUE, mandatory=false)
+	public Value getChargePower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_POWER_VALUE);
+	}
 
 	@Override
-	@Configuration(value="soc", mandatory=false)
-	public Value getStateOfCharge() throws ComponentException { return getConfiguredValue("soc"); }
+	@Configuration(value=CHARGE_STATE_VALUE, mandatory=false)
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_STATE_VALUE);
+	}
 
 }

@@ -1,13 +1,17 @@
 package org.the.ems.cmpt.inv.effekta;
 
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
+
 public class EffektaBattery extends ElectricalEnergyStorage {
+
 	@Configuration
 	private double chargeVoltageMax = 53;
 
@@ -37,15 +41,14 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
 	protected ChannelListener soc;
-	
-	
+
 	@Override
-	public Value getVoltage() {
+	public Value getVoltage() throws ComponentException, InvalidValueException {
 		return voltage.getLatestValue();
 	}
 
 	@Override
-	public Value getStateOfCharge() {
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
 		return soc.getLatestValue();
 	}
 

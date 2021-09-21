@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -46,6 +46,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -62,7 +63,32 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		implements InverterService, InverterCallbacks {
 
 	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
-	
+
+	protected static final String IMPORT_ENERGY_VALUE = "import_energy";
+	protected static final String IMPORT_POWER_VALUE = "import_power";
+
+	protected static final String EXPORT_ENERGY_VALUE = "export_energy";
+	protected static final String EXPORT_POWER_VALUE = "export_power";
+
+	protected static final String DC_ENERGY_VALUE = "dc_energy";
+	protected static final String DC_POWER_VALUE = "ac_power";
+
+	protected static final String ACTIVE_POWER_VALUE = "active_power";
+	protected static final String ACTIVE_POWER_L1_VALUE = "active_power_l1";
+	protected static final String ACTIVE_POWER_L2_VALUE = "active_power_l2";
+	protected static final String ACTIVE_POWER_L3_VALUE = "active_power_l3";
+
+	protected static final String REACTIVE_POWER_VALUE = "reactive_power";
+	protected static final String REACTIVE_POWER_L1_VALUE = "reactive_power_l1";
+	protected static final String REACTIVE_POWER_L2_VALUE = "reactive_power_l2";
+	protected static final String REACTIVE_POWER_L3_VALUE = "reactive_power_l3";
+
+	protected static final String VOLTAGE_L1_VALUE = "voltage_l1";
+	protected static final String VOLTAGE_L2_VALUE = "voltage_l2";
+	protected static final String VOLTAGE_L3_VALUE = "voltage_l3";
+
+	protected static final String FREQUENCY_VALUE = "frequency";
+
 	private ServiceRegistration<ElectricalEnergyStorageService> storageRegistration;
 
 	protected S storage;
@@ -106,68 +132,100 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getImportEnergy() throws ComponentException { return getConfiguredValue("import_energy"); }
+	@Configuration(value=IMPORT_ENERGY_VALUE, mandatory=false)
+	public Value getImportEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(IMPORT_ENERGY_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getExportEnergy() throws ComponentException { return getConfiguredValue("export_energy"); }
+	@Configuration(value=EXPORT_ENERGY_VALUE, mandatory=false)
+	public Value getExportEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(EXPORT_ENERGY_VALUE);
+	}
 
 	@Override
-	@Configuration(value="dc_energy", mandatory=false)
-	public Value getInputEnergy() throws ComponentException { return getConfiguredValue("dc_energy"); }
+	@Configuration(value=DC_ENERGY_VALUE, mandatory=false)
+	public Value getInputEnergy() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(DC_ENERGY_VALUE);
+	}
 
 	@Override
-	@Configuration(value="dc_power", mandatory=false)
-	public Value getInputPower() throws ComponentException { return getConfiguredValue("dc_power"); }
+	@Configuration(value=DC_POWER_VALUE, mandatory=false)
+	public Value getInputPower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(DC_POWER_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getActivePower() throws ComponentException { return getConfiguredValue("active_power"); }
+	@Configuration(value=ACTIVE_POWER_VALUE, mandatory=false)
+	public Value getActivePower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ACTIVE_POWER_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getActivePowerL1() throws ComponentException { return getConfiguredValue("active_power_l1"); }
+	@Configuration(value=ACTIVE_POWER_L1_VALUE, mandatory=false)
+	public Value getActivePowerL1() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ACTIVE_POWER_L1_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getActivePowerL2() throws ComponentException { return getConfiguredValue("active_power_l2"); }
+	@Configuration(value=ACTIVE_POWER_L2_VALUE, mandatory=false)
+	public Value getActivePowerL2() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ACTIVE_POWER_L2_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getActivePowerL3() throws ComponentException { return getConfiguredValue("active_power_l3"); }
+	@Configuration(value=ACTIVE_POWER_L3_VALUE, mandatory=false)
+	public Value getActivePowerL3() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ACTIVE_POWER_L3_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getReactivePower() throws ComponentException { return getConfiguredValue("reactive_power"); }
+	@Configuration(value=REACTIVE_POWER_VALUE, mandatory=false)
+	public Value getReactivePower() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(REACTIVE_POWER_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getReactivePowerL1() throws ComponentException { return getConfiguredValue("reactive_power_l1"); }
+	@Configuration(value=REACTIVE_POWER_L1_VALUE, mandatory=false)
+	public Value getReactivePowerL1() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(REACTIVE_POWER_L1_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getReactivePowerL2() throws ComponentException { return getConfiguredValue("reactive_power_l2"); }
+	@Configuration(value=REACTIVE_POWER_L2_VALUE, mandatory=false)
+	public Value getReactivePowerL2() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(REACTIVE_POWER_L2_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getReactivePowerL3() throws ComponentException { return getConfiguredValue("reactive_power_l3"); }
+	@Configuration(value=REACTIVE_POWER_L3_VALUE, mandatory=false)
+	public Value getReactivePowerL3() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(REACTIVE_POWER_L3_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getVoltageL1() throws ComponentException { return getConfiguredValue("voltage_l1"); }
+	@Configuration(value=VOLTAGE_L1_VALUE, mandatory=false)
+	public Value getVoltageL1() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_L1_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getVoltageL2() throws ComponentException { return getConfiguredValue("voltage_l2"); }
+	@Configuration(value=VOLTAGE_L2_VALUE, mandatory=false)
+	public Value getVoltageL2() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_L2_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getVoltageL3() throws ComponentException { return getConfiguredValue("voltage_l3"); }
+	@Configuration(value=VOLTAGE_L3_VALUE, mandatory=false)
+	public Value getVoltageL3() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_L3_VALUE);
+	}
 
 	@Override
-	@Configuration(mandatory=false)
-	public Value getFrequency() throws ComponentException { return getConfiguredValue("frequency"); }
+	@Configuration(value=FREQUENCY_VALUE, mandatory=false)
+	public Value getFrequency() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(FREQUENCY_VALUE);
+	}
 
 	public S getElectricalEnergyStorage() {
 		return storage;
@@ -297,7 +355,12 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		if (setpoint > getMaxPower() || setpoint < getMinPower()) {
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);
 		}
-		if (this.setpoint.getLatestValue() == null || !this.setpoint.getLatestValue().equals(value)) {
+		try {
+			if (!this.setpoint.getLatestValue().equals(value)) {
+				this.setpoint.setLatestValue(value);
+				return;
+			}
+		} catch (InvalidValueException e) {
 			this.setpoint.setLatestValue(value);
 			return;
 		}

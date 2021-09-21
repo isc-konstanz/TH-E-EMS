@@ -4,6 +4,7 @@ import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -17,12 +18,8 @@ public class BlueplanetHyBat extends ElectricalEnergyStorage {
 	private int tricklePower = 0;
 
 	@Override
-	public Value getStateOfCharge() throws ComponentException {
-		Value socValue = soc.getLatestValue();
-		if (socValue == null) {
-			throw new ComponentException("Unable to retrieve state of charge");
-		}
-		return socValue;
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
+		return soc.getLatestValue();
 	}
 
 	public int getTricklePower() {

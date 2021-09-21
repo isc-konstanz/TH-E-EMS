@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-19 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -19,24 +19,23 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-inv-effekta'
-def projectName = 'TH-E-Component-Effekta'
-def projectFullName = 'TH-E EMS Component - Effekta Inverter'
-def projectDescription = 'Effekta inverter component for TH-E EMS framework.'
-
+project.ext {
+    projectName = 'TH-E-Component-Effekta'
+    projectFullName = 'TH-E EMS Component - Effekta Inverter'
+    projectDescription = 'Effekta inverter component for TH-E EMS framework.'
+}
 dependencies {
   implementation project(':cmpt:inv')
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+jar {
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     '')
 }
 
-jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     '')
-  }
+eclipse {
+    project {
+        name = projectName
+    }
 }

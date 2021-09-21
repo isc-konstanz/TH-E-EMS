@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -32,6 +32,7 @@ import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -118,7 +119,7 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 		running = false;
 	}
 
-	public Value getLatestValue() {
+	public Value getLatestValue() throws InvalidValueException {
 		return consPower.getLatestValue();
 	}
 

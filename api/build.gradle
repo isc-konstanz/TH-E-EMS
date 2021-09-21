@@ -1,0 +1,45 @@
+/* 
+ * Copyright 2016-2021 ISC Konstanz
+ * 
+ * This file is part of TH-E EMS.
+ * For more information visit https://github.com/isc-konstanz/TH-E-EMS
+ * 
+ * TH-E EMS is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * TH-E EMS is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+archivesBaseName = 'th-e-api'
+project.ext {
+    projectName = 'TH-E-API'
+    projectFullName = 'TH-E EMS Application Programming Interface'
+    projectDescription = 'The Application Programming Interface of TH-E EMS framework'
+}
+
+dependencies {
+    api group: 'org.osgi', name: 'osgi.core', version: '7.0.0'
+    api group: 'org.osgi', name: 'org.osgi.service.component.annotations', version: '1.4.0'
+    api group: 'org.apache.felix', name: 'org.apache.felix.scr', version: '2.1.14'
+    api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+}
+
+jar {
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.core.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
+}

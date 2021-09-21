@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-19 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -11,7 +11,7 @@
  * 
  * TH-E EMS is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
@@ -20,33 +20,49 @@
  */
 project.ext {
 
-  projectVersion = '1.0.1'
+    projectVersion = '1.1.0'
 
-  projectGroup = 'org.the.ems'
+    projectGroup = 'org.the.ems'
 
-  projectVendor = 'ISC Konstanz e.V.'
-  projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
+    projectVendor = 'ISC Konstanz e.V.'
+    projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
 
-  copyDependencies = false
+    copyDependencies = false
 
-  distributionProjects = subprojects.findAll {
-    it.getPath() == ':cmpt:chp' ||
-    it.getPath() == ':cmpt:chp:ice' ||
-    it.getPath() == ':cmpt:chp:serenergy' ||
-    it.getPath() == ':cmpt:hp' ||
-    it.getPath() == ':cmpt:inv' ||
-    it.getPath() == ':cmpt:inv:kaco' ||
-    it.getPath() == ':cmpt:tes' ||
-    it.getPath() == ':ctrl:mpc' ||
-    it.getPath() == ':ctrl:ps' ||
-    it.getPath() == ':ctrl:tp'
-  }
+    distributionProjects = subprojects.findAll {
+        it.getPath() == ':main'
+        it.getPath() == ':api' ||
+        it.getPath() == ':cmpt' ||
+        it.getPath() == ':cmpt:apl' ||
+        it.getPath() == ':cmpt:ev' ||
+        it.getPath() == ':cmpt:ev:chargebig' ||
+        it.getPath() == ':cmpt:chp' ||
+        it.getPath() == ':cmpt:chp:ice' ||
+        it.getPath() == ':cmpt:chp:serenergy' ||
+        it.getPath() == ':cmpt:hp' ||
+        it.getPath() == ':cmpt:hr' ||
+        it.getPath() == ':cmpt:vnt' ||
+        it.getPath() == ':cmpt:tes' ||
+        it.getPath() == ':cmpt:inv' ||
+        it.getPath() == ':cmpt:inv:kaco' ||
+        it.getPath() == ':ctrl' ||
+        it.getPath() == ':ctrl:mpc' ||
+        it.getPath() == ':ctrl:ps' ||
+        it.getPath() == ':ctrl:tp' ||
+        it.getPath() == ':cms'
+    }
 
-  javadocProjects = distributionProjects.findAll {
-    it.getPath() == ':cmpt:chp' ||
-    it.getPath() == ':cmpt:hp' ||
-    it.getPath() == ':cmpt:inv' ||
-    it.getPath() == ':cmpt:tes'
-  }
+    javadocProjects = distributionProjects.findAll {
+        it.getPath() == ':api' ||
+        it.getPath() == ':cmpt' ||
+        it.getPath() == ':cmpt:apl' ||
+        it.getPath() == ':cmpt:ev' ||
+        it.getPath() == ':cmpt:chp' ||
+        it.getPath() == ':cmpt:hp' ||
+        it.getPath() == ':cmpt:hr' ||
+        it.getPath() == ':cmpt:tes' ||
+        it.getPath() == ':cmpt:inv' ||
+        it.getPath() == ':ctrl'
+    }
 
 }

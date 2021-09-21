@@ -14,6 +14,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -73,13 +74,19 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	private void onSetpointUpdate(WriteContainer container) throws ComponentException {
 		double setpoint = setpointControl.doubleValue();
-		double setpointLatest = setpointPower.getLatestValue() != null ? 
-				-setpointPower.getLatestValue().doubleValue() : 0;
-		
-		if (setpoint != 0 && activeError && activePower != null) {
-			setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
+		double setpointLatest = 0;
+		try {
+			setpointLatest = -setpointPower.getLatestValue().doubleValue();
+			
+		} catch (InvalidValueException e) {
 		}
-		
+		if (setpoint != 0 && activeError && activePower != null) {
+			try {
+				setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
+				
+			} catch (InvalidValueException e) {
+			}
+		}
 		
 		if (trickleCurrentFlag) {
 			if (setpoint < storage.getTricklePower()) {

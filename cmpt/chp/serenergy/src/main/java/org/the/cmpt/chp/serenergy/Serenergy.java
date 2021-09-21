@@ -3,6 +3,8 @@ package org.the.cmpt.chp.serenergy;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.cmpt.chp.serenergy.data.Request;
 import org.the.cmpt.chp.serenergy.data.State;
 import org.the.ems.cmpt.chp.Cogenerator;
@@ -13,6 +15,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -24,6 +27,8 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class Serenergy extends Cogenerator {
+
+	private static final Logger logger = LoggerFactory.getLogger(Serenergy.class);
 
 	@Configuration(mandatory = false)
 	protected int enableDelay = 2500;
@@ -105,8 +110,12 @@ public class Serenergy extends Cogenerator {
 					if (circulationPump.hasRunMinimum()) {
 						circulationPump.stop();
 					}
-					if (State.decode(state.getLatestValue()) == State.STANDBY) {
-						enable.write(Request.DISABLE.encode());
+					try {
+						if (State.decode(state.getLatestValue()) == State.STANDBY) {
+							enable.write(Request.DISABLE.encode());
+						}
+					} catch (InvalidValueException e) {
+						logger.debug("Error while checking standby state: {}", e.getMessage());
 					}
 				}
 			}

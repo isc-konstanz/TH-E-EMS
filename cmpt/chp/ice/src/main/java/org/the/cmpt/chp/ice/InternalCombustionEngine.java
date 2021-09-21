@@ -15,6 +15,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -62,12 +63,8 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected ChannelListener power;
 
 	@Override
-	public Value getElectricalPower() throws ComponentException {
-		Value powerValue = power.getLatestValue();
-		if (powerValue == null) {
-			throw new ComponentException("Unable to retrieve electrical power");
-		}
-		return powerValue;
+	public Value getElectricalPower() throws ComponentException, InvalidValueException {
+		return power.getLatestValue();
 	}
 
 	@Override
@@ -122,7 +119,7 @@ public class InternalCombustionEngine extends Cogenerator {
 			try {
 				return Math.abs(getElectricalPower().doubleValue()) > powerMin;
 				
-			} catch(ComponentException e) {
+			} catch(ComponentException | InvalidValueException e) {
 				logger.debug("Error while checking run state: {}", e.getMessage());
 			}
 		}
@@ -171,7 +168,7 @@ public class InternalCombustionEngine extends Cogenerator {
 		try {
 			return getElectricalPower().doubleValue() == 0.0;
 			
-		} catch(ComponentException e) {
+		} catch(ComponentException | InvalidValueException e) {
 			logger.debug("Error while checking standby state: {}", e.getMessage());
 		}
 		return super.isStandby();
@@ -199,6 +196,8 @@ public class InternalCombustionEngine extends Cogenerator {
 				if (!state) {
 					setState(RunState.STOPPING);
 				}
+				break;
+			default:
 				break;
 			}
 			if (!state) {

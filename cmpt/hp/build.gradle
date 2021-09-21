@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-19 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-hp'
-def projectName = 'TH-E-Component-HeatPump'
-def projectFullName = 'TH-E EMS Component - Heat Pump'
-def projectDescription = 'Heat pump component for TH-E EMS framework.'
-
-dependencies {
-  api project(':cmpt')
+project.ext {
+    projectName = 'TH-E-Component-HeatPump'
+    projectFullName = 'TH-E EMS Component - Heat Pump'
+    projectDescription = 'Heat pump component for TH-E EMS framework.'
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+dependencies {
+    api project(':cmpt')
 }
 
 jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.hp.*')
-  }
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.hp.*')
+}
+
+eclipse {
+    project {
+        name = projectName
+    }
 }

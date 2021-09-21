@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -60,22 +60,6 @@ public class HeatPump extends Heating implements HeatPumpService {
 	public Value getCoefficientOfPerformance() throws ComponentException {
 		return new DoubleValue(cop);
 	}
-
-	@Override
-	@Configuration(value="th_energy", mandatory=false)
-	public Value getThermalEnergy() throws ComponentException { return getConfiguredValue("th_energy"); }
-
-	@Override
-	@Configuration(value="th_power", mandatory=false)
-	public Value getThermalPower() throws ComponentException { return getConfiguredValue("th_power"); }
-
-	@Override
-	@Configuration(value="el_energy", mandatory=false)
-	public Value getElectricalEnergy() throws ComponentException { return getConfiguredValue("el_energy"); }
-
-	@Override
-	@Configuration(value="el_power", mandatory=false)
-	public Value getElectricalPower() throws ComponentException { return getConfiguredValue("el_power"); }
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {

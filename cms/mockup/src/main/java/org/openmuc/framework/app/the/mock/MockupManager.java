@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import org.openmuc.framework.app.the.mock.MockupChannel.ChannelCallbacks;
+import org.openmuc.framework.app.the.ems.ChannelWrapper;
+import org.openmuc.framework.app.the.ems.ChannelWrapper.ChannelCallbacks;
 import org.openmuc.framework.config.ChannelConfig;
 import org.openmuc.framework.config.ConfigService;
 import org.openmuc.framework.config.ConfigWriteException;
@@ -44,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueList;
@@ -60,7 +62,7 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 	private final static List<String> SEPARATORS = Arrays.asList("-", "_", ".", ":" ,"/");
 	private final static String VIRTUAL = "virtual";
 
-	private final Map<String, MockupChannel> channels = new HashMap<String, MockupChannel>();
+	private final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
 
 	private ExecutorService executor = null;
 
@@ -87,6 +89,19 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 
 	@Override
 	public Channel getChannel(String id) throws UnknownChannelException {
+		if (!channels.containsKey(id)) {
+			if (!access.getAllIds().contains(id)) {
+				createChannel(id);
+			}
+			ChannelWrapper channel = new ChannelWrapper(this, access.getChannel(id));
+			channels.put(id, channel);
+			
+			return channel;
+		}
+		return channels.get(id);
+	}
+
+	private void createChannel(String id) throws UnknownChannelException {
 		String separator = "/";
 	    for (int i = 0; i < id.length(); i++) {
 	    	String ch = String.valueOf(id.charAt(i));
@@ -121,17 +136,6 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 		} catch (IdCollisionException | ConfigWriteException e) {
 			throw new UnknownChannelException("Unable to instantiate channel for id: " + id);
 		}
-		if (!channels.containsKey(id)) {
-			if (!access.getAllIds().contains(id)) {
-				throw new UnknownChannelException("Unknown channel for id: " + id);
-			}
-			MockupChannel channel = new MockupChannel(this, access.getChannel(id));
-			channels.put(id, channel);
-			
-			return channel;
-		}
-		
-		return channels.get(id);
 	}
 
 	@Override
@@ -145,12 +149,12 @@ public class MockupManager implements ContentManagementService, ChannelCallbacks
 	}
 
 	@Override
-	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException {
+	public Value getLatestValue(String id, ValueListener listener) throws UnknownChannelException, InvalidValueException {
 		return getChannel(id).getLatestValue(listener);
 	}
 
 	@Override
-	public Value getLatestValue(String id) throws UnknownChannelException {
+	public Value getLatestValue(String id) throws UnknownChannelException, InvalidValueException {
 		return getChannel(id).getLatestValue();
 	}
 

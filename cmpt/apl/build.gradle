@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-19 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -19,24 +19,24 @@
  *
  */
 archivesBaseName = 'th-e-cmpt-apl'
-def projectName = 'TH-E-Component-Appliance'
-def projectFullName = 'TH-E EMS Component - Appliance'
-def projectDescription = 'Appliance component for TH-E EMS framework.'
+project.ext {
+    projectName = 'TH-E-Component-Appliance'
+    projectFullName = 'TH-E EMS Component - Appliance'
+    projectDescription = 'Appliance component for TH-E EMS framework.'
+}
 
 dependencies {
   api project(':cmpt')
 }
 
-eclipse {
-  project {
-    name = projectName
-  }
+jar {
+    bnd('Bundle-Name':        projectName,
+        'Bundle-Description': projectDescription,
+        'Export-Package':     'org.the.ems.cmpt.apl.*')
 }
 
-jar {
-  manifest {
-    attributes('Bundle-Name':        projectFullName,
-               'Bundle-Description': projectDescription,
-	           'Export-Package':     'org.the.ems.cmpt.apl.*')
-  }
+eclipse {
+    project {
+        name = projectName
+    }
 }

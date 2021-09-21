@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-19 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/TH-E-EMS
@@ -18,21 +18,18 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-CMPT'
+rootProject.name = 'TH-E-EMS'
 
-include 'api', 'main', 
-        'cmpt', 'cmpt:apl', 'cmpt:ev', 
-        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy', 
-        'cmpt:hp', 'cmpt:hr', 
-        'cmpt:vnt', 'cmpt:tes', 
+include 'api',
+        'main',
+        'cmpt',
+        'cmpt:apl',
+        'cmpt:ev', 'cmpt:ev:chargebig',
+        'cmpt:chp', 'cmpt:chp:ice', 'cmpt:chp:serenergy',
+        'cmpt:hp',
+        'cmpt:hr',
+        'cmpt:vnt',
+        'cmpt:tes',
         'cmpt:inv', 'cmpt:inv:kaco', 'cmpt:inv:effekta',
-        'ctrl', 'ctrl:mpc', 'ctrl:tp', 'ctrl:ps', 
+        'ctrl', 'ctrl:tp', 'ctrl:ps', 'ctrl:mpc',
         'cms', 'cms:mockup'
-
-def emsDir = '../TH-E-EMS'
-project(':api').projectDir = file(emsDir+'/api')
-project(':cmpt').projectDir = file(emsDir+'/cmpt')
-project(':ctrl').projectDir = file(emsDir+'/ctrl')
-project(':cms').projectDir = file(emsDir+'/cms')
-project(':main').projectDir = file(emsDir+'/main')
-

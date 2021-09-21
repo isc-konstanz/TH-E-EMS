@@ -340,17 +340,8 @@ public abstract class Configurable {
 		return channel;
 	}
 
-	protected Channel getConfiguredChannel() throws ComponentException {
-		String key = getConfiguredKey();
-		return this.getConfiguredChannel(key);
-	}
-
 	protected Value getConfiguredValue(String key) throws ComponentException, InvalidValueException {
 		return getConfiguredChannel(key).getLatestValue();
-	}
-
-	protected Value getConfiguredValue() throws ComponentException, InvalidValueException {
-		return getConfiguredChannel().getLatestValue();
 	}
 
 	protected String getConfiguredKey() throws ComponentException {

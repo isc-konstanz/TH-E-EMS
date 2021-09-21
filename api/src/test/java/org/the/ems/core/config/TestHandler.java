@@ -21,7 +21,6 @@ package org.the.ems.core.config;
 
 import java.util.List;
 
-import org.the.ems.core.ComponentException;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
@@ -110,11 +109,6 @@ public class TestHandler extends Configurable {
 
 	public TestChannel getTestWildcard(String key) {
 		return (TestChannel) testWildcard.get(key);
-	}
-
-	@Configuration
-	public TestChannel getTestChannel() throws ComponentException {
-		return (TestChannel) getConfiguredChannel();
 	}
 
 }

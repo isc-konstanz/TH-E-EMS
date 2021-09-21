@@ -1,0 +1,95 @@
+import java.nio.file.Paths
+
+String projectReplace(String line, String projectName, String projectDesc, projectDepends) {
+	return line.replaceAll('<package>', projectName)
+               .replaceAll('<description>', projectDesc)
+               .replaceAll('<depends>', projectDepends)
+               .replaceAll('<version>', projectVersion)
+               .replaceAll('<maintainer>', projectMaintainer)
+               .replaceAll('<repository>', projectRepository)
+               .replaceAll('<homepage>', projectHomepage)
+}
+
+task deletePackages(type: Delete) {
+  delete Paths.get(rootDir.getPath(), 'build', 'dpkg')
+  followSymlinks = true
+}
+
+task debianPackages {
+    dependsOn(distributionProjects.build)
+    dependsOn(deletePackages)
+    doLast {
+        for (Project project: distributionProjects) {
+            if (project.getProjectDir().equals(getProjectDir())) {
+                continue
+            }
+            def projectName = project.archivesBaseName
+            def projectDesc = project.ext.projectDescription
+            def projectDir = project.getProjectDir().getPath()
+            def projectPackage = Paths.get(rootDir.getPath(), 'build', 'dpkg', projectName + '-' + projectVersion).toString()
+            def projectBundles = Paths.get(projectPackage, 'bundle').toString()
+            
+            def projectDepends = project.configurations.runtimeClasspath { transitive = false }
+								                       .findAll { it.getName().startsWith('th-e-') }
+								                       .collect { it.getName().replaceAll('th-e-api-.*jar', 'th-e-ems')
+								                                              .replaceAll('th-e-cmpt-.*jar', 'th-e-ems')
+								                                              .replaceAll('-[0-9].*jar', '') }.unique().join(', ')
+            if (!projectDepends?.trim()) {
+                projectDepends = 'th-e-ems'
+            }
+			copy {
+				//from project.configurations.default
+				from project.configurations.default.getAllArtifacts().getFiles()
+				into Paths.get(projectPackage, 'bundle').toString()
+			}
+			copy {
+                from Paths.get(rootDir.getPath(), 'packages', 'debian')
+                into Paths.get(projectPackage, 'debian')
+                filter {
+                    line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                }
+            }
+			def packageDir = Paths.get(projectDir, 'pkg').toString()
+            if (new File(packageDir).exists()) {
+                copy {
+                    from Paths.get(projectDir, 'pkg')
+                    into Paths.get(projectPackage)
+                    filter {
+                        line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                    }
+                    exclude '*.gradle'
+                }
+				def gradleFile = new File(packageDir, 'debian.gradle')
+				if (gradleFile.exists()) {
+					apply from: gradleFile.getPath()
+				}
+            }
+        }
+        new File(rootDir.getPath(), 'packages').eachDir { dir ->
+            def projectName = dir.getName()
+            def projectDir = dir.getPath()
+            def projectPackage = Paths.get(rootDir.getPath(), 'build', 'dpkg', projectName + '-' + projectVersion).toString()
+            if (new File(projectDir, 'debian').exists()) {
+                copy {
+                    from Paths.get(rootDir.getPath(), 'packages', 'debian')
+                    into Paths.get(projectPackage, 'debian')
+                    filter {
+                        line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                    }
+                }
+                copy {
+                    from projectDir
+                    into projectPackage
+                    filter {
+                        line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                    }
+                    exclude '*.gradle'
+                }
+                def gradleFile = new File(projectDir, 'debian.gradle')
+                if (gradleFile.exists()) {
+                    apply from: gradleFile.getPath()
+                }
+            }
+        }
+    }
+}

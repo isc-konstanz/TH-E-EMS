@@ -25,7 +25,9 @@ project.ext {
     projectGroup = 'org.the.ems'
 
     projectVendor = 'ISC Konstanz e.V.'
-    projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
+    projectHomepage = 'https://isc-konstanz.de'
+    projectRepository = 'https://github.com/isc-konstanz/TH-E-EMS'
+    projectMaintainer = 'Adrian Minde <adrian.minde@isc-konstanz.de>'
 
     copyDependencies = false
 

@@ -63,7 +63,6 @@ public class TestConfiguration {
 		assertEquals("Channel", handler.getTestCollection("test_channel").getId());
 		assertEquals("Channel", handler.getTestWildcard("test_channel").getId());
 		assertEquals("Channel2", handler.getTestWildcard("test_channel2").getId());
-		assertEquals("Channel", handler.getTestChannel().getId());
 	}
 
 	@Test

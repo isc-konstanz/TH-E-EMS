@@ -1,7 +1,8 @@
 import java.nio.file.Paths
 
-String projectReplace(String line, String projectName, String projectDesc, projectDepends) {
-	return line.replaceAll('<package>', projectName)
+String projectReplace(String line, String date, String projectName, String projectDesc, projectDepends) {
+	return line.replaceAll('<date>', date)
+               .replaceAll('<package>', projectName)
                .replaceAll('<description>', projectDesc)
                .replaceAll('<depends>', projectDepends)
                .replaceAll('<version>', projectVersion)
@@ -19,6 +20,7 @@ task debianPackages {
     dependsOn(distributionProjects.build)
     dependsOn(deletePackages)
     doLast {
+        def date = new Date().format("EEE, dd MMM yyyy HH:mm:ss ZZZZ", TimeZone.getTimeZone(projectTimeZone)) 
         for (Project project: distributionProjects) {
             if (project.getProjectDir().equals(getProjectDir())) {
                 continue
@@ -46,7 +48,7 @@ task debianPackages {
                 from Paths.get(rootDir.getPath(), 'packages', 'debian')
                 into Paths.get(projectPackage, 'debian')
                 filter {
-                    line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                    line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
                 }
             }
 			def packageDir = Paths.get(projectDir, 'pkg').toString()
@@ -55,7 +57,7 @@ task debianPackages {
                     from Paths.get(projectDir, 'pkg')
                     into Paths.get(projectPackage)
                     filter {
-                        line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                        line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
                     }
                     exclude '*.gradle'
                 }
@@ -74,7 +76,7 @@ task debianPackages {
                     from Paths.get(rootDir.getPath(), 'packages', 'debian')
                     into Paths.get(projectPackage, 'debian')
                     filter {
-                        line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                        line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
                     }
                 }
                 copy {

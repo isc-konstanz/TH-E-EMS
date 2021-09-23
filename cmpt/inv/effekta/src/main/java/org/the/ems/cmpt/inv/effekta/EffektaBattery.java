@@ -5,6 +5,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -78,12 +79,13 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return currentMax;
 	}
 	
-	public Value getCurrent() {
+	public Value getCurrent() throws InvalidValueException {
 		return current.getLatestValue();
 	}
 	
-	public double getPower() {
-		return current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue();
+	@Override
+	public Value getPower() throws InvalidValueException {
+		return new DoubleValue(current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue());
 	}
 
 	public double getMaxVoltage() {

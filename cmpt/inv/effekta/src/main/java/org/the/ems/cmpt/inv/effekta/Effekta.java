@@ -13,6 +13,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -76,7 +77,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 	public void initialize() {
 		WriteContainer container = new WriteContainer();
-		container.addDouble(storage.getMaxCurrent(), Math.min((int) getMaxPower() / storage.getMinVoltage() * 10, 2000),
+		container.addDouble(storage.getMaxCurrent(), Math.min((int) getMaxPower() / storage.getMinVoltage(), 200),
 				System.currentTimeMillis());
 		setpointPower = DoubleValue.emptyValue();
 		setMode(container, Mode.DEFAULT);
@@ -179,7 +180,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 		}
 	}
 
-	private void setSOCEstimation(Double vol, Double cur, Long time) {
+	private void setSOCEstimation(Double vol, Double cur, Long time) throws InvalidValueException {
 		long socTime = socEstimation.getLatestValue().getTime();
 		double energy;
 		double socEstimationNew;
@@ -300,12 +301,24 @@ public class Effekta extends Inverter<EffektaBattery> {
 		@Override
 		public void onValueReceived(Value value) {
 			long time = value.getTime();
-			long socTime = socEstimation.getLatestValue().getTime();
+			long socTime = 0;
+			try {
+				socTime = socEstimation.getLatestValue().getTime();
+
+			} catch (InvalidValueException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 			if (value.doubleValue() != current || time - socTime >= 60000) {
 				if (initialized) {
-					setSOCEstimation(voltage, value.doubleValue(), value.getTime());
-					
+					try {
+						setSOCEstimation(voltage, value.doubleValue(), value.getTime());
+					} catch (InvalidValueException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
 //					if (dischargeProtection) {
 //						WriteContainer container = new WriteContainer();
 //						//TODO:

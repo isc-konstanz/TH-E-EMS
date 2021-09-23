@@ -2,7 +2,7 @@
  * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
- * For more information visit https://github.com/isc-konstanz/TH-E-EMS
+ * For more information visit https://github.com/isc-konstanz/th-e-ems
  * 
  * TH-E-EMS is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,7 +21,6 @@ package org.the.ems.core.config;
 
 import java.util.List;
 
-import org.the.ems.core.ComponentException;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
@@ -110,11 +109,6 @@ public class TestHandler extends Configurable {
 
 	public TestChannel getTestWildcard(String key) {
 		return (TestChannel) testWildcard.get(key);
-	}
-
-	@Configuration
-	public TestChannel getTestChannel() throws ComponentException {
-		return (TestChannel) getConfiguredChannel();
 	}
 
 }

@@ -14,6 +14,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.ElectricVehicleService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
@@ -42,19 +43,19 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	private static final String CHARGE_CURRENT_L2_VALUE = "charge_current_l2";
 	private static final String CHARGE_CURRENT_L3_VALUE = "charge_current_l3";
 
-	private static final double GRID_POWER_TOLERANCE = 50;
-
-	private static final double PHASE_CURRENT_MIN = 0;
-	private static final double PHASE_CURRENT_MAX = 200;
-	private static final double PHASE_VOLTAGE = 230;
-	private static final double PHASE_COUNT = 3;
+	protected static final double PHASE_CURRENT_MIN = 0;
+	protected static final double PHASE_CURRENT_MAX = 200;
+	protected static final double PHASE_VOLTAGE = 230;
+	protected static final double PHASE_COUNT = 3;
 
 	@Configuration(mandatory = false, scale=1000)
 	private double setpointPowerMax = PHASE_CURRENT_MAX*PHASE_VOLTAGE*PHASE_COUNT;
-	private double setpointPowerError = 0;
 
 	@Configuration
 	private Channel setpointPower;
+
+	@Configuration(mandatory = false)
+	private Channel setpointCurrentMax;
 
 	@Configuration
 	private Channel setpointCurrent;
@@ -73,6 +74,8 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration
 	private Channel chargeCurrent;
+
+	private List<ChargePoint> chargePoints;
 
 	@Override
 	public Value getChargePower() throws ComponentException, InvalidValueException {
@@ -113,6 +116,10 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		return getConfiguredValue(CHARGE_CURRENT_L3_VALUE);
 	}
 
+	public double getSetpointPowerMaximum() {
+		return getSetpointCurrentMaximum()*PHASE_VOLTAGE*PHASE_COUNT;
+	}
+
 	public Value getSetpointPower() throws ComponentException, InvalidValueException {
 		return setpointPower.getLatestValue();
 	}
@@ -128,6 +135,18 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		double power = current*PHASE_VOLTAGE*PHASE_COUNT;
 		
 		return new DoubleValue(power, currentValue.getTime());
+	}
+
+	public double getSetpointCurrentMaximum() {
+		if (setpointCurrentMax != null) {
+			try {
+				return setpointCurrentMax.getLatestValue().doubleValue();
+				
+			} catch (InvalidValueException e) {
+				logger.debug("Error retrieving maximum setpoint current: {}", e.getMessage());
+			}
+		}
+		return setpointPowerMax/PHASE_VOLTAGE/PHASE_COUNT;
 	}
 
 	private Value getSetpointCurrent(Value powerValue) throws ComponentException {
@@ -150,7 +169,20 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	@Override
-	public void onActivate(Configurations configs) throws ComponentException {
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		super.onConfigure(configs);
+		this.onConfigureChargePoints(configs);
+		if (setpointCurrentMax != null) {
+			setpointCurrentMax.setLatestValue(new DoubleValue(setpointPowerMax/PHASE_VOLTAGE/PHASE_COUNT));
+		}
+	}
+
+	private void onConfigureChargePoints(Configurations configs) throws ConfigurationException {
+		chargePoints = ChargePoint.newCollection(content, configs);
+	}
+
+	@Override
+	protected void onActivate(Configurations configs) throws ComponentException {
 		//super.onActivate(configs);
 		// Do not call super activation to keep run state DEFAULT
 		setpointEnabled.registerValueListener(this);
@@ -160,7 +192,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	@Override
-	public void onDeactivate() throws ComponentException {
+	protected void onDeactivate() throws ComponentException {
 		//super.onDeactivate();
 		setpointEnabled.deregister();
 		if (gridPower != null) {
@@ -195,7 +227,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	private void enable() {
 		logger.info("Enabling chargeBIG setpoint");
 		setpointEnabled.write(new BooleanValue(true));
-		setpointCurrent.write(new DoubleValue(setpointPowerMax/PHASE_VOLTAGE/PHASE_COUNT));
+		setpointCurrent.write(new DoubleValue(getSetpointCurrentMaximum()));
 	}
 
 	@SuppressWarnings("serial")
@@ -277,29 +309,25 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 			long timestamp = powerValue.getTime();
 			//long timestamp = System.currentTimeMillis();
 			
-			double gridPower = powerValue.doubleValue();
-            double gridPowerBound = gridPowerMax - setpointPowerMax;
+			double gridValue = powerValue.doubleValue();
 			try {
-				if (getChargePower().doubleValue() > GRID_POWER_TOLERANCE) {
-					
-					setpointPowerError += gridPower - gridPowerBound;
+				if (chargePoints.stream().filter(Objects::nonNull).anyMatch(c -> c.isCharging())) {
+					// FIXME: Think of a way to avoid oscillation of setpoint values
 				}
-				else {
-					setpointPowerError = gridPower - gridPowerBound;
+	            double setpointPowerMax = getSetpointPowerMaximum();
+				double setpointPowerError = gridPowerMax - gridValue;
+				if (setpointPowerError > setpointPowerMax) {
+					setpointPowerError = setpointPowerMax;
 				}
-				double setpointPowerValue = setpointPowerMax - setpointPowerError;
-				if (setpointPowerValue > setpointPowerMax) {
-					setpointPowerValue = setpointPowerMax;
-				}
-				if (setpointPowerValue < 0) {
-					setpointPowerValue = 0;
+				if (setpointPowerError < 0) {
+					setpointPowerError = 0;
 				}
 				
-				Value setpointValue = new DoubleValue(setpointPowerValue, timestamp);
-				boolean setpointChanged = setpointPowerValue != getSetpointPower().doubleValue();
-				setpointPower.setLatestValue(setpointValue);
+				Value setpointPowerValue = new DoubleValue(setpointPowerError, timestamp);
+				boolean setpointChanged = setpointPowerError != getSetpointPower().doubleValue();
+				setpointPower.setLatestValue(setpointPowerValue);
 				if (setpointChanged) {
-					set(setpointValue);
+					set(setpointPowerValue);
 				}
 			} catch (InvalidValueException e) {
 				switch (e.getSeverity()) {

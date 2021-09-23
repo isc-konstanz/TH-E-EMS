@@ -2,7 +2,7 @@
  * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
- * For more information visit https://github.com/isc-konstanz/TH-E-EMS
+ * For more information visit https://github.com/isc-konstanz/th-e-ems
  * 
  * TH-E-EMS is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,7 +63,6 @@ public class TestConfiguration {
 		assertEquals("Channel", handler.getTestCollection("test_channel").getId());
 		assertEquals("Channel", handler.getTestWildcard("test_channel").getId());
 		assertEquals("Channel2", handler.getTestWildcard("test_channel2").getId());
-		assertEquals("Channel", handler.getTestChannel().getId());
 	}
 
 	@Test

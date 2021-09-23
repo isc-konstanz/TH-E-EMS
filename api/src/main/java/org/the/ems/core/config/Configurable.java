@@ -2,7 +2,7 @@
  * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E-EMS.
- * For more information visit https://github.com/isc-konstanz/TH-E-EMS
+ * For more information visit https://github.com/isc-konstanz/th-e-ems
  * 
  * TH-E-EMS is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -340,17 +340,8 @@ public abstract class Configurable {
 		return channel;
 	}
 
-	protected Channel getConfiguredChannel() throws ComponentException {
-		String key = getConfiguredKey();
-		return this.getConfiguredChannel(key);
-	}
-
 	protected Value getConfiguredValue(String key) throws ComponentException, InvalidValueException {
 		return getConfiguredChannel(key).getLatestValue();
-	}
-
-	protected Value getConfiguredValue() throws ComponentException, InvalidValueException {
-		return getConfiguredChannel().getLatestValue();
 	}
 
 	protected String getConfiguredKey() throws ComponentException {

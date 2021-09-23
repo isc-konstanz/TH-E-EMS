@@ -1,0 +1,118 @@
+{
+    "name": "HX10 Battery",
+    "category": "Inverter",
+    "group": "Effekta",
+    "description": "Pylontech battery",
+
+    "devices": [],
+
+    "options": [
+        {
+            "id": "inverter",
+            "name": "Inverter key",
+            "description": "The device key of the inverter, managing this battery.",
+            "type": "text",
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "soc",
+            "type": "Text",
+            "label": "State of Charge",
+            "header": true,
+            "format": "%i %",
+            "max": 100,
+            "min": 0,
+            "input": "<node>*soc"
+        },
+        {
+            "id": "voltage",
+            "type": "Text",
+            "label": "Voltage",
+            "format": "%.1f V",
+            "input": "<node>*voltage"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*power"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*setpoint*voltage",
+            "description": "Battery voltage setpoint",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:285:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"V", "scalingFactor": 0.1}
+        },
+        {
+            "name": "<node>*voltage",
+            "description": "Battery voltage",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:188:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"V", "scalingFactor": 0.1},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "Battery"}
+            }
+        },
+        {
+            "name": "<node>*voltage*min",
+            "description": "Battery minimal voltage",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:1477:UINT16",
+            "configs": {"samplingInterval": 60000, "valueType":"FLOAT", "unit":"V", "scalingFactor": 0.1}
+        },
+        {
+            "name": "<node>*soc",
+            "description": "Battery soc estimation",
+            "device": "<inverter>*ctrl",
+			"configs": {"valueType":"DOUBLE", "unit":"%"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": false, "engine":"SQL",
+                "feed": {"name": "State of charge", "tag": "Battery" }
+			}
+		},
+        {
+            "name": "<node>*power",
+            "description": "Basttery power",
+            "device": "<inverter>*ctrl",
+			"configs": {"valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "Battery" }
+			}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State of charge",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_soc",
+            "unit": "%"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Power",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power",
+            "unit": "W"
+        }
+    ]
+}

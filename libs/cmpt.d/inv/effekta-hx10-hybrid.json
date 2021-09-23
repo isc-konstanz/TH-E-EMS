@@ -1,0 +1,252 @@
+{
+    "name": "HX10 Hybrid",
+    "category": "Inverter",
+    "group": "Effekta",
+    "description": "Effekta HX10 hybrid inverter.<br>Requires the <b>Modbus</b> (RTU) driver to be installed",
+
+    "devices": [
+        {
+            "name": "<node>",
+            "description": "Modbus RTU connection",
+            "driver": "modbus",
+            "address": "<address>",
+            "settings": "RTU:SERIAL_ENCODING_RTU:<baudRate>:DATABITS_8:PARITY_NONE:STOPBITS_2:ECHO_FALSE:FLOWCONTROL_NONE:FLOWCONTROL_NONE"
+        },
+        {
+            "name": "<node>*ctrl",
+            "description": "Inverter control",
+            "driver": "virtual"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "address",
+            "name": "Address",
+            "description": "The physical device address to uniquely identify the inverter.<br><br><b>Example:</b><ol><li><b>Linux</b>: /dev/ttyS0 or /dev/ttyUSB0</li><li><b>Windows</b>: COM1</li></ol>",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "unitId",
+            "name": "Unid ID",
+            "description": "The device address of the Modbus slave.<br>The slave device address is assigned form 1 to 247.<br>Address 0 is used as broadcast address.</li></ul>",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "baudRate",
+            "name": "Baud rate",
+            "description": "The baud rate for the serial communication.",
+            "type": "selection",
+            "select": [
+                { "name": "300", "value": 300 },
+                { "name": "1200", "value": 1200 },
+                { "name": "2400", "value": 2400 },
+                { "name": "4800", "value": 4800 },
+                { "name": "9600", "value": 9600 },
+                { "name": "19200", "value": 19200 },
+                { "name": "38400", "value": 38400 },
+                { "name": "57600", "value": 57600 },
+                { "name": "115200", "value": 115200 },
+                { "name": "230400", "value": 230400 },
+                { "name": "460800", "value": 460800 },
+                { "name": "921600", "value": 921600 }
+            ],
+            "default": 19200,
+            "mandatory": false
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the values of the meter device will be read.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 5000,
+            "mandatory": false
+        },
+        {
+            "id": "offset",
+            "name": "Refresh offset",
+            "description": "Defines the time waited, until the values of the meter device will be read. Necessary for multiple meters on the same line.",
+            "type": "selection",
+            "select": [
+                { "name": "None", "value": 0 },
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 0,
+            "mandatory": false
+        }
+    ],
+
+    "items": [
+        {
+            "id": "setpoint",
+            "type": "Slider",
+            "label": "Export/Import",
+            "format": "%.1f kW",
+            "max": 10000,
+            "min": -10000,
+            "step": 100,
+            "scale": 10,
+            "default": 0,
+            "mapping": {
+                "SET": { "channel": "<node>*setpoint*power", "write":true }
+            },
+            "input": "<node>*setpoint*power",
+			"node": "<node>*ctrl"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*current",
+            "description": "Inverter current",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:230:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 1, "average": true, "engine":"SQL",
+                "feed": {"name": "Current DC", "tag": "Inverter"}
+            }
+        },
+        {
+            "name": "<node>*current*max",
+            "description": "Inverter maximal charging or discharging current",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:287:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1}
+        },
+        {
+            "name": "<node>*setpoint*import*current",
+            "description": "Inverter import current",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:1457:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
+                "feed": {"name": "Setpoint import current", "tag": "Inverter"}
+            }
+        },
+        {
+            "name": "<node>*setpoint*export*current",
+            "description": "Inverter export current",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:1240:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
+                "feed": {"name": "Setpoint export current", "tag": "Inverter"}
+            }
+        },
+        {
+            "name": "<node>*mode",
+            "description": "Inverter mode",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:7:UINT16",
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT"}
+        },
+        {
+            "name": "<node>*power",
+            "description": "Inverter power",
+            "device": "<node>*ctrl",
+			"configs": {"valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "Inverter"}
+			}
+        },
+        {
+            "name": "<node>*setpoint*power",
+            "description": "Inverter power setpoint",
+            "device": "<node>*ctrl",
+            "configs": {"valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": false, "engine":"SQL",
+                "feed": {"name": "Setpoint power", "tag": "Inverter"}
+			}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Current DC",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current",
+            "unit": "A"
+        },
+        {
+            "name": "Setpoint import current",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_setpoint_import_current",
+            "unit": "A"
+        },
+        {
+            "name": "Setpoint export current",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_setpoint_export_current",
+            "unit": "A"
+        },
+        {
+            "name": "Power",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power",
+            "unit": "W"
+        },
+        {
+            "name": "Setpoint power",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_setpoint_power",
+            "unit": "W"
+        }
+    ]
+}

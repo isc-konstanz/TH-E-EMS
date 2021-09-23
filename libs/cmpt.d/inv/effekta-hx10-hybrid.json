@@ -147,9 +147,9 @@
             "name": "<node>*current",
             "description": "Inverter current",
             "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:230:UINT16",
+            "address": "1:HOLDING_REGISTERS:230:INT16",
             "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 1, "average": true, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": true, "engine":"SQL",
                 "feed": {"name": "Current DC", "tag": "Inverter"}
             }
         },
@@ -157,16 +157,16 @@
             "name": "<node>*current*max",
             "description": "Inverter maximal charging or discharging current",
             "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:287:UINT16",
+            "address": "1:HOLDING_REGISTERS:287:INT16",
             "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1}
         },
         {
             "name": "<node>*setpoint*import*current",
             "description": "Inverter import current",
             "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:1457:UINT16",
+            "address": "1:HOLDING_REGISTERS:1457:INT16",
             "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
                 "feed": {"name": "Setpoint import current", "tag": "Inverter"}
             }
         },
@@ -174,9 +174,9 @@
             "name": "<node>*setpoint*export*current",
             "description": "Inverter export current",
             "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:1240:UINT16",
+            "address": "1:HOLDING_REGISTERS:1240:INT16",
             "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
                 "feed": {"name": "Setpoint export current", "tag": "Inverter"}
             }
         },
@@ -185,14 +185,14 @@
             "description": "Inverter mode",
             "device": "<node>",
             "address": "1:HOLDING_REGISTERS:7:UINT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT"}
+            "configs": {"samplingInterval": 5000, "valueType":"LONG"}
         },
         {
             "name": "<node>*power",
             "description": "Inverter power",
             "device": "<node>*ctrl",
 			"configs": {"valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
                 "feed": {"name": "Power", "tag": "Inverter"}
 			}
         },
@@ -201,7 +201,7 @@
             "description": "Inverter power setpoint",
             "device": "<node>*ctrl",
             "configs": {"valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": false, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 10, "average": false, "engine":"SQL",
                 "feed": {"name": "Setpoint power", "tag": "Inverter"}
 			}
         }

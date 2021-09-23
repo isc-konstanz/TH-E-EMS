@@ -57,8 +57,8 @@ configure(javaProjects()) {
     jar {
         manifest {
             archiveVersion = project.version.replace('-','.');
-            attributes('Bundle-Vendor':            projectVendor,
-                       'Bundle-DocURL':            projectRepository)
+            attributes('Bundle-Vendor': projectVendor,
+                       'Bundle-DocURL': projectRepository)
         }
     }
 

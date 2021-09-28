@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-inv-effekta'
 project.ext {
-    projectName = 'TH-E-Component-Effekta'
+    projectKey = 'th-e-ems-inv-effekta'
+    projectName = 'TH-E-EMS-Inverter-Effekta'
     projectFullName = 'TH-E EMS Component - Effekta Inverter'
     projectDescription = 'Effekta inverter component for TH-E EMS framework.'
 }
@@ -39,3 +39,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

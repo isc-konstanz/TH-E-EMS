@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-inv'
 project.ext {
-    projectName = 'TH-E-Component-Inverter'
+    projectKey = 'th-e-ems-inv'
+    projectName = 'TH-E-EMS-Inverter'
     projectFullName = 'TH-E EMS Component - Inverter'
     projectDescription = 'Inverter component for TH-E EMS framework.'
 }
@@ -41,3 +41,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

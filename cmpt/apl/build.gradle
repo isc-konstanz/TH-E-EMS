@@ -18,15 +18,15 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-apl'
 project.ext {
-    projectName = 'TH-E-Component-Appliance'
+    projectKey = 'th-e-ems-apl'
+    projectName = 'TH-E-EMS-Appliance'
     projectFullName = 'TH-E EMS Component - Appliance'
     projectDescription = 'Appliance component for TH-E EMS framework.'
 }
 
 dependencies {
-  api project(':cmpt')
+    api project(':cmpt')
 }
 
 jar {
@@ -40,3 +40,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

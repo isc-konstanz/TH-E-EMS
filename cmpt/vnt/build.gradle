@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-vnt'
 project.ext {
-    projectName = 'TH-E-Component-Ventilation'
+    projectKey = 'th-e-ems-vnt'
+    projectName = 'TH-E-EMS-Ventilation'
     projectFullName = 'TH-E EMS Component - Cabinet ventilation'
     projectDescription = 'Cabinet ventilation component for TH-E EMS framework.'
 }
@@ -40,3 +40,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

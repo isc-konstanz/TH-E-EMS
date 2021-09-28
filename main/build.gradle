@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-ems'
 project.ext {
-    projectName = 'TH-E-Main'
+    projectKey = 'th-e-ems'
+    projectName = 'TH-E-EMS-Main'
     projectFullName = 'TH-E EMS Main Manager'
     projectDescription = 'The Energy Management System of TH-E EMS framework'
 }
@@ -55,3 +55,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

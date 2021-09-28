@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/th-e-ems
@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-ctrl'
 project.ext {
-    projectName = 'TH-E-Control'
+    projectKey = 'th-e-ems-ctrl'
+    projectName = 'TH-E-EMS-Control'
     projectFullName = 'TH-E EMS Control - Core'
     projectDescription = 'The Control Core of TH-E EMS framework'
 }
@@ -40,3 +40,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

@@ -12,21 +12,24 @@ String projectReplace(String line, String date, String projectName, String proje
 }
 
 task deletePackages(type: Delete) {
-  delete Paths.get(rootDir.getPath(), 'build', 'dpkg')
-  followSymlinks = true
+    delete Paths.get(rootDir.getPath(), 'build', 'dpkg')
+    followSymlinks = true
 }
 
 task debianPackages {
     dependsOn(distributionProjects.build)
     dependsOn(deletePackages)
     doLast {
-        def date = new Date().format("EEE, dd MMM yyyy HH:mm:ss ZZZZ", TimeZone.getTimeZone(projectTimeZone)) 
+        def date = new Date().format("EEE, dd MMM yyyy HH:mm:ss ZZZZ", TimeZone.getTimeZone(projectTimeZone))
         for (Project project: distributionProjects) {
             if (project.getProjectDir().equals(getProjectDir())) {
                 continue
             }
-            def projectName = project.archivesBaseName
-            def projectDesc = project.ext.projectDescription
+            if (['api', 'cms'].any { project.name.contains(it) }) {
+                continue
+            }
+            def projectName = project.projectKey
+            def projectDesc = project.projectDescription
             def projectDir = project.getProjectDir().getPath()
             def projectPackage = Paths.get(rootDir.getPath(), 'build', 'dpkg', projectName + '-' + projectVersion).toString()
             def projectBundles = Paths.get(projectPackage, 'bundle').toString()
@@ -34,7 +37,6 @@ task debianPackages {
             def projectDepends = project.configurations.runtimeClasspath { transitive = false }
 								                       .findAll { it.getName().startsWith('th-e-') }
 								                       .collect { it.getName().replaceAll('th-e-api-.*jar', 'th-e-ems')
-								                                              .replaceAll('th-e-cmpt-.*jar', 'th-e-ems')
 								                                              .replaceAll('-[0-9].*jar', '') }.unique().join(', ')
             if (!projectDepends?.trim()) {
                 projectDepends = 'th-e-ems'

@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cms-mock'
 project.ext {
-    projectName = 'TH-E-CMS-Mockup'
+    projectKey = 'th-e-ems-cms-mock'
+    projectName = 'TH-E-EMS-CMS-Mockup'
     projectFullName = 'TH-E EMS Content Managment System - OpenMUC Mockup'
     projectDescription = 'The OpenMUC Content Management System Mockup of TH-E EMS framework'
 }
@@ -51,3 +51,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

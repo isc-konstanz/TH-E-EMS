@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-ctrl-tp'
 project.ext {
-    projectName = 'TH-E-Control-TwoPoint'
+    projectKey = 'th-e-ems-ctrl-tp'
+    projectName = 'TH-E-EMS-Control-TwoPoint'
     projectFullName = 'TH-E EMS Control - Two-Point'
     projectDescription = 'The Two-Point Control of TH-E EMS framework'
 }
@@ -40,3 +40,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-tes'
 project.ext {
-    projectName = 'TH-E-Component-ThermalEnergyStorage'
+    projectKey = 'th-e-ems-tes'
+    projectName = 'TH-E-EMS-ThermalEnergyStorage'
     projectFullName = 'TH-E EMS Component - Thermal Energy Storage'
     projectDescription = 'Thermal energy storage component for TH-E EMS framework.'
 }
@@ -40,3 +40,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

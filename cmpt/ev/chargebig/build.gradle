@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-ev-chargebig'
 project.ext {
-    projectName = 'TH-E-Component-ChargeBIG'
+    projectKey = 'th-e-ems-ev-chargebig'
+    projectName = 'TH-E-EMS-ElectricVehicle-ChargeBIG'
     projectFullName = 'TH-E EMS Components - chargeBIG Electric Vehicle'
     projectDescription = 'ChargeBIG electric vehicle component for TH-E EMS framework.'
 }
@@ -40,3 +40,5 @@ eclipse {
         name = projectName
     }
 }
+
+archivesBaseName = projectKey

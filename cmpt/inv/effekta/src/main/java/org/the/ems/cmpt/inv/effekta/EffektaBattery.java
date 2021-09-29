@@ -42,13 +42,13 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	private Channel currentMax;
 
 	@Configuration
-	private Channel dischargeCurrent;
+	private Channel currentExport;
 
 	@Configuration
 	private Channel voltageSetpoint;
 
 	@Configuration
-	private Channel chargeCurrent;
+	private Channel currentImport;
 
 	@Configuration
 	private Channel power;
@@ -90,8 +90,8 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	void deregister() {
 		soc.deregister();
-		voltage.deregister();
-		current.deregister();
+        voltage.deregister();
+        current.deregister();
 	}
 	
 	public Channel getMaxCurrent() {
@@ -115,12 +115,12 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return dischargeVoltageMin;
 	}
 
-	public Channel getChargeCurrent() {
-		return chargeCurrent;
+	public Channel getCurrentImport() {
+		return currentImport;
 	}
 
-	public Channel getDischargeCurrent() {
-		return dischargeCurrent;
+	public Channel getCurrentExport() {
+		return currentExport;
 	}
 
 	public Channel getVoltageSetpoint() {

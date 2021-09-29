@@ -33,7 +33,7 @@ import org.the.ems.core.data.ValueListener;
 public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
-	private double chargeVoltageMax = 53;
+	private double chargeVoltageMax = 52;
 
 	@Configuration
 	private double dischargeVoltageMin = 48;

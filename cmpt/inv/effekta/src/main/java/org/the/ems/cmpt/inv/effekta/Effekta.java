@@ -46,12 +46,9 @@ public class Effekta extends Inverter<EffektaBattery> {
 	private double soc = 0;
 	private double voltage = 0;
 	private double current = 0;
-	private boolean dischargeProtection = false;
 	private double dischargeProtectionPower;
 	private boolean initialized = false;
-
-	@Configuration
-	private Channel socEstimation;
+	private boolean dischargeProtection = false;
 
 	@Configuration(mandatory = false)
 	private boolean activeError = false;
@@ -61,6 +58,15 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 	@Configuration
 	private Channel operationMode;
+
+	@Configuration
+	private Channel socEstimation;
+
+	@Configuration(mandatory = false)
+	private Channel powerInverter;
+
+	@Configuration(mandatory = false)
+	private Channel powerCHP;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
@@ -102,6 +108,10 @@ public class Effekta extends Inverter<EffektaBattery> {
 		setMode(container, Mode.DEFAULT);
 		dischargeProtectionPower = this.getMaxPower();
 
+		if (powerCHP != null) {
+			powerCHP.setLatestValue(new DoubleValue(0));
+		}
+
 		try {
 			doWrite(container);
 		} catch (EnergyManagementException e) {
@@ -131,7 +141,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 					}
 				}
 			} catch (Exception e) {
-				logger.warn("Obligatory storage value missing: {}", e.getMessage());
+				logger.warn("Obligatory value missing on setpoint update: {}", e.getMessage());
 			}
 			break;
 		case DISABLED:
@@ -257,11 +267,11 @@ public class Effekta extends Inverter<EffektaBattery> {
 					try {
 						doWrite(container);
 					} catch (EnergyManagementException e) {
-						logger.warn("Could not set new power value: {}", e.getMessage());
+						logger.warn("Could not write power value: {}", e.getMessage());
 					}
 				}
 			} catch (Exception e) {
-				logger.warn("Obligatory storage value missing: {}", e.getMessage());
+				logger.warn("Obligatory value missing on state of charge update: {}", e.getMessage());
 			}
 		}
 	}
@@ -274,42 +284,50 @@ public class Effekta extends Inverter<EffektaBattery> {
 			WriteContainer container = new WriteContainer();
 
 			if (!initialized) {
-				container.addDouble(socEstimation, (value.doubleValue() - storage.getMinVoltage())
-						/ (storage.getMaxVoltage() - storage.getMinVoltage()) * 100, time + messagesDelay);
-				initialized = true;
-				logger.info("SOC estimation initialialized with {} %", value.doubleValue());
+				socEstimation.setLatestValue(new DoubleValue((value.doubleValue() - storage.getMinVoltage())
+						/ (storage.getMaxVoltage() - storage.getMinVoltage()) * 100));
+				try {
+					container.addDouble(socEstimation, socEstimation.getLatestValue().doubleValue(), time + messagesDelay);
+					doWrite(container);
+					initialized = true;
+				} catch (Exception e) {
+					logger.warn("SOC initialization failed: {}", e.getMessage());
+				}
 			}
 
-			try {
-				if (voltage != value.doubleValue()) {
+			if (voltage != value.doubleValue()) {
+				try {
 					setSOCEstimation(value.doubleValue(), current, value.getTime());
-
-					if (mode == Mode.CHARGE_FROM_GRID) {
-						container.addDouble(storage.getChargeCurrent(),
-								setpointPower.doubleValue() / value.doubleValue(), time);
-					} else if (mode == Mode.FEED_INTO_GRID) {
-						if (value.doubleValue() > storage.getMinVoltage() + 0.1) {
-							container.addDouble(storage.getDischargeCurrent(),
-									-setpointPower.doubleValue() / value.doubleValue(), time);
-							dischargeProtection = false;
-						} else if (value.doubleValue() <= storage.getMinVoltage() || dischargeProtection) {
-							setpointPower = new DoubleValue(setpointPower.doubleValue() - 200);
-							container.addDouble(storage.getDischargeCurrent(), -setpointPower.doubleValue() / voltage,
-									time);
-							dischargeProtection = true;
-						}
-					}
-
-					try {
-						doWrite(container);
-					} catch (EnergyManagementException e) {
-						logger.warn("Could not set new value: {}", e.getMessage());
-					}
-					voltage = value.doubleValue();
-					storage.setPower(new DoubleValue(voltage * current));
+				} catch (InvalidValueException e1) {
+					logger.warn("Could not set soc estimation value: {}", e1.getMessage());
 				}
-			} catch (Exception e) {
-				logger.warn("Obligatory storage value missing: {}", e.getMessage());
+
+				if (mode == Mode.CHARGE_FROM_GRID) {
+					container.addDouble(storage.getChargeCurrent(), setpointPower.doubleValue() / value.doubleValue(),
+							time);
+					if (value.doubleValue() >= storage.getMinVoltage() + 1) {
+						dischargeProtection = false;
+					}
+				} else if (mode == Mode.FEED_INTO_GRID) {
+					if (value.doubleValue() > storage.getMinVoltage() + 0.1) {
+						container.addDouble(storage.getDischargeCurrent(),
+								-setpointPower.doubleValue() / value.doubleValue(), time);
+						dischargeProtection = false;
+					} else if (value.doubleValue() <= storage.getMinVoltage() || dischargeProtection) {
+						setpointPower = new DoubleValue(setpointPower.doubleValue() - 1000);
+						container.addDouble(storage.getDischargeCurrent(), -setpointPower.doubleValue() / voltage,
+								time);
+						dischargeProtection = true;
+					}
+				}
+
+				try {
+					doWrite(container);
+				} catch (EnergyManagementException e) {
+					logger.warn("Write channel error. Could not set new values: {}", e.getMessage());
+				}
+				voltage = value.doubleValue();
+				storage.setPower(new DoubleValue(voltage * current));
 			}
 
 		}
@@ -321,36 +339,46 @@ public class Effekta extends Inverter<EffektaBattery> {
 		public void onValueReceived(Value value) {
 			long time = value.getTime();
 			long socTime = 0;
-			try {
-				socTime = socEstimation.getLatestValue().getTime();
-
-			} catch (InvalidValueException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			if (initialized) {
+				try {
+					socTime = socEstimation.getLatestValue().getTime();
+				} catch (InvalidValueException e) {
+					logger.warn("SOC estimation error. No SOC value yet: {}", e.getMessage());
+				}
 			}
 
 			if (value.doubleValue() != current || time - socTime >= 60000) {
+				current = value.doubleValue();
+				
 				if (initialized) {
 					try {
 						setSOCEstimation(voltage, value.doubleValue(), value.getTime());
 					} catch (InvalidValueException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-
-//					if (dischargeProtection) {
-//						WriteContainer container = new WriteContainer();
-//						//TODO:
-//						try {
-//							doWrite(container);
-//						} catch (EnergyManagementException e) {
-//							logger.warn("Could not set new value: {}", e.getMessage());
-//						}
-//					}
 				}
 
-				current = value.doubleValue();
-				storage.setPower(new DoubleValue(current * voltage));
+				if (powerInverter != null) {
+					powerInverter.setLatestValue(new DoubleValue(current * voltage));
+				}
+
+				if (powerCHP != null) {
+					try {
+						if (mode != Mode.CHARGE_FROM_GRID) {
+							storage.setPower(
+									new DoubleValue(current * voltage + powerCHP.getLatestValue().doubleValue()));
+						} else if (mode != Mode.FEED_INTO_GRID) {
+							storage.setPower(
+									new DoubleValue(-current * voltage + powerCHP.getLatestValue().doubleValue()));
+						}
+					} catch (InvalidValueException e) {
+						e.printStackTrace();
+					}
+				} else {
+					storage.setPower(new DoubleValue(current * voltage));
+				}
+
 			}
 		}
 	}

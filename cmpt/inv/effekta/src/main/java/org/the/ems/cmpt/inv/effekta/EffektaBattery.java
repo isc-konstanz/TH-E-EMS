@@ -51,7 +51,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	private Channel currentImport;
 
 	@Configuration
-	private Channel power;
+	private Channel powerStorage;
 
 	@Configuration
 	protected ChannelListener current;
@@ -128,6 +128,6 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	}
 
 	public void setPower(Value value) {
-		power.setLatestValue(value);
+		powerStorage.setLatestValue(value);
 	}
 }

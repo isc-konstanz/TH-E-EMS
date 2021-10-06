@@ -29,7 +29,6 @@ import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-
 public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
@@ -37,30 +36,24 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
 	private double dischargeVoltageMin = 48;
-	
-	@Configuration
-	private Channel currentMax;
 
 	@Configuration
-	private Channel currentExport;
+	private Channel currentMax;
 
 	@Configuration
 	private Channel voltageSetpoint;
 
 	@Configuration
-	private Channel currentImport;
-
-	@Configuration
 	private Channel powerStorage;
 
 	@Configuration
-	protected ChannelListener current;
+	private Channel soc;
+	
+	@Configuration
+	private Channel current;
 
 	@Configuration
 	protected ChannelListener voltage;
-
-	@Configuration
-	protected ChannelListener soc;
 
 	@Override
 	public Value getVoltage() throws ComponentException, InvalidValueException {
@@ -68,63 +61,50 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	}
 
 	@Override
-	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
+	public Value getPower() throws InvalidValueException {
+		return new DoubleValue(current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue());
+	}
+
+	@Override
+	public Value getStateOfCharge() throws InvalidValueException {
 		return soc.getLatestValue();
 	}
-
-	void registerStateOfChargeListener(ValueListener listener) {
-		soc.registerValueListener(listener);
+	
+	public void setStateOfCharge(Value value)  {
+		soc.setLatestValue(value);
 	}
 
-	void deregisterStateOfChargeListener() {
-		soc.deregister();
-	}
 
 	void registerVoltageListener(ValueListener listener) {
 		voltage.registerValueListener(listener);
 	}
 
-	void registerCurrentListener(ValueListener listener) {
-		current.registerValueListener(listener);
+	void deregister() {
+		voltage.deregister();
 	}
 
-	void deregister() {
-		soc.deregister();
-        voltage.deregister();
-        current.deregister();
-	}
-	
-	public Channel getMaxCurrent() {
+	public Channel getCurrentMax() {
 		return currentMax;
 	}
-	
+
 	public Value getCurrent() throws InvalidValueException {
 		return current.getLatestValue();
 	}
-	
-	@Override
-	public Value getPower() throws InvalidValueException {
-		return new DoubleValue(current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue());
-	}
 
-	public double getMaxVoltage() {
+	public double getVoltageMax() {
 		return chargeVoltageMax;
 	}
 
-	public double getMinVoltage() {
+	public double getVoltageMin() {
 		return dischargeVoltageMin;
-	}
-
-	public Channel getCurrentImport() {
-		return currentImport;
-	}
-
-	public Channel getCurrentExport() {
-		return currentExport;
 	}
 
 	public Channel getVoltageSetpoint() {
 		return voltageSetpoint;
+	}
+
+	public void setCurrent(Value value) {
+		current.setLatestValue(value);
 	}
 
 	public void setPower(Value value) {

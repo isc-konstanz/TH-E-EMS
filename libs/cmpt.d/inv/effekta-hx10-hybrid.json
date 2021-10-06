@@ -132,13 +132,11 @@
             "max": 10000,
             "min": -10000,
             "step": 100,
-            "scale": 10,
             "default": 0,
             "mapping": {
                 "SET": { "channel": "<node>*setpoint*power", "write":true }
             },
-            "input": "<node>*setpoint*power",
-			"node": "<node>*ctrl"
+            "input": "<node>*setpoint*power"
         }
     ],
 
@@ -148,7 +146,7 @@
             "description": "Inverter current",
             "device": "<node>",
             "address": "1:HOLDING_REGISTERS:230:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A"},
+            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": -0.1},
             "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": true, "engine":"SQL",
                 "feed": {"name": "Current DC", "tag": "Inverter"}
             }

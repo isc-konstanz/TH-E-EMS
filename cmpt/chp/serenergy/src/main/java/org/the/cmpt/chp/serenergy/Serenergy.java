@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.the.cmpt.chp.serenergy.data.Request;
 import org.the.cmpt.chp.serenergy.data.State;
 import org.the.ems.cmpt.chp.Cogenerator;
+import org.the.ems.core.ComponentCollection;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.EnergyManagementException;
@@ -30,7 +31,7 @@ import org.the.ems.core.data.WriteContainer;
 public class Serenergy extends Cogenerator {
 
 	private static final Logger logger = LoggerFactory.getLogger(Serenergy.class);
-
+	private final ComponentCollection storages = new ComponentCollection();
 	@Configuration(mandatory = false)
 	protected int enableDelay = 2500;
 
@@ -99,6 +100,41 @@ public class Serenergy extends Cogenerator {
 		// to be on operating temperature first.
 	}
 
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	protected void bindElectricalStorageService(ElectricalEnergyStorageService storageService) {
+		bindComponentService(storageService);
+	}
+
+	protected void unbindElectricalStorageService(ElectricalEnergyStorageService storageService) {
+		unbindComponentService(storageService);
+	}
+
+	@Reference(
+			cardinality = ReferenceCardinality.MULTIPLE,
+			policy = ReferencePolicy.DYNAMIC
+		)
+		protected void bindComponentService(ComponentService componentService) {
+			String id = componentService.getId();
+			
+			synchronized (storages) {
+				if (!storages.containsKey(id)) {
+//					logger.info("Registered TH-E EMS {}: {}", 
+//							componentService.getType().getFullName(), id);					
+					storages.put(id, componentService);
+				}
+			}
+		}
+
+	protected void unbindComponentService(ComponentService componentService) {
+		String id = componentService.getId();
+		
+		synchronized (storages) {
+			logger.info("Deregistered TH-E EMS in Serenergy{}: {}", 
+					componentService.getType().getFullName(), id);
+			
+			storages.remove(id);
+		}
+	}
 	private class StackTempListener implements ValueListener {
 
 		@Override

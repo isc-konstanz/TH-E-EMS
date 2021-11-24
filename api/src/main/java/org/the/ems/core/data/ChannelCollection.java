@@ -28,20 +28,16 @@ public class ChannelCollection extends HashMap<String, Channel> {
 		return get(e.toString());
 	}
 
-	public <E extends Enum<E>> void register(E e, ValueListener listener) {
+	public <E extends Enum<E>> void registerValueListener(E e, ValueListener listener) {
 		get(e).registerValueListener(listener);
 	}
 
-	public void register(String key, ValueListener listener) {
+	public void registerValueListener(String key, ValueListener listener) {
 		get(key).registerValueListener(listener);
 	}
 
-	public void deregister() {
-		for (Channel channel : values()) {
-			if (channel instanceof ChannelListener) {
-				((ChannelListener) channel).deregister();
-			}
-		}
+	public void deregisterValueListeners() {
+		values().stream().forEach(c -> c.deregisterValueListeners());
 	}
 
 }

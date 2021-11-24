@@ -23,7 +23,6 @@ import static org.the.ems.core.data.InvalidValueException.Severity.ERROR;
 import static org.the.ems.core.data.InvalidValueException.Severity.INFO;
 import static org.the.ems.core.data.InvalidValueException.Severity.WARNING;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -72,7 +71,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	public ChannelWrapper(ChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
 		this.callbacks = callbacks;
 		this.channel = channel;
-		this.listeners = new ArrayList<ValueListener>();
+		this.listeners = new LinkedList<ValueListener>();
 	}
 
 	@Override
@@ -113,6 +112,14 @@ public class ChannelWrapper implements Channel, RecordListener {
 			if (listeners.size() == 0) {
 				channel.removeListener(this);
 			}
+		}
+	}
+
+	@Override
+	public void deregisterValueListeners() {
+		synchronized (listeners) {
+			listeners.clear();
+			channel.removeListener(this);
 		}
 	}
 

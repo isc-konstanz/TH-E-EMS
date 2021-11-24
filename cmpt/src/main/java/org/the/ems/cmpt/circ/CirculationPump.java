@@ -29,7 +29,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -49,7 +49,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	private double flowTempDeltaMin = 0.5;
 
 	@Configuration
-	private ChannelListener state;
+	private Channel state;
 
 	private Value stateValueLast = new BooleanValue(false);
 
@@ -97,7 +97,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	public void deactivate() {
 		if (isEnabled()) {
 			circulation.deregister();
-			state.deregister();
+			state.deregisterValueListeners();
 		}
 		running = false;
 	}

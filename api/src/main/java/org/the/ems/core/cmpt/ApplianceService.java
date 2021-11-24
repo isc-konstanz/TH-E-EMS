@@ -25,6 +25,7 @@ import org.the.ems.core.RunnableService;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
 public interface ApplianceService extends RunnableService {
 
@@ -35,8 +36,8 @@ public interface ApplianceService extends RunnableService {
 		return ComponentType.APPLIANCE;
 	};
 
-	/*
-	 * Get the default value with which a component will be started with.
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public default Value getStartValue(long time) {
@@ -44,28 +45,102 @@ public interface ApplianceService extends RunnableService {
 	}
 
 	/*
-	 * Get the default power with which a component will be started with in watts [W].
+	 * Get the default power with which an appliance will be started with in watts [W].
+	 * 
+	 * @return the default power with which an appliance will be started with
 	 */
 	public double getStartPower();
 
 	/*
-	 * Get the minimum power in watts [W].
+	 * Get the minimum power of this appliance in watts [W].
+	 * 
+	 * @return the minimum power of this appliance component
 	 */
 	public double getMinPower();
 
 	/*
-	 * Get the maximum power in watts [W].
+	 * Get the maximum power of this appliance in watts [W].
+	 * 
+	 * @return the maximum power of this appliance component
 	 */
 	public double getMaxPower();
 
 	/*
 	 * Get the consumed energy in kilowatt hours [kWh].
+	 * 
+	 * @return the consumed energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getEnergy() throws ComponentException, InvalidValueException;
 
 	/*
+	 * Get the consumed energy in kilowatt hours [kWh].
+	 * Additionally, register a {@link ValueListener}, to be notified of new energy values.
+	 * 
+	 * @return the consumed energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getEnergy(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new energy values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
 	 * Get the consumption power in watts [W].
+	 * 
+	 * @return the consumed power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getPower() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the consumed power in watts [W].
+	 * Additionally, register a {@link ValueListener}, to be notified of new power values.
+	 * 
+	 * @return the consumed power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getPower(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerPowerListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterPowerListener(ValueListener listener) throws ComponentException;
 
 }

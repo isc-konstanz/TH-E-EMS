@@ -27,7 +27,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -43,13 +43,13 @@ public class ExternalPower extends Configurable implements ValueListener {
 	private Channel virtualPower;
 
 	@Configuration
-	private ChannelListener activePower;
+	private Channel activePower;
 
 	@Configuration
-	private ChannelListener solarPower;
+	private Channel solarPower;
 
 	@Configuration(mandatory=false)
-	private ChannelListener solarEnergy;
+	private Channel solarEnergy;
 	private Value solarEnergyLast = null;
 
 	private volatile boolean running = false;
@@ -96,10 +96,10 @@ public class ExternalPower extends Configurable implements ValueListener {
 
 	public void deactivate() {
 		if (isEnabled()) {
-			activePower.deregister();
-			solarPower.deregister();
+			activePower.deregisterValueListeners();
+			solarPower.deregisterValueListeners();
 			if (solarEnergy != null) {
-				solarEnergy.deregister();
+				solarEnergy.deregisterValueListeners();
 			}
 		}
 		running = false;

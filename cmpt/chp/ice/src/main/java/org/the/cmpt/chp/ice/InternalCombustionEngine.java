@@ -14,7 +14,6 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -51,21 +50,13 @@ public class InternalCombustionEngine extends Cogenerator {
 	protected int engineModePostDelay = 50;
 
 	@Configuration
-	protected ChannelListener engine;
+	protected Channel engine;
 
 	@Configuration(mandatory = false)
 	protected float tempMax = 90;
 
 	@Configuration(value="temp_max_*")
 	protected ChannelCollection temperatures;
-
-	@Configuration(value="el_power")
-	protected ChannelListener power;
-
-	@Override
-	public Value getElectricalPower() throws ComponentException, InvalidValueException {
-		return power.getLatestValue();
-	}
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
@@ -79,8 +70,8 @@ public class InternalCombustionEngine extends Cogenerator {
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		engine.deregister();
-		temperatures.deregister();
+		engine.deregisterValueListeners();
+		temperatures.deregisterValueListeners();
 	}
 
 	@Override

@@ -28,7 +28,6 @@ configurations.create('embed')
 configurations.embed.transitive = false;
 
 dependencies {
-    api fileTree(dir: '../libs/openmuc', include: ['*.jar'])
     api project(':api')
 
     implementation project(':cms')

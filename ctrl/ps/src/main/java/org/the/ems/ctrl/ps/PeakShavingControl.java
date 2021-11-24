@@ -12,7 +12,6 @@ import org.the.ems.core.ComponentType;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -59,10 +58,10 @@ public class PeakShavingControl extends TwoPointControl {
 	protected Channel setpoint;
 
 	@Configuration
-	protected ChannelListener power;
+	protected Channel power;
 
 	@Configuration(mandatory=false, value={"power_limit", "power_limitation"})
-	protected ChannelListener powerLimit;
+	protected Channel powerLimit;
 	
 	@Configuration(mandatory=false)
 	protected double powerScale = 1;
@@ -87,7 +86,7 @@ public class PeakShavingControl extends TwoPointControl {
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		power.deregister();
+		power.deregisterValueListeners();
 	}
 
 	protected void set(Value value) {

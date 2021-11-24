@@ -33,7 +33,6 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
@@ -49,13 +48,15 @@ public abstract class Runnable extends Component implements RunnableService {
 	protected int idletimeMin = 60000;
 
 	@Configuration(mandatory=false)
-	protected ChannelListener state;
+	protected Channel state;
 
-	protected volatile RunState runState = RunState.DEFAULT;
+	protected StateListener stateListener;
 
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
 	protected volatile long stopTimeLast = 0;
+
+	protected volatile RunState runState = RunState.DEFAULT;
 
 	@Override
 	public RunState getState() {
@@ -96,7 +97,8 @@ public abstract class Runnable extends Component implements RunnableService {
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		if (state != null) {
-			state.registerValueListener(new StateListener());
+			stateListener = new StateListener();
+			state.registerValueListener(stateListener);
 		}
 		runState = RunState.STANDBY;
 	}
@@ -111,7 +113,7 @@ public abstract class Runnable extends Component implements RunnableService {
 			logger.warn("Error while stopping {} during deactivation: {}", id, e.getMessage());
 		}
 		if (state != null) {
-			state.deregister();
+			state.deregisterValueListener(stateListener);
 		}
 	}
 

@@ -30,7 +30,7 @@ import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -43,19 +43,19 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	private volatile InverterCallbacks callbacks = null;
 
 	@Configuration(section=Configurations.GENERAL)
-	private ChannelListener consPower;
+	private Channel consPower;
 
 	@Configuration
-	private ChannelListener acPower;
+	private Channel acPower;
 
 	@Configuration(value= {"dc1_power", "dc_power"})
-	private ChannelListener dc1Power;
+	private Channel dc1Power;
 
 	@Configuration(mandatory=false)
-	private ChannelListener dc2Power;
+	private Channel dc2Power;
 
 	@Configuration
-	private ChannelListener eesPower;
+	private Channel eesPower;
 
 	private Map<PowerType, Value> powerValues = new HashMap<PowerType, Value>();
 
@@ -105,14 +105,14 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	}
 
 	public void deactivate() {
-		consPower.deregister();
+		consPower.deregisterValueListeners();
 		
 		if (isEnabled()) {
-			eesPower.deregister();
-			acPower.deregister();
-			dc1Power.deregister();
+			eesPower.deregisterValueListeners();
+			acPower.deregisterValueListeners();
+			dc1Power.deregisterValueListeners();
 			if (dc2Power != null) {
-				dc2Power.deregister();
+				dc2Power.deregisterValueListeners();
 			}
 		}
 		callbacks = null;

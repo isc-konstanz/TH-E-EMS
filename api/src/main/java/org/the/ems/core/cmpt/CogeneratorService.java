@@ -24,6 +24,7 @@ import org.the.ems.core.ComponentType;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
 public interface CogeneratorService extends HeatingService {
 
@@ -36,11 +37,15 @@ public interface CogeneratorService extends HeatingService {
 
 	/*
 	 * Get the thermal efficiency in percent [%] between 0 and 100%.
+	 * 
+	 * @return the thermal efficiency in percent [%]
 	 */
 	public double getThermalEfficiency();
 
 	/*
 	 * Get the electrical efficiency in percent [%] between 0 and 100%.
+	 * 
+	 * @return the electrical efficiency in percent [%]
 	 */
 	public double getElectricalEfficiency();
 
@@ -50,8 +55,66 @@ public interface CogeneratorService extends HeatingService {
 	public Value getElectricalEnergy() throws ComponentException, InvalidValueException;
 
 	/*
+	 * Get the generated electrical energy in kilowatt hours [kWh].
+	 * Additionally, register a {@link ValueListener}, to be notified of new electrical energy values.
+	 * 
+	 * @return the generated electrical energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getElectricalEnergy(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new electrical energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerElectricalEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new electrical energy values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterElectricalEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
 	 * Get the generated electrical power in watts [W].
 	 */
 	public Value getElectricalPower() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the generated electrical power in watts [W].
+	 * Additionally, register a {@link ValueListener}, to be notified of new electrical power values.
+	 * 
+	 * @return the generated electrical power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getElectricalPower(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new electrical power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerElectricalPowerListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new electrical power values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterElectricalPowerListener(ValueListener listener) throws ComponentException;
 
 }

@@ -58,7 +58,7 @@ public class TwoPointControl extends Control {
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		
-		temperatures.deregister();
+		temperatures.deregisterValueListeners();
 	}
 
 }

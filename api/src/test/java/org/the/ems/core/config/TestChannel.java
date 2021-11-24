@@ -45,6 +45,10 @@ public class TestChannel implements Channel {
 	}
 
 	@Override
+	public void deregisterValueListeners() {
+	}
+
+	@Override
 	public Value getLatestValue(ValueListener listener) {
 		return null;
 	}

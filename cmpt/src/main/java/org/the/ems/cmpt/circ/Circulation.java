@@ -30,7 +30,6 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -63,7 +62,7 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 
 	// The channel key of the counter in liters
 	@Configuration
-	private ChannelListener flowCounter;
+	private Channel flowCounter;
 
 	@Configuration
 	private Channel flowEnergy;
@@ -72,10 +71,10 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	private Channel flowPower;
 
 	@Configuration
-	private ChannelListener flowTempIn;
+	private Channel flowTempIn;
 
 	@Configuration
-	private ChannelListener flowTempOut;
+	private Channel flowTempOut;
 
 	@Configuration
 	private Channel flowTempDelta;
@@ -117,9 +116,9 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 
 	public void deactivate() {
 		if (isEnabled()) {
-			flowCounter.deregister();
-			flowTempIn.deregister();
-			flowTempOut.deregister();
+			flowCounter.deregisterValueListeners();
+			flowTempIn.deregisterValueListeners();
+			flowTempOut.deregisterValueListeners();
 		}
 	}
 

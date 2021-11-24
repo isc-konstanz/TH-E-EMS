@@ -33,6 +33,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
@@ -80,15 +81,60 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	}
 
 	@Override
+	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(STATE_VALUE, listener);
+	}
+
+	@Override
+	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(STATE_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(STATE_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=POWER_VALUE, mandatory=false)
 	public Value getPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(POWER_VALUE);
 	}
 
 	@Override
+	public Value getPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(POWER_VALUE, listener);
+	}
+
+	@Override
+	public void registerPowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(POWER_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterPowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(POWER_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=VOLTAGE_VALUE, mandatory=false)
 	public Value getVoltage() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(VOLTAGE_VALUE);
+	}
+
+	@Override
+	public Value getVoltage(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_VALUE, listener);
+	}
+
+	@Override
+	public void registerVoltageListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(VOLTAGE_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(VOLTAGE_VALUE, listener);
 	}
 
 	public void activate(BundleContext context, Map<String, ?> properties) throws ComponentException {

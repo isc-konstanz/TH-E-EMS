@@ -33,10 +33,10 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.InvalidValueException;
+import org.the.ems.core.data.ValueListener;
 
 public abstract class Configurable {
 
@@ -209,17 +209,12 @@ public abstract class Configurable {
 
 	private Object configureField(Configurations configs, Class<?> type, 
 			String section, String key) throws ConfigurationException {
-		
+
 		try {
 			if (Channel.class.isAssignableFrom(type)) {
 				Channel channel = configureChannel(configs, section, key);
 				
-				if (type.isAssignableFrom(ChannelListener.class)) {
-					return new ChannelListener(channel);
-				}
-				else {
-					return channel;
-				}
+				return channel;
 			}
 			else {
 				return configs.get(section, key, type);
@@ -340,8 +335,31 @@ public abstract class Configurable {
 		return channel;
 	}
 
+	protected Channel getConfiguredChannel(String key, ValueListener listener) throws ConfigurationException {
+		Channel channel =  getConfiguredChannel(key);
+		channel.registerValueListener(listener);
+		return channel;
+	}
+
+	protected void registerConfiguredValueListener(String key, ValueListener listener) throws ConfigurationException {
+		Channel channel =  getConfiguredChannel(key);
+		channel.registerValueListener(listener);
+	}
+
+	protected void deregisterConfiguredValueListener(String key, ValueListener listener) throws ConfigurationException {
+		Channel channel =  getConfiguredChannel(key);
+		channel.deregisterValueListener(listener);
+	}
+
+	protected Value getConfiguredValue(String key, ValueListener listener) throws ComponentException, InvalidValueException {
+		Channel channel =  getConfiguredChannel(key);
+		channel.registerValueListener(listener);
+		return channel.getLatestValue();
+	}
+
 	protected Value getConfiguredValue(String key) throws ComponentException, InvalidValueException {
-		return getConfiguredChannel(key).getLatestValue();
+		Channel channel =  getConfiguredChannel(key);
+		return channel.getLatestValue();
 	}
 
 	protected String getConfiguredKey() throws ComponentException {

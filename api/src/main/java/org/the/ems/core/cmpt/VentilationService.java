@@ -34,11 +34,15 @@ public interface VentilationService extends ComponentService {
 
 	/*
 	 * Start the ventilation.
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs starting the ventilation
 	 */
 	public void start() throws EnergyManagementException;
 
 	/*
 	 * Stop the ventilation.
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs stopping the ventilation
 	 */
 	public void stop() throws EnergyManagementException;
 

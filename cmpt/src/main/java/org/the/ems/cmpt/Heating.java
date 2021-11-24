@@ -34,6 +34,7 @@ import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
@@ -55,39 +56,152 @@ public abstract class Heating extends Runnable implements HeatingService {
 	protected Circulation circulation;
 	protected CirculationPump circulationPump;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)
 	public Value getElectricalEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public Value getElectricalEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void registerElectricalEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(ELECTRICAL_ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void deregisterElectricalEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(ELECTRICAL_ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	@Configuration(value=THERMAL_ENERGY_VALUE, mandatory=false)
 	public Value getThermalEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(THERMAL_ENERGY_VALUE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Value getThermalEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(THERMAL_ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void registerThermalEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(THERMAL_ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void deregisterThermalEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(THERMAL_ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Configuration(value=ELECTRICAL_POWER_VALUE, mandatory=false)
 	public Value getElectricalPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ELECTRICAL_POWER_VALUE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	public Value getElectricalPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ELECTRICAL_POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void registerElectricalPowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(ELECTRICAL_POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public void deregisterElectricalPowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(ELECTRICAL_POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	@Configuration(value=THERMAL_POWER_VALUE, mandatory=false)
 	public Value getThermalPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(THERMAL_POWER_VALUE);
 	}
 
-    @Override
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Value getThermalPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(THERMAL_POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void registerThermalPowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(THERMAL_POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void deregisterThermalPowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(THERMAL_POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
     public double getStartPower() {
 		return getMinPower();
 	}
 
-    @Override
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
     public double getMaxPower() {
         return powerMax;
     }
 
-    @Override
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
     public double getMinPower() {
-        if (powerMin > 0) {
+        if (powerMin >= 0) {
             return powerMin;
         }
         return getMaxPower();

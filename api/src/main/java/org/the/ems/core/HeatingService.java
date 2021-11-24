@@ -22,11 +22,12 @@ package org.the.ems.core;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
 public interface HeatingService extends RunnableService {
 
-	/*
-	 * Get the default value with which a component will be started with.
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public default Value getStartValue(long time) {
@@ -35,27 +36,101 @@ public interface HeatingService extends RunnableService {
 
 	/*
 	 * Get the default power with which a component will be started with in watts [W].
+	 * 
+	 * @return the default power with which a component will be started with
 	 */
 	public double getStartPower();
 
 	/*
-	 * Get the minimum power in watts [W].
+	 * Get the minimum power of this heating component in watts [W].
+	 * 
+	 * @return the minimum power of this heating component
 	 */
 	public double getMinPower();
 
 	/*
-	 * Get the maximum power in watts [W].
+	 * Get the maximum power of this heating component in watts [W].
+	 * 
+	 * @return the maximum power of this heating component
 	 */
 	public double getMaxPower();
 
 	/*
 	 * Get the generated thermal energy in kilowatt hours [kWh].
+	 * 
+	 * @return the generated thermal energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getThermalEnergy() throws ComponentException, InvalidValueException;
 
 	/*
+	 * Get the generated thermal energy in kilowatt hours [kWh].
+	 * Additionally, register a {@link ValueListener}, to be notified of new thermal energy values.
+	 * 
+	 * @return the generated thermal energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getThermalEnergy(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new thermal energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerThermalEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new thermal energy values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterThermalEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
 	 * Get the generated thermal power in watts [W].
+	 * 
+	 * @return the generated thermal power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getThermalPower() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the generated thermal power in watts [W].
+	 * Additionally, register a {@link ValueListener}, to be notified of new thermal power values.
+	 * 
+	 * @return the generated thermal power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getThermalPower(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new thermal power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerThermalPowerListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new thermal power values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterThermalPowerListener(ValueListener listener) throws ComponentException;
 
 }

@@ -23,35 +23,54 @@ import org.the.ems.core.data.Value;
 
 public interface RunnableService extends SchedulableService {
 
+	/*
+	 * Get the current {@link RunState} of the component.
+	 * 
+	 * @return the current run state
+	 */
 	public RunState getState();
 
 	/*
 	 * Get the current runtime in milliseconds [ms].
+	 * 
+	 * @return the current runtime
 	 */
 	public int getRuntime();
 
 	/*
 	 * Get the minimum runtime in milliseconds [ms].
+	 * 
+	 * @return the minimum runtime
 	 */
 	public int getMinRuntime();
 
 	/*
 	 * Get the current idletime in milliseconds [ms].
+	 * 
+	 * @return the current idletime
 	 */
 	public int getIdletime();
 
 	/*
 	 * Get the minimum idletime in milliseconds [ms].
+	 * 
+	 * @return the minimum idletime
 	 */
 	public int getMinIdletime();
 
 	/*
 	 * Get the default value with which a component will be started with.
+	 * 
+	 * @param timestamp the execution time as a UNIX timestamp
+	 * 
+	 * @return the default {@link Value} with which a component will be started with
 	 */
-	public Value getStartValue(long time);
+	public Value getStartValue(long timestamp);
 
 	/*
 	 * Get the default value with which a component will be started with.
+	 * 
+	 * @return the default {@link Value} with which a component will be started with
 	 */
 	public default Value getStartValue() {
 		return getStartValue(System.currentTimeMillis());
@@ -59,11 +78,19 @@ public interface RunnableService extends SchedulableService {
 
 	/*
 	 * Start the component.
+	 * 
+	 * @param value the initial value for the component to be started with
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs starting the component
 	 */
 	public void start(Value value) throws EnergyManagementException;
 
 	/*
 	 * Start the component.
+	 * 
+	 * @param timestamp the execution time as a UNIX timestamp
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs starting the component
 	 */
 	public default void start(long time) throws EnergyManagementException {
 		Value value = getStartValue(time);
@@ -72,6 +99,8 @@ public interface RunnableService extends SchedulableService {
 
 	/*
 	 * Start the component.
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs starting the component
 	 */
 	public default void start() throws EnergyManagementException {
 		start(System.currentTimeMillis());
@@ -79,11 +108,17 @@ public interface RunnableService extends SchedulableService {
 
 	/*
 	 * Stop the component.
+	 * 
+	 * @param timestamp the execution time as a UNIX timestamp
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs stopping the component
 	 */
-	public void stop(long time) throws EnergyManagementException;
+	public void stop(long timestamp) throws EnergyManagementException;
 
 	/*
 	 * Stop the component.
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs stopping the component
 	 */
 	public default void stop() throws EnergyManagementException {
 		stop(System.currentTimeMillis());

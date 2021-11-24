@@ -1,13 +1,10 @@
 package org.the.ems.cmpt.inv.effekta;
 
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
-import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
 
 
 public class EffektaBattery extends ElectricalEnergyStorage {
@@ -19,34 +16,10 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	private double chargeVoltageMin = 48;
 
 	@Configuration
-	private Channel voltage;
+	protected Channel chargeCurrent;
 
 	@Configuration
-	private Channel dischargeCurrent;
-
-	@Configuration
-	private Channel chargeCurrent;
-
-	@Configuration
-	protected ChannelListener soc;
-
-	@Override
-	public Value getVoltage() throws ComponentException, InvalidValueException {
-		return voltage.getLatestValue();
-	}
-
-	@Override
-	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
-		return soc.getLatestValue();
-	}
-
-	void registerStateOfChargeListener(ValueListener listener) {
-		soc.registerValueListener(listener);
-	}
-
-	void deregister() {
-		soc.deregister();
-	}
+	protected Channel dischargeCurrent;
 
 	public double getChargeVoltage() {
 		return chargeVoltageMax;
@@ -56,12 +29,12 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return chargeVoltageMin;
 	}
 
-	public Channel getChargeCurrent() {
-		return chargeCurrent;
+	public Value getChargeCurrent() throws InvalidValueException {
+		return chargeCurrent.getLatestValue();
 	}
 
-	public Channel getDischargeCurrent() {
-		return dischargeCurrent;
+	public Value getDischargeCurrent() throws InvalidValueException {
+		return dischargeCurrent.getLatestValue();
 	}
 
 }

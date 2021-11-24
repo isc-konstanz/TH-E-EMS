@@ -18,7 +18,6 @@ import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Error;
 import org.the.ems.core.data.InvalidValueException;
@@ -61,10 +60,10 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	private Channel setpointCurrent;
 
 	@Configuration
-	private ChannelListener setpointEnabled;
+	private Channel setpointEnabled;
 
 	@Configuration(mandatory = false)
-	private ChannelListener gridPower;
+	private Channel gridPower;
 
 	@Configuration(mandatory = false, scale=1000)
 	private double gridPowerMax = 0;
@@ -194,9 +193,9 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	@Override
 	protected void onDeactivate() throws ComponentException {
 		//super.onDeactivate();
-		setpointEnabled.deregister();
+		setpointEnabled.deregisterValueListeners();
 		if (gridPower != null) {
-			gridPower.deregister();
+			gridPower.deregisterValueListeners();
 		}
 	}
 

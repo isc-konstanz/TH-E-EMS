@@ -44,7 +44,6 @@ import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -83,6 +82,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	protected static final String REACTIVE_POWER_L2_VALUE = "reactive_power_l2";
 	protected static final String REACTIVE_POWER_L3_VALUE = "reactive_power_l3";
 
+	protected static final String VOLTAGE_VALUE = "voltage";
 	protected static final String VOLTAGE_L1_VALUE = "voltage_l1";
 	protected static final String VOLTAGE_L2_VALUE = "voltage_l2";
 	protected static final String VOLTAGE_L3_VALUE = "voltage_l3";
@@ -100,16 +100,12 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	protected double powerMin;
 
 	@Configuration
-	protected ChannelListener setpoint;
+	protected Channel setpoint;
+	protected ValueListener setpointListener;
 	protected volatile Value setpointValue = DoubleValue.emptyValue();
 
 	protected ExternalPower external;
 	protected ConsumptionPower conssumption;
-
-	@Override
-	public Value getSetpoint() throws ComponentException {
-		return setpointValue;
-	}
 
 	@Override
 	public boolean setIsland(boolean enabled) throws UnsupportedOperationException {
@@ -132,9 +128,44 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
+	public Value getSetpoint() throws ComponentException, InvalidValueException {
+		return setpoint.getLatestValue();
+	}
+
+	@Override
+	public Value getSetpoint(ValueListener listener) throws ComponentException, InvalidValueException {
+		return setpoint.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerSetpointListener(ValueListener listener) throws ComponentException {
+		setpoint.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterSetpointListener(ValueListener listener) throws ComponentException {
+		setpoint.deregisterValueListener(listener);
+	}
+
+	@Override
 	@Configuration(value=IMPORT_ENERGY_VALUE, mandatory=false)
 	public Value getImportEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(IMPORT_ENERGY_VALUE);
+	}
+
+	@Override
+	public Value getImportEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(IMPORT_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void registerImportEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(IMPORT_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterImportEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(IMPORT_ENERGY_VALUE, listener);
 	}
 
 	@Override
@@ -144,9 +175,39 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
+	public Value getExportEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(EXPORT_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void registerExportEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(EXPORT_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterExportEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(EXPORT_ENERGY_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=DC_ENERGY_VALUE, mandatory=false)
 	public Value getInputEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(DC_ENERGY_VALUE);
+	}
+
+	@Override
+	public Value getInputEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(DC_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void registerInputEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(DC_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterInputEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(DC_ENERGY_VALUE, listener);
 	}
 
 	@Override
@@ -156,9 +217,39 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
+	public Value getInputPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(DC_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void registerInputPowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(DC_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterInputPowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(DC_POWER_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=ACTIVE_POWER_VALUE, mandatory=false)
 	public Value getActivePower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ACTIVE_POWER_VALUE);
+	}
+
+	@Override
+	public Value getActivePower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ACTIVE_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void registerActivePowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(ACTIVE_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterActivePowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(ACTIVE_POWER_VALUE, listener);
 	}
 
 	@Override
@@ -186,6 +277,21 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
+	public Value getReactivePower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(REACTIVE_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void registerReactivePowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(REACTIVE_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterReactivePowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(REACTIVE_POWER_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=REACTIVE_POWER_L1_VALUE, mandatory=false)
 	public Value getReactivePowerL1() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(REACTIVE_POWER_L1_VALUE);
@@ -201,6 +307,27 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	@Configuration(value=REACTIVE_POWER_L3_VALUE, mandatory=false)
 	public Value getReactivePowerL3() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(REACTIVE_POWER_L3_VALUE);
+	}
+
+	@Override
+	@Configuration(value=VOLTAGE_VALUE, mandatory=false)
+	public Value getVoltage() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_VALUE);
+	}
+
+	@Override
+	public Value getVoltage(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_VALUE, listener);
+	}
+
+	@Override
+	public void registerVoltageListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(VOLTAGE_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(VOLTAGE_VALUE, listener);
 	}
 
 	@Override
@@ -225,6 +352,21 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	@Configuration(value=FREQUENCY_VALUE, mandatory=false)
 	public Value getFrequency() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(FREQUENCY_VALUE);
+	}
+
+	@Override
+	public Value getFrequency(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(FREQUENCY_VALUE, listener);
+	}
+
+	@Override
+	public void registerFrequencyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(FREQUENCY_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterFrequencyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(FREQUENCY_VALUE, listener);
 	}
 
 	public S getElectricalEnergyStorage() {
@@ -279,7 +421,8 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		
 		external = new ExternalPower().activate(content).configure(configs).register(this);
 		conssumption = new ConsumptionPower().activate(content).configure(configs).register(this);
-		setpoint.registerValueListener(new SetpointListener());
+		setpointListener = new SetpointListener();
+		setpoint.registerValueListener(setpointListener);
 	}
 
 	@Override
@@ -297,7 +440,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		setpoint.deregister();
+		setpoint.deregisterValueListener(setpointListener);
 		
 		if (storageRegistration != null) {
 			storageRegistration.unregister();

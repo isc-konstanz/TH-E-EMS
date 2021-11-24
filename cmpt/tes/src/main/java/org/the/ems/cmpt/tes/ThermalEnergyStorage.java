@@ -190,7 +190,7 @@ public class ThermalEnergyStorage extends Component
 				// Do nothing
 			}
 		}
-		return tempSum/tempCount;		
+		return tempSum/tempCount;
 	}
 
 	@Override

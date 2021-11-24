@@ -14,7 +14,6 @@ import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -55,20 +54,23 @@ public class Serenergy extends Cogenerator {
 	private double stackTempMin;
 
 	@Configuration
-	private ChannelListener stackTemp;
+	private Channel stackTemp;
+
+	private StackTempListener stackTempListener;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
-		stackTemp.registerValueListener(new StackTempListener());
+		stackTempListener = new StackTempListener();
+		stackTemp.registerValueListener(stackTempListener);
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		
-		stackTemp.deregister();
+		stackTemp.deregisterValueListener(stackTempListener);
 	}
 
 	@Override

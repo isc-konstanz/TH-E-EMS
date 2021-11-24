@@ -12,7 +12,6 @@ import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -33,14 +32,18 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	private boolean activeError = false;
 
 	@Configuration(mandatory = false)
-	private ChannelListener activePower;
+	private Channel activePower;
 
 	@Configuration("dc_power")
-	private ChannelListener inputPower;
+	private Channel inputPower;
+
+	private ValueListener powerListener;
 
 	@Configuration
 	private Channel setpointPower;
 	private Value setpointControl = DoubleValue.emptyValue();
+
+	private ValueListener socListener;
 
 	@Configuration(mandatory = false)
 	private double socHyst = 2.5;
@@ -51,19 +54,22 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		storage.registerStateofCharge(new StateOfChargeListener());
-		inputPower.registerValueListener(new SetpointUpdater());
+		socListener = new StateOfChargeListener();
+		storage.registerStateOfChargeListener(socListener);
+		
+		powerListener = new SetpointUpdater();
+		inputPower.registerValueListener(powerListener);
 		if (activeError) {
-			activePower.registerValueListener(new SetpointUpdater());
+			activePower.registerValueListener(powerListener);
 		}
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		storage.deregister();
-		inputPower.deregister();
-		activePower.deregister();
+		storage.deregisterStateOfChargeListener(socListener);
+		inputPower.deregisterValueListener(powerListener);
+		activePower.deregisterValueListener(powerListener);
 	}
 
 	@Override

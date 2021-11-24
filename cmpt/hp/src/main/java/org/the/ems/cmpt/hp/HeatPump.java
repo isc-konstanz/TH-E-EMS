@@ -30,7 +30,7 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -49,8 +49,9 @@ public class HeatPump extends Heating implements HeatPumpService {
 	protected double temperatureInMax;
 
 	@Configuration("temp_in")
-	protected ChannelListener temperature;
+	protected Channel temperature;
 
+	protected ValueListener temperatureListener;
 	protected Value temperatureValue = DoubleValue.emptyValue();
 
 	@Configuration
@@ -64,15 +65,14 @@ public class HeatPump extends Heating implements HeatPumpService {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-
-		temperature.registerValueListener(new TemperatureListener());
+		temperatureListener = new TemperatureListener();
+		temperature.registerValueListener(temperatureListener);
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		
-		temperature.deregister();
+		temperature.deregisterValueListener(temperatureListener);
 	}
 
 	@Override

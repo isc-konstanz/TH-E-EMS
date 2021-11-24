@@ -32,7 +32,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.ChannelCollection;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -59,7 +59,7 @@ public class CabinetVentilation extends Component implements VentilationService,
 	protected final List<Temperature> temperatureHighFlags = new ArrayList<Temperature>(Temperature.values().length);
 
 	@Configuration
-	protected ChannelListener state;
+	protected Channel state;
 
 	protected Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
@@ -68,16 +68,16 @@ public class CabinetVentilation extends Component implements VentilationService,
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
-		temperatures.register(Temperature.TOP, new TemperatureListener(this, Temperature.TOP));
-		temperatures.register(Temperature.CENTER, new TemperatureListener(this, Temperature.CENTER));
-		temperatures.register(Temperature.BOTTOM, new TemperatureListener(this, Temperature.BOTTOM));
+		temperatures.registerValueListener(Temperature.TOP, new TemperatureListener(this, Temperature.TOP));
+		temperatures.registerValueListener(Temperature.CENTER, new TemperatureListener(this, Temperature.CENTER));
+		temperatures.registerValueListener(Temperature.BOTTOM, new TemperatureListener(this, Temperature.BOTTOM));
 		state.registerValueListener(new StateListener());
 	}
 
 	@Override
 	public void onDeactivate() {
-		temperatures.deregister();
-		state.deregister();
+		temperatures.deregisterValueListeners();
+		state.deregisterValueListeners();
 	}
 
 	public void start() {

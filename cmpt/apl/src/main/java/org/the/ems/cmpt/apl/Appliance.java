@@ -29,6 +29,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
 @Component(
@@ -66,16 +67,70 @@ public class Appliance extends Runnable implements ApplianceService {
         return getMaxPower();
     }
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	@Configuration(value=POWER_VALUE, mandatory=false)
 	public Value getPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(POWER_VALUE);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Value getPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void registerPowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void deregisterPowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(POWER_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	@Configuration(value=ENERGY_VALUE, mandatory=false)
 	public Value getEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ENERGY_VALUE);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Value getEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void registerEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(ENERGY_VALUE, listener);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void deregisterEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(ENERGY_VALUE, listener);
 	}
 
 	@Override

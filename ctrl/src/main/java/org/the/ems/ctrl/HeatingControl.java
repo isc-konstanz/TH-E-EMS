@@ -85,7 +85,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
         }
 	}
 
-	protected final void doStart() {
+	void doStart() {
 		Value value = component.getStartValue();
 		try {
 			this.onStart(value);
@@ -101,17 +101,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
 	}
 
 	public boolean isStartable() {
-		RunState state = component.getState();
-		switch(state) {
-		case STANDBY:
-		case STOPPING:
-            if (component.getIdletime() >= component.getMinIdletime()) {
-    			return true;
-            }
-		default:
-			break;
-		}
-		return false;
+		return component.isStartable();
 	}
 
 	public final void set(Value value) {
@@ -129,7 +119,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
 		}
 	}
 
-	protected final void doSet(Value value) {
+	void doSet(Value value) {
 		try {
 			this.onSet(value);
 			((HeatingCallbacks) callbacks).onSet(component, value);
@@ -152,7 +142,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
         }
 	}
 
-	protected final void doStop() {
+	void doStop() {
 		try {
 			this.onStop();
 			((HeatingCallbacks) callbacks).onStop(component);
@@ -167,17 +157,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
 	}
 
 	public boolean isStoppable() {
-		RunState state = component.getState();
-		switch(state) {
-		case RUNNING:
-		case STARTING:
-            if (component.getRuntime() >= component.getMinRuntime()) {
-            	return true;
-            }
-		default:
-			break;
-		}
-		return false;
+		return component.isStoppable();
 	}
 
 }

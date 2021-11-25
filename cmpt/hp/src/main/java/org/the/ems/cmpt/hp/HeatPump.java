@@ -50,8 +50,6 @@ public class HeatPump extends Heating implements HeatPumpService {
 
 	@Configuration("temp_in")
 	protected Channel temperature;
-
-	protected ValueListener temperatureListener;
 	protected Value temperatureValue = DoubleValue.emptyValue();
 
 	@Configuration
@@ -65,14 +63,13 @@ public class HeatPump extends Heating implements HeatPumpService {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		temperatureListener = new TemperatureListener();
-		temperature.registerValueListener(temperatureListener);
+		temperature.registerValueListener(new TemperatureListener());
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		temperature.deregisterValueListener(temperatureListener);
+		temperature.deregisterValueListeners();
 	}
 
 	@Override

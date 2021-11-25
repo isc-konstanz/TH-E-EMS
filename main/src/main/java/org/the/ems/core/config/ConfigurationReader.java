@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.main.config;
+package org.the.ems.core.config;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,12 +27,11 @@ import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.config.ConfigurationException;
 
-public class Configurations extends org.the.ems.core.config.Configurations {
-    private static final Logger logger = LoggerFactory.getLogger(Configurations.class);
+public class ConfigurationReader extends Configurations {
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationReader.class);
 
-	public Configurations configure(File[] files) throws ConfigurationException {
+	protected ConfigurationReader configure(File[] files) throws ConfigurationException {
 		if (files != null && files.length > 0) {
 			for (File file : files) {
 				configure(file);
@@ -41,7 +40,7 @@ public class Configurations extends org.the.ems.core.config.Configurations {
 		return this;
 	}
 
-	public Configurations configure(File file) throws ConfigurationException {
+	protected ConfigurationReader configure(File file) throws ConfigurationException {
 		if (file.exists()) {
 			logger.debug("Configuring from file: {}", file.getAbsolutePath());
 			try {
@@ -53,10 +52,10 @@ public class Configurations extends org.the.ems.core.config.Configurations {
 							logger.debug("Overriding settings \"{}\": {}", section.getKey(), value.getValue());
 						}
 						if (!section.getKey().toLowerCase().equals("general")) {
-							add(section.getKey(), value.getKey(), value.getValue());
+							put(section.getKey(), value.getKey(), value.getValue());
 						}
 						else {
-							add(Configurations.GENERAL, value.getKey(), value.getValue());
+							put(ConfigurationReader.GENERAL, value.getKey(), value.getValue());
 						}
 					}
 				}
@@ -67,16 +66,16 @@ public class Configurations extends org.the.ems.core.config.Configurations {
 		return this;
 	}
 
-	public static Configurations create(File file) throws ConfigurationException {
+	public static ConfigurationReader read(File file) throws ConfigurationException {
 		if (!file.exists()) {
 			new ConfigurationException("Component configuration does not exist: " + file.getName());
 		}
-		return new Configurations().configure(file);
+		return new ConfigurationReader().configure(file);
 	}
 
-	public static Configurations create(String id, File file) throws ConfigurationException {
-		Configurations configurations = create(file);
-		configurations.add(org.the.ems.core.config.Configurations.GENERAL, "id", id);
+	public static ConfigurationReader read(String id, File file) throws ConfigurationException {
+		ConfigurationReader configurations = read(file);
+		configurations.put(Configurations.GENERAL, "id", id);
 		
 		return configurations;
 	}

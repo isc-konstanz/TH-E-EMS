@@ -1,6 +1,6 @@
 package org.the.ems.ctrl.mpc;
 
-import org.the.ems.core.config.Configurable;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;

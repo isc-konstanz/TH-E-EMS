@@ -19,9 +19,6 @@
  */
 package org.the.ems.cmpt.ees;
 
-import java.util.Map;
-
-import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.core.Component;
@@ -135,14 +132,6 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
 		deregisterConfiguredValueListener(VOLTAGE_VALUE, listener);
-	}
-
-	public void activate(BundleContext context, Map<String, ?> properties) throws ComponentException {
-		super.doActivate(context, properties);
-	}
-
-	public void deactivate() throws ComponentException {
-		super.doDeactivate();
 	}
 
     @Override

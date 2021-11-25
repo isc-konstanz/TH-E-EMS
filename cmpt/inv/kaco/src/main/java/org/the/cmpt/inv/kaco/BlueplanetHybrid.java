@@ -37,8 +37,6 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	@Configuration("dc_power")
 	private Channel inputPower;
 
-	private ValueListener powerListener;
-
 	@Configuration
 	private Channel setpointPower;
 	private Value setpointControl = DoubleValue.emptyValue();
@@ -54,13 +52,13 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
+		
 		socListener = new StateOfChargeListener();
 		storage.registerStateOfChargeListener(socListener);
 		
-		powerListener = new SetpointUpdater();
-		inputPower.registerValueListener(powerListener);
+		inputPower.registerValueListener(new SetpointUpdater());
 		if (activeError) {
-			activePower.registerValueListener(powerListener);
+			activePower.registerValueListener(new SetpointUpdater());
 		}
 	}
 
@@ -68,8 +66,8 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		storage.deregisterStateOfChargeListener(socListener);
-		inputPower.deregisterValueListener(powerListener);
-		activePower.deregisterValueListener(powerListener);
+		inputPower.deregisterValueListeners();
+		activePower.deregisterValueListeners();
 	}
 
 	@Override

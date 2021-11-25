@@ -47,7 +47,7 @@ jar {
         'Bundle-Description': projectDescription,
         'Bundle-ClassPath':   '.,lib/ini4j-'+ini4jVersion+'.jar',
         'Import-Package':     '!org.ini4j.*,*',
-        'Export-Package':      'org.the.ems.main.*')
+        'Export-Package':      '')
 }
 
 eclipse {

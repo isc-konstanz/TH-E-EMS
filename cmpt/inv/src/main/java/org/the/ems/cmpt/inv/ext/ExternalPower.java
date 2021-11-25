@@ -20,13 +20,11 @@
 package org.the.ems.cmpt.inv.ext;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
-import org.the.ems.core.ComponentException;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
@@ -38,6 +36,8 @@ public class ExternalPower extends Configurable implements ValueListener {
 	private final static String SECTION = "External";
 
 	private volatile InverterCallbacks callbacks = null;
+
+	private ContentManagementService content;
 
 	@Configuration
 	private Channel virtualPower;
@@ -54,18 +54,20 @@ public class ExternalPower extends Configurable implements ValueListener {
 
 	private volatile boolean running = false;
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public ExternalPower activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
+	public ExternalPower() {
+		setConfiguredSection(SECTION);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public ExternalPower configure(Configurations configs) throws ConfigurationException {
+	protected final ContentManagementService getContentManagement() {
+		return content;
+	}
+
+	public ExternalPower activate(ContentManagementService content, Configurations configs) 
+			throws ConfigurationException {
+		
 		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
+			configure(configs);
 			
 			activePower.registerValueListener(new ActivePowerListener());
 			solarPower.registerValueListener(this);

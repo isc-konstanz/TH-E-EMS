@@ -105,7 +105,7 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	@Override
-	protected boolean isRunning() throws ComponentException {
+	public boolean isRunning() throws ComponentException {
 		if (powerMin > 0) {
 			try {
 				return Math.abs(getElectricalPower().doubleValue()) > powerMin;
@@ -128,11 +128,25 @@ public class InternalCombustionEngine extends Cogenerator {
 		// TODO: Reset power level
 	}
 
+	@Override
+	public boolean isStoppable(long time) {
+		for (Channel temperature : temperatures.values()) {
+			try {
+				if (temperature.getLatestValue().doubleValue() > tempMax) {
+					return true;
+				}
+			} catch (InvalidValueException e) {
+				// TODO: Handle invalid temperature values
+			}
+		}
+		return super.isStoppable(time);
+	}
+
 	protected void onEngineStop(long time) throws EnergyManagementException {
 		if (engineMode != null) {
 			WriteContainer writeContainer = new WriteContainer();
 			writeContainer.add(engineMode, EngineMode.STAR.getValue(time));
-			doWrite(writeContainer);
+			write(writeContainer);
 		}
 	}
 
@@ -150,12 +164,12 @@ public class InternalCombustionEngine extends Cogenerator {
 				time += engineModePostDelay;
 				writeContainer.addBoolean(valve, true, time);
 			}
-			doWrite(writeContainer);
+			write(writeContainer);
 		}
 	}
 
 	@Override
-	protected boolean isStandby() throws ComponentException {
+	public boolean isStandby() throws ComponentException {
 		try {
 			return getElectricalPower().doubleValue() == 0.0;
 			
@@ -209,7 +223,7 @@ public class InternalCombustionEngine extends Cogenerator {
 			if (value.floatValue() > tempMax) {
 				logger.debug("Temperature in cooling circulation or motor above threshold. Shutting down CHP");
 				try {
-					doStop(System.currentTimeMillis());
+					stop(System.currentTimeMillis());
 					
 				} catch (EnergyManagementException e) {
 					logger.warn("Error while trying to shut down CHP: {}", e.getMessage());

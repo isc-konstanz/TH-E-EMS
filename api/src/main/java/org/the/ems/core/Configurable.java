@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.config;
+package org.the.ems.core;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -29,10 +29,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationCollection;
+import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
+import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
@@ -44,38 +47,15 @@ public abstract class Configurable {
 
 	private String section = Configurations.GENERAL;
 
-	protected final ChannelCollection channels = new ChannelCollection();
-
-	protected ContentManagementService content;
+	private final ChannelCollection channels = new ChannelCollection();
 
 	@SuppressWarnings("unchecked")
-	protected <C extends Configurable> C activate(ContentManagementService content) 
-			throws ComponentException {
-		this.content = content;
-		return (C) this;
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <C extends Configurable> C activate(ContentManagementService content, Configurations configs) 
-			throws ComponentException {
-		this.doConfigure(content, configs);
-		return (C) this;
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
+	public final <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
 		this.doConfigure(configs);
-		this.onConfigure(configs);
 		return (C) this;
 	}
 
-	protected final void doConfigure(ContentManagementService content, Configurations configs) 
-			throws ConfigurationException {
-		this.content = content;
-		this.doConfigure(configs);
-	}
-
-	protected final void doConfigure(Configurations configs) throws ConfigurationException {
+	void doConfigure(Configurations configs) throws ConfigurationException {
 		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
 		Class<?> type = this.getClass();
 		while(type.getSuperclass() != null) {
@@ -85,7 +65,7 @@ public abstract class Configurable {
 		}
 		configureElements(configs, elements);
 		
-		this.onConfigure(configs);
+		onConfigure(configs);
 	}
 
 	protected void onConfigure(Configurations configs) throws ConfigurationException {
@@ -312,19 +292,26 @@ public abstract class Configurable {
 		if (channels.containsKey(key)) {
 			return channels.get(key);
 		}
-		if (content == null) {
-			throw newConfigException("Unable to configure channel");
-		}
 		try {
 			String id = configs.get(section, key);
-			Channel channel = content.getChannel(id);
+			Channel channel = new ChannelListener(getContentManagement().getChannel(id));
 			channels.put(key, channel);
 			
 			return channel;
 			
-		} catch (UnknownChannelException | NullPointerException e) {
-			throw new ConfigurationException(e);
+		} catch (UnknownChannelException e) {
+			throw new ConfigurationException(MessageFormat.format("Unknown channel \"{0}\" in section {1}", 
+					key, section));
+			
+		} catch (UnsupportedOperationException | NullPointerException e) {
+			throw new ConfigurationException(MessageFormat.format("Unable to configure channel \"{0}\" in section {1}", 
+					key, section));
 		}
+	}
+
+	protected ContentManagementService getContentManagement() {
+		// Default implementation to be overridden
+		throw new UnsupportedOperationException();
 	}
 
 	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
@@ -349,6 +336,15 @@ public abstract class Configurable {
 	protected void deregisterConfiguredValueListener(String key, ValueListener listener) throws ConfigurationException {
 		Channel channel =  getConfiguredChannel(key);
 		channel.deregisterValueListener(listener);
+	}
+
+	protected void deregisterConfiguredValueListeners(String key) throws ConfigurationException {
+		Channel channel =  getConfiguredChannel(key);
+		channel.deregisterValueListeners();
+	}
+
+	protected void deregisterConfiguredValueListeners() {
+		channels.values().stream().forEach(c -> c.deregisterValueListeners());
 	}
 
 	protected Value getConfiguredValue(String key, ValueListener listener) throws ComponentException, InvalidValueException {

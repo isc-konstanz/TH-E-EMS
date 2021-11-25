@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation;
 import org.the.ems.cmpt.circ.CirculationPump;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.RunState;
@@ -53,8 +54,14 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Configuration(scale=1000, mandatory=false)
 	protected double powerMin = -1;
 
-	protected Circulation circulation;
-	protected CirculationPump circulationPump;
+	protected final Circulation circulation;
+	protected final CirculationPump circulationPump;
+
+	protected Heating() {
+		super();
+		circulation = new Circulation();
+		circulationPump = new CirculationPump(circulation);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -210,8 +217,10 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		circulation = new Circulation().activate(content).configure(configs);
-		circulationPump = new CirculationPump(circulation).activate(content).configure(configs);
+		
+		ContentManagementService content = getContentManagement();
+		circulation.activate(content, configs);
+		circulationPump.activate(content, configs);
 	}
 
 	@Override
@@ -232,7 +241,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	}
 
 	@Override
-	protected void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -257,17 +266,17 @@ public abstract class Heating extends Runnable implements HeatingService {
 	}
 
 	@Override
-	protected void doSet(Value value) throws EnergyManagementException {
+	void doSet(Value value) throws EnergyManagementException {
 		if (value.doubleValue() != 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
 		WriteContainer container = new WriteContainer();
 		onSet(container, value);
-		doWrite(container);
+		write(container);
 	}
 
 	@Override
-	protected void doStart(Value value) throws EnergyManagementException {
+	void doStart(Value value) throws EnergyManagementException {
 		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
@@ -276,7 +285,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 		
 		setState(RunState.STARTING);
 		onStart(writeContainer, value);
-		doWrite(writeContainer);
+		write(writeContainer);
 		startTimeLast = value.getTime();
 	}
 

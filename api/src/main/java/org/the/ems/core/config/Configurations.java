@@ -67,11 +67,11 @@ public class Configurations extends Dictionary<String, Object> {
 		return configs.put(key, value);
 	}
 
-	public Object add(String section, String key, Object value) {
+	public Object put(String section, String key, Object value) {
 		return configs.put(parse(section, key), value);
 	}
 
-	public Object add(String section, String key, String value) {
+	public Object put(String section, String key, String value) {
 		return configs.put(parse(section, key), value);
 	}
 
@@ -80,8 +80,8 @@ public class Configurations extends Dictionary<String, Object> {
 	}
 
 	protected boolean contains(String section) {
-		return configs.keySet().stream().anyMatch(
-		        (s) -> s.startsWith(section.toLowerCase()));
+		String parsedSection = parse(section);
+		return configs.keySet().stream().anyMatch(s -> s.startsWith(parsedSection));
 	}
 
 	@Override
@@ -189,7 +189,7 @@ public class Configurations extends Dictionary<String, Object> {
 		List<String> result = new ArrayList<String>();
 		for (Entry<String, Object> entry : configs.entrySet()) {
 			if (entry.getKey().matches(parse(section, pattern).replace("?", ".?").replace("*", ".*?"))) {
-				result.add(entry.getKey().substring(section.length()+1));
+				result.add(entry.getKey().substring(parse(section).length()+1));
 			}
 		}
 		return result;
@@ -248,10 +248,18 @@ public class Configurations extends Dictionary<String, Object> {
 				key, type));
 	}
 
+	private static String parse(String section) {
+		String packageName = Configurations.class.getPackage().getName().replace(".core.config", "").toLowerCase();
+		StringBuilder result = new StringBuilder()
+				.append(packageName).append(".")
+				.append(section.toLowerCase());
+
+		return result.toString();
+	}
+
 	private static String parse(String section, String key) {
 		StringBuilder result = new StringBuilder()
-//				.append(Configurations.class.getPackage().getName().toLowerCase()).append(".")
-				.append(section.toLowerCase()).append(".")
+				.append(parse(section)).append(".")
 				.append(key.toLowerCase());
 		
 		return result.toString();

@@ -21,6 +21,9 @@ package org.the.ems.core.config;
 
 import java.util.List;
 
+import org.the.ems.core.Configurable;
+import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
@@ -61,6 +64,8 @@ public class TestHandler extends Configurable {
 
 	@Configuration(value="test_channel*")
 	private ChannelCollection testWildcard;
+
+	private ContentManagementService content;
 
 	public TestHandler(Configurations configs) throws ConfigurationException {
 		content = new TestManager();
@@ -103,12 +108,17 @@ public class TestHandler extends Configurable {
 		return testSelection;
 	}
 
-	public TestChannel getTestCollection(String key) {
-		return (TestChannel) testCollection.get(key);
+	public Channel getTestCollection(String key) {
+		return testCollection.get(key);
 	}
 
-	public TestChannel getTestWildcard(String key) {
-		return (TestChannel) testWildcard.get(key);
+	public Channel getTestWildcard(String key) {
+		return testWildcard.get(key);
+	}
+
+	@Override
+	protected final ContentManagementService getContentManagement() {
+		return content;
 	}
 
 }

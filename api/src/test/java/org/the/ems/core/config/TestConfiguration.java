@@ -34,18 +34,18 @@ public class TestConfiguration {
 	@Before
 	public void newTestConfiguratios() {
 		configs = Configurations.create();
-		configs.add("General", "test", "Test");
-		configs.add("General", "test_string", "1");
-		configs.add("General", "test_channel", "Channel");
-		configs.add("General", "test_channel2", "Channel2");
-		configs.add("General", "test_float", 1.0f);
-		configs.add("General", "test_boolean", false);
-		configs.add("General", "test_enum", ValueType.BOOLEAN);
+		configs.put("General", "test", "Test");
+		configs.put("General", "test_string", "1");
+		configs.put("General", "test_channel", "Channel");
+		configs.put("General", "test_channel2", "Channel2");
+		configs.put("General", "test_float", 1.0f);
+		configs.put("General", "test_boolean", false);
+		configs.put("General", "test_enum", ValueType.BOOLEAN);
 
-		configs.add("Test", "test", "Test");
-		configs.add("Test", "disabled", false);
+		configs.put("Test", "test", "Test");
+		configs.put("Test", "disabled", false);
 
-		configs.add("Disabled", "disabled", true);
+		configs.put("Disabled", "disabled", true);
 	}
 
 	@Test

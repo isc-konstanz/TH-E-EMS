@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.main.config;
+package org.the.ems.core.config;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,8 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.main.EnergyManager;
+import org.the.ems.core.EnergyManager;
 
 @Component(service = ConfigurationService.class, immediate = true)
 public final class ConfigurationService extends Thread {
@@ -67,7 +66,7 @@ public final class ConfigurationService extends Thread {
 	protected void activate() {
 		try {
 			watcher = FileSystems.getDefault().newWatchService();
-			load(EnergyManager.PID, Configurations.create(
+			load(EnergyManager.PID, ConfigurationReader.read(
 					EnergyManager.ID, dir.resolve(EnergyManager.ID + ".cfg").toFile()));
 			
 			register(dir);
@@ -205,7 +204,7 @@ public final class ConfigurationService extends Thread {
 	}
 
 	private void load(File file, String id, ComponentType type) throws ConfigurationException {
-		Configurations configs = Configurations.create(id, dir.resolve(id.concat(".cfg")).toFile());
+		ConfigurationReader configs = ConfigurationReader.read(id, dir.resolve(id.concat(".cfg")).toFile());
 
 		File[] dir = this.dir.resolve(id+".d").toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 		if (dir != null && dir.length > 0) {
@@ -215,9 +214,9 @@ public final class ConfigurationService extends Thread {
 		}
 		if (id.startsWith(type.getKey())) {
 			String pid = type.getId();
-			if (configs.contains(Configurations.GENERAL, "type")) {
+			if (configs.contains(ConfigurationReader.GENERAL, "type")) {
 				pid = pid.concat(".")
-						.concat(configs.get(Configurations.GENERAL, "type").toLowerCase());
+						.concat(configs.get(ConfigurationReader.GENERAL, "type").toLowerCase());
 			}
 			
 			String alias = id.substring(type.getKey().length());
@@ -227,15 +226,15 @@ public final class ConfigurationService extends Thread {
 			load(pid, alias, configs);
 			return;
 		}
-		if (configs.contains(Configurations.GENERAL, "pid")) {
-			String pid = configs.get(Configurations.GENERAL, "pid");
+		if (configs.contains(ConfigurationReader.GENERAL, "pid")) {
+			String pid = configs.get(ConfigurationReader.GENERAL, "pid");
 			load(pid, configs);
 			return;
 		}
 		throw new ConfigurationException("Missing PID for component configuration: "+file.getName());
 	}
 
-	private void load(String pid, String alias, Configurations configs) throws ConfigurationException {
+	private void load(String pid, String alias, ConfigurationReader configs) throws ConfigurationException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Loading component {} {}", pid.concat("~").concat(alias), configs);
 		}
@@ -247,7 +246,7 @@ public final class ConfigurationService extends Thread {
 		}
 	}
 
-	private void load(String pid, Configurations configs) throws ConfigurationException {
+	private void load(String pid, ConfigurationReader configs) throws ConfigurationException {
 		logger.debug("Loading component {} {}", pid, configs);
 		try {
 			this.configs.getConfiguration(pid, "?").update(configs);

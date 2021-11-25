@@ -11,6 +11,10 @@ String projectReplace(String line, String date, String projectName, String proje
                .replaceAll('<homepage>', projectHomepage)
 }
 
+String projectReplace(String line, String date, String projectName) {
+    return projectReplace(line, date, projectName, '', '')
+}
+
 task deletePackages(type: Delete) {
     delete Paths.get(rootDir.getPath(), 'build', 'dpkg')
     followSymlinks = true
@@ -78,14 +82,14 @@ task debianPackages {
                     from Paths.get(rootDir.getPath(), 'packages', 'debian')
                     into Paths.get(projectPackage, 'debian')
                     filter {
-                        line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
+                        line -> projectReplace(line, date, projectName)
                     }
                 }
                 copy {
                     from projectDir
                     into projectPackage
                     filter {
-                        line -> projectReplace(line, projectName, projectDesc, projectDepends)
+                        line -> projectReplace(line, date, projectName)
                     }
                     exclude '*.gradle'
                 }

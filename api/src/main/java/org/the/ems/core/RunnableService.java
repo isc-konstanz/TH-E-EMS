@@ -77,6 +77,26 @@ public interface RunnableService extends SchedulableService {
 	}
 
 	/*
+	 * Verify whether the component can be started.
+	 * For instance, this may return false if the minimum idle time was not yet passed.
+	 * 
+	 * @return the flag whether the component can be started
+	 */
+	public default boolean isStartable() {
+		return isStartable(System.currentTimeMillis());
+	}
+
+	/*
+	 * Verify whether the component can be started.
+	 * For instance, this may return false if the minimum idle time was not yet passed.
+	 * 
+	 * @param timestamp the execution time as a UNIX timestamp
+	 * 
+	 * @return whether the component can be started
+	 */
+	public boolean isStartable(long time);
+
+	/*
 	 * Start the component.
 	 * 
 	 * @param value the initial value for the component to be started with
@@ -105,6 +125,26 @@ public interface RunnableService extends SchedulableService {
 	public default void start() throws EnergyManagementException {
 		start(System.currentTimeMillis());
 	}
+
+	/*
+	 * Verify whether the component can be stopped.
+	 * For instance, this may return false if the minimum runtime was not yet passed.
+	 * 
+	 * @return the flag whether the component can be stopped
+	 */
+	public default boolean isStoppable() {
+		return isStoppable(System.currentTimeMillis());
+	}
+
+	/*
+	 * Verify whether the component can be stopped.
+	 * For instance, this may return false if the minimum runtime was not yet passed.
+	 * 
+	 * @param timestamp the execution time as a UNIX timestamp
+	 * 
+	 * @return whether the component can be stopped
+	 */
+	public boolean isStoppable(long time);
 
 	/*
 	 * Stop the component.

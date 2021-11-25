@@ -22,9 +22,8 @@ package org.the.ems.cmpt.circ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation.CirculationCallbacks;
-import org.the.ems.core.ComponentException;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -35,6 +34,8 @@ import org.the.ems.core.data.ValueListener;
 
 public class CirculationPump extends Configurable implements CirculationCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(CirculationPump.class);
+
+	private ContentManagementService content;
 
 	private final static String SECTION = "Circulation";
 
@@ -59,23 +60,22 @@ public class CirculationPump extends Configurable implements CirculationCallback
 
 	public CirculationPump(Circulation circulation) {
 		this.circulation = circulation;
+		setConfiguredSection(SECTION);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public CirculationPump activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
+	protected final ContentManagementService getContentManagement() {
+		return content;
 	}
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public CirculationPump configure(Configurations configs) throws ConfigurationException {
+	public CirculationPump activate(ContentManagementService content, Configurations configs) 
+			throws ConfigurationException {
+		
 		if (!configs.contains(SECTION, STATE)) {
 			return this;
 		}
 		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
+			configure(configs);
 			
 			circulation.register(this);
 			state.registerValueListener(new CirculationPumpStateListener());

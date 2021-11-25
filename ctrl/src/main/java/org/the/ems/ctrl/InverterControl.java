@@ -35,7 +35,7 @@ public class InverterControl extends ComponentControl<InverterService> {
 		doSet(value);
 	}
 
-	final void doSet(Value value) {
+	void doSet(Value value) {
 		try {
 			this.onSet(value);
 			((InverterCallbacks) callbacks).onSet(component, value);

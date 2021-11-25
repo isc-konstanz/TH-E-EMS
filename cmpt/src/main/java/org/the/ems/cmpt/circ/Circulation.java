@@ -23,9 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
-import org.the.ems.core.ComponentException;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -51,6 +50,8 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	 * The Circulations current callback object, which is used to notify of events
 	 */
 	private volatile CirculationCallbacks callbacks = null;
+
+	private ContentManagementService content;
 
 	// The specific heat capacity of the flow medium. Default is 4.1813 of water.
 	@Configuration(mandatory=false)
@@ -86,18 +87,20 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	private Value flowEnergyLast = DoubleValue.emptyValue();
 	private Double flowCounterLast = Double.NaN;
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public Circulation activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
+	public Circulation() {
+		setConfiguredSection(SECTION);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public Circulation configure(Configurations configs) throws ConfigurationException {
+	protected final ContentManagementService getContentManagement() {
+		return content;
+	}
+
+	public Circulation activate(ContentManagementService content, Configurations configs) 
+			throws ConfigurationException {
+
 		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
+			configure(configs);
 			
 			flowCounter.registerValueListener(new FlowCountListener());
 			flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
@@ -115,11 +118,7 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	}
 
 	public void deactivate() {
-		if (isEnabled()) {
-			flowCounter.deregisterValueListeners();
-			flowTempIn.deregisterValueListeners();
-			flowTempOut.deregisterValueListeners();
-		}
+		this.deregisterConfiguredValueListeners();
 	}
 
 	@Override

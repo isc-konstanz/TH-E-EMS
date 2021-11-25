@@ -31,7 +31,6 @@ public interface Channel {
 
 	public void deregisterValueListener(ValueListener listener);
 
-	@Deprecated
 	public void deregisterValueListeners();
 
 	public void setLatestValue(Value value);

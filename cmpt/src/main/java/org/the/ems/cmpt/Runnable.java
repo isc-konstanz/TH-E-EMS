@@ -50,8 +50,6 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Configuration(mandatory=false)
 	protected Channel state;
 
-	protected StateListener stateListener;
-
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
 	protected volatile long stopTimeLast = 0;
@@ -97,8 +95,7 @@ public abstract class Runnable extends Component implements RunnableService {
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		if (state != null) {
-			stateListener = new StateListener();
-			state.registerValueListener(stateListener);
+			state.registerValueListener(new StateListener());
 		}
 		runState = RunState.STANDBY;
 	}
@@ -110,10 +107,10 @@ public abstract class Runnable extends Component implements RunnableService {
 			stop();
 			
 		} catch (EnergyManagementException e) {
-			logger.warn("Error while stopping {} during deactivation: {}", id, e.getMessage());
+			logger.warn("Error while stopping {} during deactivation: {}", getId(), e.getMessage());
 		}
 		if (state != null) {
-			state.deregisterValueListener(stateListener);
+			state.deregisterValueListeners();
 		}
 	}
 
@@ -147,10 +144,10 @@ public abstract class Runnable extends Component implements RunnableService {
 		for (Value value : schedule) {
 			onSet(container, value);
 		}
-		doWrite(container);
+		write(container);
 	}
 
-	protected void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -210,10 +207,10 @@ public abstract class Runnable extends Component implements RunnableService {
 		doSet(value);
 	}
 
-	protected void doSet(Value value) throws EnergyManagementException {
+	void doSet(Value value) throws EnergyManagementException {
 		WriteContainer container = new WriteContainer();
 		onSet(container, value);
-		doWrite(container);
+		write(container);
 	}
 
 	protected void onSet(WriteContainer container, Value value)
@@ -227,27 +224,19 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		switch(getState()) {
-		case STANDBY:
-		case STOPPING:
-			if (value.getTime() - stopTimeLast < idletimeMin) {
-				throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
-						idletimeMin/60000));
-			}
-			doStart(value);
-			break;
-		default:
-			break;
+		if (!isStartable(value.getTime())) {
+			throw new ComponentException("Unable to start component");
 		}
+		doStart(value);
 	}
 
-	protected void doStart(Value value) throws EnergyManagementException {
+	void doStart(Value value) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
 		writeContainer.add(state, new BooleanValue(true, value.getTime()));
 		
 		setState(RunState.STARTING);
 		onStart(writeContainer, value);
-		doWrite(writeContainer);
+		write(writeContainer);
 		startTimeLast = value.getTime();
 	}
 
@@ -255,7 +244,22 @@ public abstract class Runnable extends Component implements RunnableService {
 		// Default implementation to be overridden
 	}
 
-	protected void doRun() throws ComponentException {
+	@Override
+	public boolean isStartable(long time) {
+		switch(getState()) {
+		case STANDBY:
+		case STOPPING:
+            if (time - stopTimeLast >= idletimeMin) {
+            	logger.debug("Component is not startable after interval shorter than {}mins", idletimeMin/60000);
+    			return true;
+            }
+		default:
+			break;
+		}
+		return false;
+	}
+
+	void doRun() throws ComponentException {
 		setState(RunState.RUNNING);
 		onRunning();
 	}
@@ -264,7 +268,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		// Default implementation to be overridden
 	}
 
-	protected boolean isRunning() throws ComponentException {
+	public boolean isRunning() throws ComponentException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STARTING:
@@ -280,44 +284,42 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		switch(getState()) {
-		case STARTING:
-		case RUNNING:
-			if (time - startTimeLast < runtimeMin) {
-				throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
-						runtimeMin/60000));
-			}
-			doStop(time);
-			break;
-		default:
-			break;
+		if (!isStoppable(time)) {
+			throw new ComponentException("Unable to stop component");
 		}
+		doStop(time);
 	}
 
-	protected void doStop(long time) throws EnergyManagementException {
+	void doStop(long time) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
 		writeContainer.add(state, new BooleanValue(false, time));
 		
 		setState(RunState.STOPPING);
 		onStop(writeContainer, time);
-		doWrite(writeContainer);
+		write(writeContainer);
 		stopTimeLast = time;
-	}
-
-	protected void doWrite(WriteContainer container) throws EnergyManagementException {
-		if (container.size() < 1) {
-			return;
-		}
-		for (Channel channel : container.keySet()) {
-			channel.write(container.get(channel));
-		}
 	}
 
 	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected void doStandby() throws ComponentException {
+	@Override
+	public boolean isStoppable(long time) {
+		switch(getState()) {
+		case STANDBY:
+		case STOPPING:
+            if (time - startTimeLast >= runtimeMin) {
+            	logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
+    			return true;
+            }
+		default:
+			break;
+		}
+		return false;
+	}
+
+	void doStandby() throws ComponentException {
 		setState(RunState.STANDBY);
 		onStandby();
 	}
@@ -326,7 +328,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		// Default implementation to be overridden
 	}
 
-	protected boolean isStandby() throws ComponentException {
+	public boolean isStandby() throws ComponentException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STANDBY:

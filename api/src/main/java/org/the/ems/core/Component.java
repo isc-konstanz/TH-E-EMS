@@ -28,17 +28,20 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
+import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.WriteContainer;
 
 public abstract class Component extends Configurable implements ComponentService {
 	private final static Logger logger = LoggerFactory.getLogger(Component.class);
 
-	protected volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
+	private ContentManagementService content;
+
+	private volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
 
 	@Configuration(section = Configurations.GENERAL, mandatory = false)
-	protected String id = getType().getKey().toUpperCase();
+	private String id = getType().getKey().toUpperCase();
 
 	@Override
 	public String getId() {
@@ -71,16 +74,13 @@ public abstract class Component extends Configurable implements ComponentService
 		return componentStatus == ComponentStatus.MAINTENANCE;
 	}
 
-	protected void onResume() throws ComponentException {
-		// Default implementation to be overridden
-	}
-
-	protected void onPause() throws ComponentException {
-		// Default implementation to be overridden
+	@Override
+	protected final ContentManagementService getContentManagement() {
+		return content;
 	}
 
 	@Activate
-	protected void activate(BundleContext context, Map<String, ?> properties) 
+	protected final void activate(BundleContext context, Map<String, ?> properties) 
 			throws org.osgi.service.component.ComponentException, ComponentException {
 		try {
 			doActivate(context, properties);
@@ -93,9 +93,10 @@ public abstract class Component extends Configurable implements ComponentService
 		}
 	}
 
-	protected final void doActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+	void doActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+		content = context.getService(context.getServiceReference(ContentManagementService.class));
 		Configurations configs = Configurations.create(properties);
-		doConfigure(context.getService(context.getServiceReference(ContentManagementService.class)), configs);
+		configure(configs);
 		onActivate(context, properties);
 		onActivate(context, configs);
 		onActivate(configs);
@@ -116,8 +117,7 @@ public abstract class Component extends Configurable implements ComponentService
 	@Modified
 	protected void modified(Map<String, ?> properties) {
 		try {
-			doDeactivate();
-			doActivate(FrameworkUtil.getBundle(this.getClass()).getBundleContext(), properties);
+			doModified(properties);
 			
 		} catch (Exception e) {
 			logger.warn("Error while updating configurations: {}", 
@@ -125,8 +125,30 @@ public abstract class Component extends Configurable implements ComponentService
 		}
 	}
 
+	void doModified(Map<String, ?> properties) throws ComponentException {
+		Configurations configs = Configurations.create(properties);
+		configure(configs);
+		onModified(FrameworkUtil.getBundle(getClass()).getBundleContext(), properties);
+	}
+
+	protected void onModified(BundleContext context, Map<String, ?> properties) throws ComponentException {
+		Configurations configs = Configurations.create(properties);
+		doDeactivate();
+		onActivate(context, properties);
+		onActivate(context, configs);
+		onActivate(configs);
+	}
+
+	protected void onResume() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onPause() throws ComponentException {
+		// Default implementation to be overridden
+	}
+
 	@Deactivate
-	protected void deactivate() throws org.osgi.service.component.ComponentException, ComponentException {
+	protected final void deactivate() throws org.osgi.service.component.ComponentException, ComponentException {
 		try {
 			doDeactivate();
 			
@@ -138,10 +160,7 @@ public abstract class Component extends Configurable implements ComponentService
 		}
 	}
 
-	protected final void doDeactivate() throws ComponentException {
-		// Clear up resources
-		this.content = null;
-		
+	void doDeactivate() throws ComponentException {
 		onDeactivate();
 	}
 
@@ -149,7 +168,13 @@ public abstract class Component extends Configurable implements ComponentService
 		// Default implementation to be overridden
 	}
 
-	public final void interrupt() throws EnergyManagementException {
+	protected void write(WriteContainer container) throws EnergyManagementException {
+		for (Channel channel : container.keySet()) {
+			channel.write(container.get(channel));
+		}
+	}
+
+	void interrupt() throws EnergyManagementException {
 		try {
 			onInterrupt();
 			

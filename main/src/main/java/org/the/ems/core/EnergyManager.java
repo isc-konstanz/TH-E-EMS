@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.main;
+package org.the.ems.core;
 
 import java.util.List;
 import java.util.Map;
@@ -32,17 +32,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.Component;
-import org.the.ems.core.ComponentCollection;
-import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentService;
-import org.the.ems.core.ComponentStatus;
-import org.the.ems.core.ComponentType;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManagementException;
-import org.the.ems.core.EnergyManagementService;
-import org.the.ems.core.SchedulableService;
-import org.the.ems.core.UnknownComponentException;
 import org.the.ems.core.cmpt.ApplianceService;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricVehicleService;
@@ -52,14 +41,13 @@ import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.VentilationService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.ConfigurationService;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
-import org.the.ems.main.config.ConfigurationService;
 
 @org.osgi.service.component.annotations.Component(
 	service = EnergyManagementService.class,
@@ -95,8 +83,11 @@ public final class EnergyManager extends Configurable
 	@Reference
 	ConfigurationService configs;
 
+	@Reference
+	ContentManagementService content;
+
 	@Activate
-	protected void activate(Map<String, ?> properties) {
+	protected final void activate(Map<String, ?> properties) {
 		logger.info("Activating TH-E Energy Management System");
 		try {
 			configure(Configurations.create(properties));
@@ -111,7 +102,7 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Modified
-	void modified(Map<String, ?> properties) {
+	protected final void modified(Map<String, ?> properties) {
 		try {
 			configure(Configurations.create(properties));
 			manager.interrupt();
@@ -122,7 +113,7 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Deactivate
-	protected void deactivate() {
+	protected final void deactivate() {
 		logger.info("Deactivating TH-E Energy Management System");
 		deactivate = true;
 		
@@ -144,6 +135,11 @@ public final class EnergyManager extends Configurable
 
 	protected void unbindContentManagementService(ContentManagementService service) {
 		content = null;
+	}
+
+	@Override
+	protected final ContentManagementService getContentManagement() {
+		return content;
 	}
 
 	@Override

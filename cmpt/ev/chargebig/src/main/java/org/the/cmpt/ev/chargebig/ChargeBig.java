@@ -177,7 +177,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	private void onConfigureChargePoints(Configurations configs) throws ConfigurationException {
-		chargePoints = ChargePoint.newCollection(content, configs);
+		chargePoints = ChargePoint.newCollection(getContentManagement(), configs);
 	}
 
 	@Override

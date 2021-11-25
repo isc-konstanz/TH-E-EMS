@@ -56,21 +56,16 @@ public class Serenergy extends Cogenerator {
 	@Configuration
 	private Channel stackTemp;
 
-	private StackTempListener stackTempListener;
-
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		
-		stackTempListener = new StackTempListener();
-		stackTemp.registerValueListener(stackTempListener);
+		stackTemp.registerValueListener(new StackTempListener());
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		
-		stackTemp.deregisterValueListener(stackTempListener);
+		stackTemp.deregisterValueListeners();
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import org.the.ems.cmpt.inv.ext.ConsumptionPower;
 import org.the.ems.cmpt.inv.ext.ExternalPower;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
@@ -101,11 +102,16 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 	@Configuration
 	protected Channel setpoint;
-	protected ValueListener setpointListener;
 	protected volatile Value setpointValue = DoubleValue.emptyValue();
 
-	protected ExternalPower external;
-	protected ConsumptionPower conssumption;
+	protected final ExternalPower external;
+	protected final ConsumptionPower conssumption;
+
+	public Inverter() {
+		super();
+		external = new ExternalPower();
+		conssumption = new ConsumptionPower();
+	}
 
 	@Override
 	public boolean setIsland(boolean enabled) throws UnsupportedOperationException {
@@ -410,7 +416,6 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 				configs.put(config.getKey().replace("storage.", "general."), config.getValue());
 			}
 		}
-		storage.activate(context, configs);
         storageRegistration = context.registerService(ElectricalEnergyStorageService.class, storage, 
 				new Hashtable<String, Object>(configs));
 	}
@@ -419,10 +424,10 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		
-		external = new ExternalPower().activate(content).configure(configs).register(this);
-		conssumption = new ConsumptionPower().activate(content).configure(configs).register(this);
-		setpointListener = new SetpointListener();
-		setpoint.registerValueListener(setpointListener);
+		ContentManagementService content = getContentManagement();
+		external.activate(content, configs).register(this);
+		conssumption.activate(content, configs).register(this);
+		setpoint.registerValueListener(new SetpointListener());
 	}
 
 	@Override
@@ -440,12 +445,11 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		setpoint.deregisterValueListener(setpointListener);
+		setpoint.deregisterValueListeners();
 		
 		if (storageRegistration != null) {
 			storageRegistration.unregister();
 		}
-		storage.deactivate();
 		external.deactivate();
 		conssumption.deactivate();
 	}

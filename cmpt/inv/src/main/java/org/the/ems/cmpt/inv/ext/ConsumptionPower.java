@@ -24,9 +24,8 @@ import java.util.Map;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.cmpt.inv.ext.PowerListener.PowerCallbacks;
-import org.the.ems.core.ComponentException;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -41,6 +40,8 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	private final static String SECTION = "Consumption";
 
 	private volatile InverterCallbacks callbacks = null;
+
+	private ContentManagementService content;
 
 	@Configuration(section=Configurations.GENERAL)
 	private Channel consPower;
@@ -61,18 +62,20 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 
 	private volatile boolean running = false;
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public ConsumptionPower activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
+	public ConsumptionPower() {
+		setConfiguredSection(SECTION);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public ConsumptionPower configure(Configurations configs) throws ConfigurationException {
+	protected final ContentManagementService getContentManagement() {
+		return content;
+	}
+
+	public ConsumptionPower activate(ContentManagementService content, Configurations configs) 
+			throws ConfigurationException {
+		
 		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
+			configure(configs);
 			
 			consPower.registerValueListener(this);
 			

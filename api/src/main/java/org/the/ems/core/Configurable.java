@@ -72,7 +72,7 @@ public abstract class Configurable {
 		// Default implementation to be overridden
 	}
 
-	protected final void configureElements(Configurations configs, List<AnnotatedElement> elements) 
+	private final void configureElements(Configurations configs, List<AnnotatedElement> elements) 
 			throws ConfigurationException {
 		
 		for (AnnotatedElement element : elements) {
@@ -356,31 +356,6 @@ public abstract class Configurable {
 	protected Value getConfiguredValue(String key) throws ComponentException, InvalidValueException {
 		Channel channel =  getConfiguredChannel(key);
 		return channel.getLatestValue();
-	}
-
-	protected String getConfiguredKey() throws ComponentException {
-		StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-		for (int i = stackTrace.length - 1; i >= 0; i--) {
-			try {
-				String method = stackTrace[i].getMethodName();
-				
-				Configuration config = this.getClass().getMethod(method).getAnnotation(Configuration.class);
-				if (config == null) {
-					continue;
-				}
-				String key = config.value()[0];
-				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-					if (method.startsWith("get")) {
-						method = method.substring(3);
-					}
-					key = parse(method);
-				}
-				return key;
-				
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
-		}
-		throw new ComponentException("Error retrieving configured method key");
 	}
 
 	protected String getConfiguredSection() {

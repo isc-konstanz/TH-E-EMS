@@ -19,6 +19,9 @@
  */
 package org.the.ems.cmpt.circ;
 
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation.CirculationCallbacks;
@@ -68,9 +71,22 @@ public class CirculationPump extends Configurable implements CirculationCallback
 		return content;
 	}
 
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindContentManagementService(ContentManagementService service) {
+		content = service;
+	}
+
+	protected void unbindContentManagementService(ContentManagementService service) {
+		content = null;
+	}
+
 	public CirculationPump activate(ContentManagementService content, Configurations configs) 
 			throws ConfigurationException {
-		
+
+		this.content = content;
 		if (!configs.contains(SECTION, STATE)) {
 			return this;
 		}

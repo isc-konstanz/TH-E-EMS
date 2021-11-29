@@ -22,6 +22,9 @@ package org.the.ems.cmpt.circ;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
 import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
@@ -96,9 +99,22 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 		return content;
 	}
 
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindContentManagementService(ContentManagementService service) {
+		content = service;
+	}
+
+	protected void unbindContentManagementService(ContentManagementService service) {
+		content = null;
+	}
+
 	public Circulation activate(ContentManagementService content, Configurations configs) 
 			throws ConfigurationException {
 
+		this.content = content;
 		if (configs.isEnabled(SECTION)) {
 			configure(configs);
 			

@@ -17,8 +17,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core;
+package org.the.ems.main;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +34,18 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentCollection;
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentStatus;
+import org.the.ems.core.ComponentType;
+import org.the.ems.core.Configurable;
+import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.EnergyManagementService;
+import org.the.ems.core.SchedulableService;
+import org.the.ems.core.UnknownComponentException;
 import org.the.ems.core.cmpt.ApplianceService;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricVehicleService;
@@ -43,11 +57,11 @@ import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.VentilationService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.ConfigurationService;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.schedule.ControlSchedule;
 import org.the.ems.core.schedule.ScheduleListener;
 import org.the.ems.core.schedule.ScheduleService;
+import org.the.ems.main.config.ConfigurationService;
 
 @org.osgi.service.component.annotations.Component(
 	service = EnergyManagementService.class,
@@ -379,23 +393,42 @@ public final class EnergyManager extends Configurable
 						if (component.getStatus() != ComponentStatus.ENABLED) {
 							component.setStatus(ComponentStatus.ENABLED);
 						}
-						
 						if (component instanceof SchedulableService && scheduleFlag) {
-							try {
-								if (schedule.contains(component)) {
-									((SchedulableService) component).schedule(schedule.get(component));
-								}
-							} catch (ComponentException e) {
-								logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);
-							}
+							handleComponentSchedule((SchedulableService) component);
 						}
-						if (component instanceof Component) ((Component) component).interrupt();
+						if (component instanceof Component) {
+							handleComponentInterrupt((Component) component);
+						}
 					}
 				} catch (EnergyManagementException e) {
 					logger.warn("Error while handling event for component \"{}\": ", component.getId(), e);
 				}
 			}
 		}
+	}
+
+	private void handleComponentSchedule(SchedulableService component) throws EnergyManagementException {
+		try {
+			if (schedule.contains(component)) {
+				((SchedulableService) component).schedule(schedule.get(component));
+			}
+		} catch (ComponentException e) {
+			logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);
+		}
+	}
+
+	private void handleComponentInterrupt(Component component) throws EnergyManagementException {
+        try {
+    		Method method = Component.class.getDeclaredMethod("interrupt");
+    		method.setAccessible(true);
+        	method.invoke(component);
+
+        } catch (IllegalAccessException | NoSuchMethodException | SecurityException e) {
+            throw new RuntimeException(e);
+            
+        } catch (InvocationTargetException e) {
+            throw new EnergyManagementException(e.getCause());
+        }
 	}
 
 }

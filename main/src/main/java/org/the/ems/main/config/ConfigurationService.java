@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.config;
+package org.the.ems.main.config;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.EnergyManager;
+import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.main.EnergyManager;
 
 @Component(service = ConfigurationService.class, immediate = true)
 public final class ConfigurationService extends Thread {

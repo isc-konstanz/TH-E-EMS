@@ -45,7 +45,7 @@ public class ComponentCollection extends HashMap<String, ComponentService> {
 	public <C extends ComponentService> List<C> getAll(Class<C> type) {
 		List<C> components = new ArrayList<C>();
 		for (ComponentService component : values()) {
-			if (component.getClass().isAssignableFrom(type)) {
+			if (type.isAssignableFrom(component.getClass())) {
 				components.add((C) component);
 			}
 		}

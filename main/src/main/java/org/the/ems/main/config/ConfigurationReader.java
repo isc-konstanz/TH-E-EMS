@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.config;
+package org.the.ems.main.config;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +27,8 @@ import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.Configurations;
 
 public class ConfigurationReader extends Configurations {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationReader.class);

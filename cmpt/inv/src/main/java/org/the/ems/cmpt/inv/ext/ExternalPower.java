@@ -19,6 +19,9 @@
  */
 package org.the.ems.cmpt.inv.ext;
 
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
@@ -63,9 +66,22 @@ public class ExternalPower extends Configurable implements ValueListener {
 		return content;
 	}
 
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindContentManagementService(ContentManagementService service) {
+		content = service;
+	}
+
+	protected void unbindContentManagementService(ContentManagementService service) {
+		content = null;
+	}
+
 	public ExternalPower activate(ContentManagementService content, Configurations configs) 
 			throws ConfigurationException {
-		
+
+		this.content = content;
 		if (configs.isEnabled(SECTION)) {
 			configure(configs);
 			

@@ -22,6 +22,9 @@ package org.the.ems.cmpt.inv.ext;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.cmpt.inv.ext.PowerListener.PowerCallbacks;
 import org.the.ems.core.Configurable;
@@ -71,9 +74,22 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 		return content;
 	}
 
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindContentManagementService(ContentManagementService service) {
+		content = service;
+	}
+
+	protected void unbindContentManagementService(ContentManagementService service) {
+		content = null;
+	}
+
 	public ConsumptionPower activate(ContentManagementService content, Configurations configs) 
 			throws ConfigurationException {
 		
+		this.content = content;
 		if (configs.isEnabled(SECTION)) {
 			configure(configs);
 			

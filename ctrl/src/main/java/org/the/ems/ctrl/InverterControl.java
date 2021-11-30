@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.InverterService;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public class InverterControl extends ComponentControl<InverterService> {
@@ -20,6 +21,11 @@ public class InverterControl extends ComponentControl<InverterService> {
 				controlledInverter.set(value);
 			}
 		}
+		
+		public boolean hasSufficientCapacity() {
+			return values().stream().anyMatch(c -> c.isAbleToExport());
+		}
+		
 	}
 
 	public interface InverterCallbacks extends ControlCallbacks {
@@ -29,6 +35,15 @@ public class InverterControl extends ComponentControl<InverterService> {
 
 	protected InverterControl(InverterCallbacks callbacks, InverterService inverter) throws ComponentException {
 		super(callbacks, inverter);
+	}
+	
+	public boolean isAbleToExport() {
+		try {
+			return component.getStorage().hasMinStateOfCharge();
+		} catch (ComponentException | InvalidValueException e) {
+			logger.warn("Unable to retrieve minimum SOC \"{}\": {}", component.getId(), e.getMessage());
+			return false;
+		}
 	}
 
 	public final void set(Value value) {

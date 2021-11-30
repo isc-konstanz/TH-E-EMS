@@ -52,14 +52,8 @@ import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
-
-@org.osgi.service.component.annotations.Component(
-	scope = ServiceScope.BUNDLE,
-	service = InverterService.class,
-	configurationPid = InverterService.PID,
-	configurationPolicy = ConfigurationPolicy.REQUIRE
-)
-public class Inverter<S extends ElectricalEnergyStorage> extends Component 
+@org.osgi.service.component.annotations.Component(scope = ServiceScope.BUNDLE, service = InverterService.class, configurationPid = InverterService.PID, configurationPolicy = ConfigurationPolicy.REQUIRE)
+public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		implements InverterService, InverterCallbacks {
 
 	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
@@ -93,10 +87,10 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 	protected S storage;
 
-	@Configuration(scale=1000)
+	@Configuration(scale = 1000)
 	protected double powerMax;
 
-	@Configuration(scale=1000)
+	@Configuration(scale = 1000)
 	protected double powerMin;
 
 	@Configuration
@@ -105,6 +99,11 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 	protected ExternalPower external;
 	protected ConsumptionPower conssumption;
+
+	@Override
+	public S getStorage() {
+		return storage;
+	}
 
 	@Override
 	public Value getSetpoint() throws ComponentException {
@@ -132,97 +131,97 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
-	@Configuration(value=IMPORT_ENERGY_VALUE, mandatory=false)
+	@Configuration(value = IMPORT_ENERGY_VALUE, mandatory = false)
 	public Value getImportEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(IMPORT_ENERGY_VALUE);
 	}
 
 	@Override
-	@Configuration(value=EXPORT_ENERGY_VALUE, mandatory=false)
+	@Configuration(value = EXPORT_ENERGY_VALUE, mandatory = false)
 	public Value getExportEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(EXPORT_ENERGY_VALUE);
 	}
 
 	@Override
-	@Configuration(value=DC_ENERGY_VALUE, mandatory=false)
+	@Configuration(value = DC_ENERGY_VALUE, mandatory = false)
 	public Value getInputEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(DC_ENERGY_VALUE);
 	}
 
 	@Override
-	@Configuration(value=DC_POWER_VALUE, mandatory=false)
+	@Configuration(value = DC_POWER_VALUE, mandatory = false)
 	public Value getInputPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(DC_POWER_VALUE);
 	}
 
 	@Override
-	@Configuration(value=ACTIVE_POWER_VALUE, mandatory=false)
+	@Configuration(value = ACTIVE_POWER_VALUE, mandatory = false)
 	public Value getActivePower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ACTIVE_POWER_VALUE);
 	}
 
 	@Override
-	@Configuration(value=ACTIVE_POWER_L1_VALUE, mandatory=false)
+	@Configuration(value = ACTIVE_POWER_L1_VALUE, mandatory = false)
 	public Value getActivePowerL1() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ACTIVE_POWER_L1_VALUE);
 	}
 
 	@Override
-	@Configuration(value=ACTIVE_POWER_L2_VALUE, mandatory=false)
+	@Configuration(value = ACTIVE_POWER_L2_VALUE, mandatory = false)
 	public Value getActivePowerL2() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ACTIVE_POWER_L2_VALUE);
 	}
 
 	@Override
-	@Configuration(value=ACTIVE_POWER_L3_VALUE, mandatory=false)
+	@Configuration(value = ACTIVE_POWER_L3_VALUE, mandatory = false)
 	public Value getActivePowerL3() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ACTIVE_POWER_L3_VALUE);
 	}
 
 	@Override
-	@Configuration(value=REACTIVE_POWER_VALUE, mandatory=false)
+	@Configuration(value = REACTIVE_POWER_VALUE, mandatory = false)
 	public Value getReactivePower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(REACTIVE_POWER_VALUE);
 	}
 
 	@Override
-	@Configuration(value=REACTIVE_POWER_L1_VALUE, mandatory=false)
+	@Configuration(value = REACTIVE_POWER_L1_VALUE, mandatory = false)
 	public Value getReactivePowerL1() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(REACTIVE_POWER_L1_VALUE);
 	}
 
 	@Override
-	@Configuration(value=REACTIVE_POWER_L2_VALUE, mandatory=false)
+	@Configuration(value = REACTIVE_POWER_L2_VALUE, mandatory = false)
 	public Value getReactivePowerL2() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(REACTIVE_POWER_L2_VALUE);
 	}
 
 	@Override
-	@Configuration(value=REACTIVE_POWER_L3_VALUE, mandatory=false)
+	@Configuration(value = REACTIVE_POWER_L3_VALUE, mandatory = false)
 	public Value getReactivePowerL3() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(REACTIVE_POWER_L3_VALUE);
 	}
 
 	@Override
-	@Configuration(value=VOLTAGE_L1_VALUE, mandatory=false)
+	@Configuration(value = VOLTAGE_L1_VALUE, mandatory = false)
 	public Value getVoltageL1() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(VOLTAGE_L1_VALUE);
 	}
 
 	@Override
-	@Configuration(value=VOLTAGE_L2_VALUE, mandatory=false)
+	@Configuration(value = VOLTAGE_L2_VALUE, mandatory = false)
 	public Value getVoltageL2() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(VOLTAGE_L2_VALUE);
 	}
 
 	@Override
-	@Configuration(value=VOLTAGE_L3_VALUE, mandatory=false)
+	@Configuration(value = VOLTAGE_L3_VALUE, mandatory = false)
 	public Value getVoltageL3() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(VOLTAGE_L3_VALUE);
 	}
 
 	@Override
-	@Configuration(value=FREQUENCY_VALUE, mandatory=false)
+	@Configuration(value = FREQUENCY_VALUE, mandatory = false)
 	public Value getFrequency() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(FREQUENCY_VALUE);
 	}
@@ -232,51 +231,52 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	protected void onActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
 		super.onActivate(context, properties);
-		
+
 		Class<?> type = this.getClass();
 		if (!type.equals(Inverter.class)) {
-	        while (type.getSuperclass() != null) {
-	            if (type.getSuperclass().equals(Inverter.class)) {
-	                break;
-	            }
-	            type = type.getSuperclass();
-	        }
+			while (type.getSuperclass() != null) {
+				if (type.getSuperclass().equals(Inverter.class)) {
+					break;
+				}
+				type = type.getSuperclass();
+			}
 			try {
-		        // This operation is safe. Because clazz is a direct sub-class, getGenericSuperclass() will
-		        // always return the Type of this class. Because this class is parameterized, the cast is safe
-		        ParameterizedType superclass = (ParameterizedType) type.getGenericSuperclass();
-		        Class<S> storageType = (Class<S>) superclass.getActualTypeArguments()[0];
-		        storage = (S) storageType.getDeclaredConstructor().newInstance();
-				
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| NoSuchMethodException | SecurityException e) {
+				// This operation is safe. Because clazz is a direct sub-class,
+				// getGenericSuperclass() will
+				// always return the Type of this class. Because this class is parameterized,
+				// the cast is safe
+				ParameterizedType superclass = (ParameterizedType) type.getGenericSuperclass();
+				Class<S> storageType = (Class<S>) superclass.getActualTypeArguments()[0];
+				storage = (S) storageType.getDeclaredConstructor().newInstance();
+
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				throw new ComponentException(e);
 			}
-		}
-		else {
+		} else {
 			storage = (S) new ElectricalEnergyStorage();
 		}
 		Map<String, Object> configs = new HashMap<String, Object>();
 		configs.put("general.id", ((String) properties.get("general.id")).replace("inv", "ees"));
 		configs.put("general.type", properties.get("general.type"));
-		
+
 		for (Entry<String, ?> config : properties.entrySet()) {
 			if (config.getKey().startsWith("storage.")) {
 				configs.put(config.getKey().replace("storage.", "general."), config.getValue());
 			}
 		}
 		storage.activate(context, configs);
-        storageRegistration = context.registerService(ElectricalEnergyStorageService.class, storage, 
+		storageRegistration = context.registerService(ElectricalEnergyStorageService.class, storage,
 				new Hashtable<String, Object>(configs));
 	}
 
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		
+
 		external = new ExternalPower().activate(content).configure(configs).register(this);
 		conssumption = new ConsumptionPower().activate(content).configure(configs).register(this);
 		setpoint.registerValueListener(new SetpointListener());
@@ -298,7 +298,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		setpoint.deregister();
-		
+
 		if (storageRegistration != null) {
 			storageRegistration.unregister();
 		}
@@ -308,47 +308,45 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
-    public final void schedule(Schedule schedule)
-            throws UnsupportedOperationException, EnergyManagementException {
-        
-        if (isMaintenance()) {
-            throw new MaintenanceException("Unable to schedule inverter while in maintenance");
-        }
-        WriteContainer container = new WriteContainer();
-        for (Value value : schedule) {
-            doSet(container, value);
-        }
-        doWrite(container);
-    }
+	public final void schedule(Schedule schedule) throws UnsupportedOperationException, EnergyManagementException {
 
-    protected void doSchedule(WriteContainer container, Schedule schedule) 
-            throws UnsupportedOperationException, EnergyManagementException {
-        
-        for (Value value : schedule) {
-            doSet(container, value);
-        }
-        onSchedule(container, schedule);
-    }
+		if (isMaintenance()) {
+			throw new MaintenanceException("Unable to schedule inverter while in maintenance");
+		}
+		WriteContainer container = new WriteContainer();
+		for (Value value : schedule) {
+			doSet(container, value);
+		}
+		doWrite(container);
+	}
 
-    protected void onSchedule(WriteContainer container, Schedule schedule) 
-            throws UnsupportedOperationException, ComponentException {
-        // Default implementation to be overridden
-    }
+	protected void doSchedule(WriteContainer container, Schedule schedule)
+			throws UnsupportedOperationException, EnergyManagementException {
 
-    @Override
-    public final void set(Value value) 
-            throws UnsupportedOperationException, EnergyManagementException {
-        
-        WriteContainer container = new WriteContainer();
-        doSet(container, value);
-        doWrite(container);
-    }
+		for (Value value : schedule) {
+			doSet(container, value);
+		}
+		onSchedule(container, schedule);
+	}
 
-    protected void doSet(WriteContainer container, Value value)
-            throws UnsupportedOperationException, EnergyManagementException {
-        
-        onSet(container, value);
-    }
+	protected void onSchedule(WriteContainer container, Schedule schedule)
+			throws UnsupportedOperationException, ComponentException {
+		// Default implementation to be overridden
+	}
+
+	@Override
+	public final void set(Value value) throws UnsupportedOperationException, EnergyManagementException {
+
+		WriteContainer container = new WriteContainer();
+		doSet(container, value);
+		doWrite(container);
+	}
+
+	protected void doSet(WriteContainer container, Value value)
+			throws UnsupportedOperationException, EnergyManagementException {
+
+		onSet(container, value);
+	}
 
 	public void onSet(WriteContainer container, Value value) throws ComponentException {
 		double setpoint = value.doubleValue();
@@ -367,46 +365,50 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		if (external.isRunning()) {
 			setpoint += external.getSolar().doubleValue();
 		}
-		
+
 		if (setpoint > getMaxPower()) {
 			setpoint = getMaxPower();
-		}
-		else if (setpoint < getMinPower()) {
+		} else if (setpoint < getMinPower()) {
 			setpoint = getMinPower();
 		}
 		
-//		double soc = storage.getStateOfCharge().doubleValue();
-//		if (soc < storage.getMinStateOfCharge() || soc > storage.getMaxStateOfCharge()) {
-//			if (this.setpoint.getLatestValue().doubleValue() != 0) {
-//				container.add(this.setpoint, new DoubleValue(0));
-//			}
-//			logger.debug("Requested inverter setpoint not allowed for Battery State of Charge of {}%", soc);
-//			return;
-//		}
+		try {
+			if (storage.hasMinStateOfCharge()) {
+				setpoint = Math.min(setpoint, 0);
+			} 
+			else if (storage.getStateOfCharge().doubleValue() >= storage.getMaxStateOfCharge()) {
+				setpoint = Math.max(setpoint, 0);
+			}
+		} catch (ComponentException | InvalidValueException e) {
+			logger.warn("State of charge not available. {}", e.getMessage());
+		}
+
 		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
 	}
 
-    protected void doWrite(WriteContainer container) throws EnergyManagementException {
-        if (container.size() < 1) {
-            return;
-        }
-        for (Channel channel : container.keySet()) {
-            channel.write(container.get(channel));
-        }
-    }
+	protected void doWrite(WriteContainer container) throws EnergyManagementException {
+		if (container.size() < 1) {
+			return;
+		}
+		for (Channel channel : container.keySet()) {
+			channel.write(container.get(channel));
+		}
+	}
 
 	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		// TODO: Verify setpoint import/export sign
 	}
 
 	@Override
-	public void onSetpointChanged(Value value) throws EnergyManagementException { set(value); }
+	public void onSetpointChanged(Value value) throws EnergyManagementException {
+		set(value);
+	}
 
 	@Override
 	public void onSetpointUpdate() {
 		try {
 			WriteContainer container = new WriteContainer();
-			
+
 			doSet(container, setpointValue);
 			if (container.size() < 1) {
 				return;
@@ -423,10 +425,10 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 		@Override
 		public void onValueReceived(Value setpoint) {
-	        if (setpointValue.doubleValue() != setpoint.doubleValue()) {
-	            setpointValue = setpoint;
-	            onSetpointUpdate();
-	        }
+			if (setpointValue.doubleValue() != setpoint.doubleValue()) {
+				setpointValue = setpoint;
+				onSetpointUpdate();
+			}
 		}
 	}
 

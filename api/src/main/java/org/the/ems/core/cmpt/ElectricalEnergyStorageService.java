@@ -49,6 +49,7 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	 */
 	public double getMinStateOfCharge() throws ComponentException;
 
+	public boolean hasMinStateOfCharge() throws ComponentException, InvalidValueException;
 	/*
 	 * Get the state of charge in percent [%] between 0 and 100%.
 	 */

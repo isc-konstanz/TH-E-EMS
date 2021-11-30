@@ -72,6 +72,11 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	public double getMinStateOfCharge() {
 		return socMin;
 	}
+	
+	@Override
+	public boolean hasMinStateOfCharge() throws ComponentException, InvalidValueException {
+		return getStateOfCharge().doubleValue() >= getMinStateOfCharge();
+	}
 
 	@Override
 	@Configuration(value=STATE_VALUE)

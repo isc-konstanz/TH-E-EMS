@@ -43,6 +43,8 @@ public interface InverterService extends SchedulableService {
 	 * Get if the inverter is in island mode, decoupled from the grid.
 	 */
 	public boolean isIsland() throws UnsupportedOperationException;
+	
+	public ElectricalEnergyStorageService getStorage();
 
 	/*
 	 * Get the maximum power in watts [W].

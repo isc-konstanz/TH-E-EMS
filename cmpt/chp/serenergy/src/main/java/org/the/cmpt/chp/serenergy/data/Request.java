@@ -27,7 +27,7 @@ public enum Request {
 	ENABLE(1),
 	DISABLE(2),
 	START(3),
-	STOP(3),;
+	STOP(4),;
 
 	private final int code;
 

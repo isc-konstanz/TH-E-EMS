@@ -1,5 +1,8 @@
 package org.the.cmpt.chp.serenergy;
 
+import java.net.Authenticator.RequestorType;
+import java.util.List;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
@@ -14,16 +17,20 @@ import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.core.ComponentCollection;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.HeatingService;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
+import org.the.ems.core.data.ValueType;
 import org.the.ems.core.data.WriteContainer;
 
 @Component(scope = ServiceScope.BUNDLE, service = CogeneratorService.class, configurationPid = CogeneratorService.PID
@@ -44,7 +51,7 @@ public class Serenergy extends Cogenerator {
 	@Configuration
 	protected Channel stop;
 
-	@Configuration
+	@Configuration(mandatory = false)
 	protected Channel status;
 
 	@Configuration
@@ -84,7 +91,8 @@ public class Serenergy extends Cogenerator {
 
 	@Override
 	protected void onStop(WriteContainer container, long time) throws ComponentException {
-		container.add(stop, Request.STOP.encode(time));
+		container.add(enable, Request.DISABLE.encode(time));
+//		container.add(stop, Request.STOP.encode(time));
 		// TODO: reset stackLimit
 	}
 
@@ -109,32 +117,30 @@ public class Serenergy extends Cogenerator {
 		unbindComponentService(storageService);
 	}
 
-	@Reference(
-			cardinality = ReferenceCardinality.MULTIPLE,
-			policy = ReferencePolicy.DYNAMIC
-		)
-		protected void bindComponentService(ComponentService componentService) {
-			String id = componentService.getId();
-			
-			synchronized (storages) {
-				if (!storages.containsKey(id)) {
-//					logger.info("Registered TH-E EMS {}: {}", 
-//							componentService.getType().getFullName(), id);					
-					storages.put(id, componentService);
-				}
+	@Reference(cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+	protected void bindComponentService(ElectricalEnergyStorageService componentService) {
+		String id = componentService.getId();
+
+		synchronized (storages) {
+			if (!storages.containsKey(id)) {
+				logger.info("Registered {} in Serenergy component: {}", componentService.getType().getFullName(), id);
+
+				storages.put(id, componentService);
 			}
 		}
+	}
 
-	protected void unbindComponentService(ComponentService componentService) {
+	protected void unbindComponentService(ElectricalEnergyStorageService componentService) {
 		String id = componentService.getId();
-		
+
 		synchronized (storages) {
-			logger.info("Deregistered TH-E EMS in Serenergy{}: {}", 
-					componentService.getType().getFullName(), id);
-			
+			logger.info("Deregistered TH-E EMS in Serenergy component {}: {}", componentService.getType().getFullName(),
+					id);
+
 			storages.remove(id);
 		}
 	}
+
 	private class StackTempListener implements ValueListener {
 
 		@Override

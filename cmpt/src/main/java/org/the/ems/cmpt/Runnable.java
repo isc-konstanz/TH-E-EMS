@@ -45,7 +45,7 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Configuration(mandatory=false, scale=60000) // Default runtime minimum of 10 minutes
 	protected int runtimeMin = 600000;
 
-	@Configuration(mandatory=false, scale=6000) // Default idletime minimum of 1 minute
+	@Configuration(mandatory=false, scale=60000) // Default idletime minimum of 1 minute
 	protected int idletimeMin = 60000;
 
 	@Configuration(mandatory=false)
@@ -54,8 +54,8 @@ public abstract class Runnable extends Component implements RunnableService {
 	protected volatile RunState runState = RunState.DEFAULT;
 
 	protected volatile Value stateValueLast = null;
-	protected volatile long startTimeLast = 0;
-	protected volatile long stopTimeLast = 0;
+	protected volatile long startTimeLast = System.currentTimeMillis();
+	protected volatile long stopTimeLast = System.currentTimeMillis();
 
 	@Override
 	public RunState getState() {
@@ -89,7 +89,7 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	@Override
 	public int getMinIdletime() {
-		return runtimeMin;
+		return idletimeMin;
 	}
 
 	@Override

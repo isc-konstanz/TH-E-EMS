@@ -19,6 +19,8 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
@@ -30,6 +32,7 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
 public class EffektaBattery extends ElectricalEnergyStorage {
+	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
 
 	@Configuration
 	private double chargeVoltageMax = 52;
@@ -44,11 +47,11 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	private Channel voltageSetpoint;
 
 	@Configuration
-	private Channel powerStorage;
+	private Channel power;
 
 	@Configuration
 	private Channel soc;
-	
+
 	@Configuration
 	private Channel current;
 
@@ -69,11 +72,38 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	public Value getStateOfCharge() throws InvalidValueException {
 		return soc.getLatestValue();
 	}
-	
-	public void setStateOfCharge(Value value)  {
+
+	public void initialize() {
+		power.setLatestValue(new DoubleValue(0));
+		soc.setLatestValue(new DoubleValue(50));
+		current.setLatestValue(new DoubleValue(0));
+	}
+
+	public void setStateOfCharge(Value value) {
 		soc.setLatestValue(value);
 	}
 
+	public Value socEstimation(Long time) throws InvalidValueException {
+		long socTime = getStateOfCharge().getTime();
+		double energy;
+		double socEstimation;
+		double current = getCurrent().doubleValue();
+
+		if (voltage.getLatestValue().doubleValue() >= getVoltageMax()) {
+			setStateOfCharge(new DoubleValue(100));
+		} else if (voltage.getLatestValue().doubleValue() <= getVoltageMin()) {
+			setStateOfCharge(new DoubleValue(0));
+		} else if (!Double.isNaN(current)) {
+			energy = current * voltage.getLatestValue().doubleValue() * (time - socTime) / (1000 * 3600);
+			socEstimation = getStateOfCharge().doubleValue() - energy / (getCapacity() * 1000) * 100;
+			socEstimation = Math.max(0, socEstimation);
+			socEstimation = Math.min(100, socEstimation);
+
+			setStateOfCharge(new DoubleValue(socEstimation, time));
+		}
+		
+		return getStateOfCharge();
+	}
 
 	void registerVoltageListener(ValueListener listener) {
 		voltage.registerValueListener(listener);
@@ -108,6 +138,16 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	}
 
 	public void setPower(Value value) {
-		powerStorage.setLatestValue(value);
+		power.setLatestValue(value);
+
+		try {
+			current.setLatestValue(new DoubleValue(value.doubleValue() / voltage.getLatestValue().doubleValue()));
+		} catch (InvalidValueException e) {
+			logger.warn("Obligatory value missing: {}", e.getMessage());
+		}
+	}
+
+	public double getChargeVoltageMax() {
+		return chargeVoltageMax;
 	}
 }

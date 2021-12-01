@@ -373,7 +373,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		}
 		
 		try {
-			if (storage.hasMinStateOfCharge()) {
+			if (!storage.hasMinStateOfCharge()) {
 				setpoint = Math.min(setpoint, 0);
 			} 
 			else if (storage.getStateOfCharge().doubleValue() >= storage.getMaxStateOfCharge()) {

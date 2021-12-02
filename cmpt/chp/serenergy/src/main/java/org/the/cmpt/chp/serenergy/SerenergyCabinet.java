@@ -49,28 +49,34 @@ public class SerenergyCabinet extends Cogenerator {
 	@Configuration(mandatory = false)
 	protected Channel status;
 
-	@Configuration
+	@Configuration(mandatory = false)
 	private ChannelListener eesSoc;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		eesSoc.registerValueListener(new StateOfChargeListener());
+		if (eesSoc != null) {
+			eesSoc.registerValueListener(new StateOfChargeListener());
+		}
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		eesSoc.deregister();
+		if (eesSoc != null) {
+			eesSoc.deregister();
+			eesSoc = null;
+		}
+
 	}
 
 	@Override
 	protected void onStart(WriteContainer container, Value value) {
 		long time = value.getTime();
 
-		container.addBoolean(stop, false, time);
 		container.addBoolean(enable, true, time);
-		container.addBoolean(start, true, time);
+		container.addBoolean(start, true, time + 500);
+		container.addBoolean(stop, false, time + 500);
 
 		try {
 			doWrite(container);
@@ -82,8 +88,8 @@ public class SerenergyCabinet extends Cogenerator {
 	@Override
 	protected void onStop(WriteContainer container, long time) throws ComponentException {
 		container.addBoolean(enable, false, time);
-		container.addBoolean(start, false, time);
-		container.addBoolean(stop, true, time);
+		container.addBoolean(stop, true, time + 500);
+		container.addBoolean(start, false, time + 500);
 
 		try {
 			doWrite(container);
@@ -107,8 +113,7 @@ public class SerenergyCabinet extends Cogenerator {
 
 		synchronized (storages) {
 			if (!storages.containsKey(id)) {
-				logger.info("Registered {} in Serenergy component: {}", componentService.getType().getFullName(), id);
-
+				logger.debug("Registered {} in Serenergy component: {}", componentService.getType().getFullName(), id);
 				storages.put(id, componentService);
 			}
 		}
@@ -118,9 +123,8 @@ public class SerenergyCabinet extends Cogenerator {
 		String id = componentService.getId();
 
 		synchronized (storages) {
-			logger.info("Deregistered TH-E EMS in Serenergy component {}: {}", componentService.getType().getFullName(),
-					id);
-
+			logger.debug("Deregistered TH-E EMS in Serenergy component {}: {}",
+					componentService.getType().getFullName(), id);
 			storages.remove(id);
 		}
 	}
@@ -141,12 +145,11 @@ public class SerenergyCabinet extends Cogenerator {
 						&& getState() != RunState.RUNNING) {
 					start();
 					logger.info("Starting CHP due to minimal SOC boundary reached.");
-
 				}
 			} catch (Exception e) {
 				logger.warn("Error in SerenergyComponent: {}", e.getMessage());
 			}
-			
+
 		}
 	}
 }

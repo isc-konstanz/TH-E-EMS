@@ -79,8 +79,8 @@ public class PeakShavingControl extends Control {
 		super.onActivate(configs);
 		power.registerValueListener(new PowerListener());
 		powerLimit.registerValueListener(new PowerLimitListener());
+		
 		control = new PidControl().configure(configs);
-
 		powerLimitValue = new DoubleValue(importMax, System.currentTimeMillis());
 		powerValue = new DoubleValue(0, System.currentTimeMillis());
 	}

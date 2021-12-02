@@ -20,9 +20,32 @@
 package org.the.ems.cmpt.inv.effekta;
 
 public enum Mode {
-    DEFAULT,
-    CHARGE_FROM_GRID,
-    FEED_INTO_GRID,
-    DISABLED;
+//    DISABLED; 1010 1001 0000 0000 (43264d)49920
+//    DEFAULT,
+//    CHARGE_FROM_GRID, 1100 0001 0000 0000 (49408d)
+//    FEED_INTO_GRID, 0010 1011 0000 0000 (11008)
+	
+    DISABLED("0010000100000000"),
+    DEFAULT("1011011000000000"),
+    CHARGE_FROM_GRID("1111100100000000"),
+    FEED_INTO_GRID("0111111000000000");
+
+    private final int mode;
+
+    private Mode(String bitStr) {
+    	this(Integer.parseUnsignedInt(bitStr, 2));
+    }
+
+    private Mode(int bits) {
+        this.mode = bits;
+    }
+
+    public int getInt() {
+        return mode;
+    } 
+    
+    public String getByteArray() {
+        return Integer.toBinaryString(mode);
+    } 
 	
 }

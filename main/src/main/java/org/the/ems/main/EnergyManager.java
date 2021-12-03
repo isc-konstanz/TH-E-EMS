@@ -21,6 +21,7 @@ package org.the.ems.main;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -288,12 +289,16 @@ public final class EnergyManager extends Configurable
 	)
 	protected void bindComponentService(ComponentService componentService) {
 		String id = componentService.getId();
-		
 		synchronized (components) {
+			String msg = MessageFormat.format("Registered TH-E EMS {0}: {1}", 
+					componentService.getType().getFullName(), id);
 			if (!components.containsKey(id)) {
-				logger.info("Registered TH-E EMS {}: {}", 
-						componentService.getType().getFullName(), id);
-				
+				if (componentService.getType() != ComponentType.GENERAL) {
+					logger.info(msg);
+				}
+				else if (logger.isDebugEnabled()) {
+					logger.debug(msg);
+				}
 				components.put(id, componentService);
 				manager.interrupt();
 			}
@@ -302,11 +307,15 @@ public final class EnergyManager extends Configurable
 
 	protected void unbindComponentService(ComponentService componentService) {
 		String id = componentService.getId();
-		
 		synchronized (components) {
-			logger.info("Deregistered TH-E EMS {}: {}", 
+			String msg = MessageFormat.format("Deregistered TH-E EMS {0}: {1}", 
 					componentService.getType().getFullName(), id);
-			
+			if (componentService.getType() != ComponentType.GENERAL) {
+				logger.info(msg);
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug(msg);
+			}
 			components.remove(id);
 		}
 	}

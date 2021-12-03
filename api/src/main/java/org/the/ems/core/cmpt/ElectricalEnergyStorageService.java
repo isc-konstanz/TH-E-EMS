@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface ElectricalEnergyStorageService extends SchedulableService {
 
-	static final String PID = "org.the.ems.cmpt.ees";
+	public static final String PID = "org.the.ems.cmpt.ees";
 
 	@Override
 	public default ComponentType getType() {

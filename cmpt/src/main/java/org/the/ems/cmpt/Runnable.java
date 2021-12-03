@@ -109,9 +109,6 @@ public abstract class Runnable extends Component implements RunnableService {
 		} catch (EnergyManagementException e) {
 			logger.warn("Error while stopping {} during deactivation: {}", getId(), e.getMessage());
 		}
-		if (state != null) {
-			state.deregisterValueListeners();
-		}
 	}
 
 	@Override

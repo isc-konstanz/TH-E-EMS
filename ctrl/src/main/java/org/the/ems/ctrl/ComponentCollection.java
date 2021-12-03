@@ -7,7 +7,7 @@ import java.util.List;
 import org.the.ems.core.ComponentType;
 
 abstract class ComponentCollection<C extends ComponentControl<?>> extends LinkedHashMap<String, C> {
-	private static final long serialVersionUID = -1170124420619031062L;
+	private static final long serialVersionUID = 5136595863157847048L;
 
 	public void add(C component) {
 		String id = component.getId();

@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ComponentCollection extends HashMap<String, ComponentService> {
-	private static final long serialVersionUID = 7051113309181699195L;
+	private static final long serialVersionUID = 2296740817884958428L;
 
 	private final static Logger logger = LoggerFactory.getLogger(ComponentCollection.class);
 

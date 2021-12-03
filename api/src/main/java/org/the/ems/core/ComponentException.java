@@ -20,7 +20,7 @@
 package org.the.ems.core;
 
 public class ComponentException extends EnergyManagementException {
-	private static final long serialVersionUID = 5481718925785085387L;
+	private static final long serialVersionUID = 558705384474314811L;
 
 	public ComponentException() {
 		super();

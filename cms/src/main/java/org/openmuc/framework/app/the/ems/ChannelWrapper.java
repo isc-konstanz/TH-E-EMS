@@ -55,7 +55,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	 * implementation about changed temperatures
 	 */
 	public interface ChannelCallbacks {
-		public void doExecute(Runnable task);
+		public void execute(Runnable task);
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 		Runnable task = () -> {
 			channel.setLatestRecord(encodeRecord(value));
 		};
-		callbacks.doExecute(task);
+		callbacks.execute(task);
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 				channel.writeFuture(encodeFutureValueList(new ValueList(value)));
 			}
 		};
-		callbacks.doExecute(task);
+		callbacks.execute(task);
 	}
 
 	@Override
@@ -160,7 +160,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 			}
 			channel.writeFuture(encodeFutureValueList(values));
 		};
-		callbacks.doExecute(task);
+		callbacks.execute(task);
 	}
 
 	@Override

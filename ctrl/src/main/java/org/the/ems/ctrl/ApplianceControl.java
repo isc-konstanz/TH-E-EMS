@@ -13,7 +13,7 @@ public class ApplianceControl extends ComponentControl<RunnableService> {
 	private final static Logger logger = LoggerFactory.getLogger(ApplianceControl.class);
 
 	public static class ApplianceCollection extends ComponentCollection<ApplianceControl> {
-		private static final long serialVersionUID = -1170124420619031062L;
+		private static final long serialVersionUID = -1303740632958319339L;
 
 		public void startAll(ComponentType... types) {
 			for (ApplianceControl controlledAppliance : getAll(types)) {

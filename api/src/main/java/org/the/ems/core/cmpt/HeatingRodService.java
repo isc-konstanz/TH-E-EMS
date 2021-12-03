@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface HeatingRodService extends HeatingService {
 
-	static final String PID = "org.the.ems.cmpt.hr";
+	public static final String PID = "org.the.ems.cmpt.hr";
 
 	@Override
 	public default ComponentType getType() {

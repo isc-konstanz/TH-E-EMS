@@ -19,26 +19,20 @@
  */
 package org.the.ems.cmpt.circ;
 
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation.CirculationCallbacks;
-import org.the.ems.core.Configurable;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class CirculationPump extends Configurable implements CirculationCallbacks {
+public class CirculationPump extends Component implements CirculationCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(CirculationPump.class);
-
-	private ContentManagementService content;
 
 	private final static String SECTION = "Circulation";
 
@@ -62,44 +56,21 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	private volatile boolean running = false;
 
 	public CirculationPump(Circulation circulation) {
+		super(SECTION);
 		this.circulation = circulation;
-		setConfiguredSection(SECTION);
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
-	}
-
-	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
-	}
-
-	public CirculationPump activate(ContentManagementService content, Configurations configs) 
-			throws ConfigurationException {
-
-		this.content = content;
-		if (!configs.contains(SECTION, STATE)) {
-			return this;
+	protected void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		if (!isEnabled()) {
+			return;
 		}
-		if (configs.isEnabled(SECTION)) {
-			configure(configs);
-			
-			circulation.register(this);
-			state.registerValueListener(new CirculationPumpStateListener());
-			
-			running = true;
-			logger.debug("Activated TH-E EMS CirculationPump");
-		}
-		return this;
+		circulation.register(this);
+		state.registerValueListener(new CirculationPumpStateListener());
+		
+		running = true;
+		logger.debug("Activated TH-E EMS CirculationPump");
 	}
 
 	public void resume() {
@@ -110,12 +81,21 @@ public class CirculationPump extends Configurable implements CirculationCallback
 		running = false;
 	}
 
-	public void deactivate() {
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
 		if (isEnabled()) {
 			circulation.deregister();
-			state.deregisterValueListeners();
 		}
 		running = false;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		if (!getConfigurations().contains(SECTION, STATE)) {
+			return false;
+		}
+		return super.isEnabled();
 	}
 
 	public boolean isRunning() {

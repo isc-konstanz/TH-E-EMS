@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation;
 import org.the.ems.cmpt.circ.CirculationPump;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.RunState;
@@ -217,10 +216,8 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		
-		ContentManagementService content = getContentManagement();
-		circulation.activate(content, configs);
-		circulationPump.activate(content, configs);
+		registerService(getId().concat("_").concat("circ"), configs, circulation);
+		registerService(getId().concat("_").concat("circ_pump"), configs, circulationPump);
 	}
 
 	@Override
@@ -236,8 +233,6 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	protected void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		circulation.deactivate();
-		circulationPump.deactivate();
 	}
 
 	@Override

@@ -13,7 +13,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
 	private final static Logger logger = LoggerFactory.getLogger(HeatingControl.class);
 
 	public static class HeatingCollection extends ComponentCollection<HeatingControl> {
-		private static final long serialVersionUID = -1170124420619031062L;
+		private static final long serialVersionUID = -5930525969091397878L;
 
 		public void startAll(ComponentType... types) {
 			for (HeatingControl controlledHeating : getAll(types)) {

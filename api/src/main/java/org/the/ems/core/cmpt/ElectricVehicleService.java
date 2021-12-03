@@ -29,7 +29,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface ElectricVehicleService extends RunnableService {
 
-	static final String PID = "org.the.ems.cmpt.ev";
+	public static final String PID = "org.the.ems.cmpt.ev";
 
 	@Override
 	public default ComponentType getType() {

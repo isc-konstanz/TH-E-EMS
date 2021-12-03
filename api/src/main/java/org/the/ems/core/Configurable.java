@@ -43,11 +43,18 @@ import org.the.ems.core.data.ValueListener;
 
 public abstract class Configurable {
 
-	private boolean enabled = false;
+	private final ChannelCollection channels = new ChannelCollection();
+
+	private Configurations configs;
 
 	private String section = Configurations.GENERAL;
 
-	private final ChannelCollection channels = new ChannelCollection();
+	protected Configurable(String section) {
+		this.section = section;
+	}
+
+	protected Configurable() {
+	}
 
 	@SuppressWarnings("unchecked")
 	public final <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
@@ -56,23 +63,22 @@ public abstract class Configurable {
 	}
 
 	void doConfigure(Configurations configs) throws ConfigurationException {
-		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
-		Class<?> type = this.getClass();
-		while(type.getSuperclass() != null) {
-			elements.addAll(Arrays.asList(type.getDeclaredFields()));
-			elements.addAll(Arrays.asList(type.getDeclaredMethods()));
-		    type = type.getSuperclass();
-		}
-		configureElements(configs, elements);
+		this.configs = configs;
 		
-		onConfigure(configs);
+		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
+		Class<?> clazz = this.getClass();
+		while(clazz.getSuperclass() != null) {
+			elements.addAll(Arrays.asList(clazz.getDeclaredFields()));
+			elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		    clazz = clazz.getSuperclass();
+		}
+		if (isEnabled()) {
+			doConfigure(configs, elements);
+			onConfigure(configs);
+		}
 	}
 
-	protected void onConfigure(Configurations configs) throws ConfigurationException {
-		// Default implementation to be overridden
-	}
-
-	private final void configureElements(Configurations configs, List<AnnotatedElement> elements) 
+	void doConfigure(Configurations configs, List<AnnotatedElement> elements) 
 			throws ConfigurationException {
 		
 		for (AnnotatedElement element : elements) {
@@ -102,9 +108,10 @@ public abstract class Configurable {
 						section, parse(keys, element)));
 			}
 		}
-		if (configs.isEnabled(section)) {
-			enabled = true;
-		}
+	}
+
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		// Default implementation to be overridden
 	}
 
 	private boolean configureMethod(Configurations configs, Method method,
@@ -358,6 +365,10 @@ public abstract class Configurable {
 		return channel.getLatestValue();
 	}
 
+	protected Configurations getConfigurations() {
+		return configs;
+	}
+
 	protected String getConfiguredSection() {
 		return section;
 	}
@@ -369,11 +380,7 @@ public abstract class Configurable {
 	}
 
 	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+		return getConfigurations().isEnabled(section);
 	}
 
 	private ConfigurationException newConfigException(String message) {

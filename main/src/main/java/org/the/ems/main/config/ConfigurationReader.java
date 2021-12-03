@@ -31,7 +31,9 @@ import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 
 public class ConfigurationReader extends Configurations {
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationReader.class);
+	private static final long serialVersionUID = 7042213332539257270L;
+
+	private static final Logger logger = LoggerFactory.getLogger(ConfigurationReader.class);
 
 	protected ConfigurationReader configure(File[] files) throws ConfigurationException {
 		if (files != null && files.length > 0) {

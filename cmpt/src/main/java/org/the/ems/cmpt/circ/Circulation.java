@@ -22,22 +22,17 @@ package org.the.ems.cmpt.circ;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
-import org.the.ems.core.Configurable;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Circulation extends Configurable implements CirculationTemperatureCallbacks {
+public class Circulation extends Component implements CirculationTemperatureCallbacks {
 
 	private final static String SECTION = "Circulation";
 
@@ -53,8 +48,6 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	 * The Circulations current callback object, which is used to notify of events
 	 */
 	private volatile CirculationCallbacks callbacks = null;
-
-	private ContentManagementService content;
 
 	// The specific heat capacity of the flow medium. Default is 4.1813 of water.
 	@Configuration(mandatory=false)
@@ -91,38 +84,18 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	private Double flowCounterLast = Double.NaN;
 
 	public Circulation() {
-		setConfiguredSection(SECTION);
+		super(SECTION);
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
-	}
-
-	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
-	}
-
-	public Circulation activate(ContentManagementService content, Configurations configs) 
-			throws ConfigurationException {
-
-		this.content = content;
-		if (configs.isEnabled(SECTION)) {
-			configure(configs);
-			
-			flowCounter.registerValueListener(new FlowCountListener());
-			flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
-			flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
+	protected void onActivate() throws ComponentException {
+		super.onActivate();
+		if (!isEnabled()) {
+			return;
 		}
-		return this;
+		flowCounter.registerValueListener(new FlowCountListener());
+		flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
+		flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
 	}
 
 	public void register(CirculationCallbacks callbacks) {
@@ -133,7 +106,9 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 		this.callbacks = null;
 	}
 
-	public void deactivate() {
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
 		this.deregisterConfiguredValueListeners();
 	}
 

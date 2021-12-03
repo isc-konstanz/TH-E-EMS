@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface CogeneratorService extends HeatingService {
 
-	static final String PID = "org.the.ems.cmpt.chp";
+	public static final String PID = "org.the.ems.cmpt.chp";
 
 	@Override
 	public default ComponentType getType() {

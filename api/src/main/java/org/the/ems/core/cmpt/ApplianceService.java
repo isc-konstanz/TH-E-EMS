@@ -29,7 +29,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface ApplianceService extends RunnableService {
 
-	static final String PID = "org.the.ems.cmpt.apl";
+	public static final String PID = "org.the.ems.cmpt.apl";
 
 	@Override
 	public default ComponentType getType() {

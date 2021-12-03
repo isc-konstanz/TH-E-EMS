@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface InverterService extends SchedulableService {
 
-	static final String PID = "org.the.ems.cmpt.inv";
+	public static final String PID = "org.the.ems.cmpt.inv";
 
 	@Override
 	public default ComponentType getType() {

@@ -62,7 +62,7 @@ public class PeakShavingControl extends TwoPointControl {
 
 	@Configuration(mandatory=false, value={"power_limit", "power_limitation"})
 	protected Channel powerLimit;
-	
+
 	@Configuration(mandatory=false)
 	protected double powerScale = 1;
 

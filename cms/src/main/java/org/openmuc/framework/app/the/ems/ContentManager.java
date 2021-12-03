@@ -124,7 +124,7 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 	}
 
 	@Override
-	public void doExecute(Runnable task) {
+	public void execute(Runnable task) {
 		executor.execute(task);
 	}
 

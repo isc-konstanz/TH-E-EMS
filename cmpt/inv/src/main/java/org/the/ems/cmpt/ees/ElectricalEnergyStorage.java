@@ -47,6 +47,14 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	protected static final String POWER_VALUE = "power";
 	protected static final String VOLTAGE_VALUE = "voltage";
 
+	protected ElectricalEnergyStorage(String section) {
+		super(section);
+	}
+
+	protected ElectricalEnergyStorage() {
+		super();
+	}
+
 	@Configuration(mandatory=false)
 	private double socMax = 100;
 

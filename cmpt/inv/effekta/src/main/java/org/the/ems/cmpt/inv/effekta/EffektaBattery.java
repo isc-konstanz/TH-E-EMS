@@ -9,6 +9,8 @@ import org.the.ems.core.data.Value;
 
 public class EffektaBattery extends ElectricalEnergyStorage {
 
+	private final static String SECTION = "Storage";
+
 	@Configuration
 	private double chargeVoltageMax = 53;
 
@@ -20,6 +22,10 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Configuration
 	protected Channel dischargeCurrent;
+
+	protected EffektaBattery() {
+		super(SECTION);
+	}
 
 	public double getChargeVoltage() {
 		return chargeVoltageMax;

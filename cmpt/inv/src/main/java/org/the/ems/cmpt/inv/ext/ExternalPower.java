@@ -19,28 +19,21 @@
  */
 package org.the.ems.cmpt.inv.ext;
 
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.the.ems.cmpt.inv.InverterCallbacks;
-import org.the.ems.core.Configurable;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class ExternalPower extends Configurable implements ValueListener {
+public class ExternalPower extends Component implements ValueListener {
 
 	private final static String SECTION = "External";
 
 	private volatile InverterCallbacks callbacks = null;
-
-	private ContentManagementService content;
 
 	@Configuration
 	private Channel virtualPower;
@@ -58,46 +51,25 @@ public class ExternalPower extends Configurable implements ValueListener {
 	private volatile boolean running = false;
 
 	public ExternalPower() {
-		setConfiguredSection(SECTION);
+		super(SECTION);
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
-	}
-
-	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
-	}
-
-	public ExternalPower activate(ContentManagementService content, Configurations configs) 
-			throws ConfigurationException {
-
-		this.content = content;
-		if (configs.isEnabled(SECTION)) {
-			configure(configs);
-			
-			activePower.registerValueListener(new ActivePowerListener());
-			solarPower.registerValueListener(this);
-			if (solarEnergy != null) {
-				solarEnergy.registerValueListener(new SolarEnergyListener());
-			}
-			running = true;
+	protected void onActivate() throws ComponentException {
+		super.onActivate();
+		if (!isEnabled()) {
+			return;
 		}
-		return this;
+		activePower.registerValueListener(new ActivePowerListener());
+		solarPower.registerValueListener(this);
+		if (solarEnergy != null) {
+			solarEnergy.registerValueListener(new SolarEnergyListener());
+		}
+		running = true;
 	}
 
-	public ExternalPower register(InverterCallbacks callbacks) {
+	public void register(InverterCallbacks callbacks) {
 		this.callbacks = callbacks;
-		return this;
 	}
 
 	public void resume() {
@@ -112,15 +84,10 @@ public class ExternalPower extends Configurable implements ValueListener {
 		this.callbacks = null;
 	}
 
-	public void deactivate() {
-		if (isEnabled()) {
-			activePower.deregisterValueListeners();
-			solarPower.deregisterValueListeners();
-			if (solarEnergy != null) {
-				solarEnergy.deregisterValueListeners();
-			}
-		}
-		running = false;
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		this.running = false;
 	}
 
 	public boolean isRunning() {

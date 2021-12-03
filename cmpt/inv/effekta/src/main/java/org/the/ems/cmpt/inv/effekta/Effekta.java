@@ -97,8 +97,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 	protected void onInterrupt() throws ComponentException {
 		// TODO: Verify if selected mode is actually set
 //		try {
-//			byte operationModeByte = operationMode.getLatestValue().byteValue();
-//			if (operationModeByte != mode.getByte()) {
+//			byte operationModeBytes = operationMode.getLatestValue().shortValue();
+//			if (operationModeBytes != mode.getMode()) {
 //		        WriteContainer container = new WriteContainer();
 //				setMode(container, System.currentTimeMillis(), mode);
 //		        doWrite(container);
@@ -112,7 +112,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 		// TODO: Check if bit needs to be set before setting it to massively improve speed
 //		BitSet operationModeBits;
 //		try {
-//			long operationModeBytes = operationMode.getLatestValue().longValue();
+//			short operationModeBytes = operationMode.getLatestValue().shortValue();
 //			operationModeBits = BitSet.valueOf(new long[]{operationModeBytes});
 //			
 //		} catch (InvalidValueException e) {

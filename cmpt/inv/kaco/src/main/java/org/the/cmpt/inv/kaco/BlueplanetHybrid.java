@@ -66,8 +66,6 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		storage.deregisterStateOfChargeListener(socListener);
-		inputPower.deregisterValueListeners();
-		activePower.deregisterValueListeners();
 	}
 
 	@Override

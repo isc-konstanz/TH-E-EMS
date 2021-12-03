@@ -22,15 +22,11 @@ package org.the.ems.cmpt.inv.ext;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.cmpt.inv.ext.PowerListener.PowerCallbacks;
-import org.the.ems.core.Configurable;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
@@ -38,13 +34,11 @@ import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class ConsumptionPower extends Configurable implements PowerCallbacks, ValueListener {
+public class ConsumptionPower extends Component implements PowerCallbacks, ValueListener {
 
 	private final static String SECTION = "Consumption";
 
 	private volatile InverterCallbacks callbacks = null;
-
-	private ContentManagementService content;
 
 	@Configuration(section=Configurations.GENERAL)
 	private Channel consPower;
@@ -66,49 +60,28 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 	private volatile boolean running = false;
 
 	public ConsumptionPower() {
-		setConfiguredSection(SECTION);
+		super(SECTION);
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
-	}
-
-	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
-	}
-
-	public ConsumptionPower activate(ContentManagementService content, Configurations configs) 
-			throws ConfigurationException {
-		
-		this.content = content;
-		if (configs.isEnabled(SECTION)) {
-			configure(configs);
-			
-			consPower.registerValueListener(this);
-			
-			eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
-			acPower.registerValueListener(new PowerListener(this, PowerType.AC));
-			dc1Power.registerValueListener(new PowerListener(this, PowerType.DC1));
-			if (dc2Power != null) {
-				dc2Power.registerValueListener(new PowerListener(this, PowerType.DC2));
-			}
-			running = true;
+	protected void onActivate() throws ComponentException {
+		super.onActivate();
+		if (!isEnabled()) {
+			return;
 		}
-		return this;
+		consPower.registerValueListener(this);
+		
+		eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
+		acPower.registerValueListener(new PowerListener(this, PowerType.AC));
+		dc1Power.registerValueListener(new PowerListener(this, PowerType.DC1));
+		if (dc2Power != null) {
+			dc2Power.registerValueListener(new PowerListener(this, PowerType.DC2));
+		}
+		running = true;
 	}
 
-	public ConsumptionPower register(InverterCallbacks callbacks) {
+	public void register(InverterCallbacks callbacks) {
 		this.callbacks = callbacks;
-		return this;
 	}
 
 	public void resume() {
@@ -123,19 +96,10 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 		this.callbacks = null;
 	}
 
-	public void deactivate() {
-		consPower.deregisterValueListeners();
-		
-		if (isEnabled()) {
-			eesPower.deregisterValueListeners();
-			acPower.deregisterValueListeners();
-			dc1Power.deregisterValueListeners();
-			if (dc2Power != null) {
-				dc2Power.deregisterValueListeners();
-			}
-		}
-		callbacks = null;
-		running = false;
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		this.running = false;
 	}
 
 	public Value getLatestValue() throws InvalidValueException {

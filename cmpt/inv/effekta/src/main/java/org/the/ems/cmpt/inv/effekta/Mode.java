@@ -7,18 +7,15 @@ public enum Mode {
     CHARGE_FROM_GRID("11111001"),
     FEED_INTO_GRID("00111111");
 
-	private final byte bits;
+	private final Short mode;
 
-	private Mode(String bitStr) {
-		this(Byte.parseByte(bitStr, 2));
+	private Mode(String modeStr) {
+		// TODO: implement bit parsing
+		this.mode = null;
 	}
 
-	private Mode(byte bits) {
-		this.bits = bits;
-	}
-
-	public byte getByte() {
-		return bits;
-	}
+    public short getMode() {
+        return mode;
+    }
 
 }

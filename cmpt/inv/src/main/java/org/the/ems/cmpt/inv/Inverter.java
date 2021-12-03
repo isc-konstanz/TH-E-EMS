@@ -19,15 +19,11 @@
  */
 package org.the.ems.cmpt.inv;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -37,7 +33,6 @@ import org.the.ems.cmpt.inv.ext.ConsumptionPower;
 import org.the.ems.cmpt.inv.ext.ExternalPower;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
@@ -89,8 +84,6 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	protected static final String VOLTAGE_L3_VALUE = "voltage_l3";
 
 	protected static final String FREQUENCY_VALUE = "frequency";
-
-	private ServiceRegistration<ElectricalEnergyStorageService> storageRegistration;
 
 	protected S storage;
 
@@ -381,52 +374,46 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 	@Override
     @SuppressWarnings("unchecked")
-	protected void onActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
-		super.onActivate(context, properties);
+	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+		super.onActivate(context, configs);
 		
-		Class<?> type = this.getClass();
-		if (!type.equals(Inverter.class)) {
-	        while (type.getSuperclass() != null) {
-	            if (type.getSuperclass().equals(Inverter.class)) {
+		Class<S> storageClass;
+		Class<?> thisClass = this.getClass();
+		if (!thisClass.equals(Inverter.class)) {
+	        while (thisClass.getSuperclass() != null) {
+	            if (thisClass.getSuperclass().equals(Inverter.class)) {
 	                break;
 	            }
-	            type = type.getSuperclass();
+	            thisClass = thisClass.getSuperclass();
 	        }
-			try {
-		        // This operation is safe. Because clazz is a direct sub-class, getGenericSuperclass() will
-		        // always return the Type of this class. Because this class is parameterized, the cast is safe
-		        ParameterizedType superclass = (ParameterizedType) type.getGenericSuperclass();
-		        Class<S> storageType = (Class<S>) superclass.getActualTypeArguments()[0];
-		        storage = (S) storageType.getDeclaredConstructor().newInstance();
-				
-			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-					| NoSuchMethodException | SecurityException e) {
-				throw new ComponentException(e);
-			}
+	        // This operation is safe. Because clazz is a direct sub-class, getGenericSuperclass() will
+	        // always return the Type of this class. Because this class is parameterized, the cast is safe
+	        ParameterizedType superclass = (ParameterizedType) thisClass.getGenericSuperclass();
+	        storageClass = (Class<S>) superclass.getActualTypeArguments()[0];
 		}
 		else {
-			storage = (S) new ElectricalEnergyStorage();
+			storageClass =  (Class<S>) ElectricalEnergyStorage.class;
 		}
-		Map<String, Object> configs = new HashMap<String, Object>();
-		configs.put("general.id", ((String) properties.get("general.id")).replace("inv", "ees"));
-		configs.put("general.type", properties.get("general.type"));
+		try {
+			Constructor<S> constructor = storageClass.getDeclaredConstructor();
+			constructor.setAccessible(true);
+			storage = constructor.newInstance();
+        
+	    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+	            | NoSuchMethodException | SecurityException e) {
+	        throw new ComponentException(e);
+	    }
+		String id = getId().startsWith(getType().getKey()) ? 
+					getId().replace(getType().getKey(), "ees") : "ees";
 		
-		for (Entry<String, ?> config : properties.entrySet()) {
-			if (config.getKey().startsWith("storage.")) {
-				configs.put(config.getKey().replace("storage.", "general."), config.getValue());
-			}
-		}
-        storageRegistration = context.registerService(ElectricalEnergyStorageService.class, storage, 
-				new Hashtable<String, Object>(configs));
+		registerService(id, configs, storage, ElectricalEnergyStorageService.class);
 	}
 
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		
-		ContentManagementService content = getContentManagement();
-		external.activate(content, configs).register(this);
-		conssumption.activate(content, configs).register(this);
+		registerService(getId().concat("_").concat("ext"), configs, external);
+		registerService(getId().concat("_").concat("cons"), configs, conssumption);
 		setpoint.registerValueListener(new SetpointListener());
 	}
 
@@ -440,18 +427,6 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	public void onPause() throws ComponentException {
 		external.pause();
 		conssumption.pause();
-	}
-
-	@Override
-	public void onDeactivate() throws ComponentException {
-		super.onDeactivate();
-		setpoint.deregisterValueListeners();
-		
-		if (storageRegistration != null) {
-			storageRegistration.unregister();
-		}
-		external.deactivate();
-		conssumption.deactivate();
 	}
 
 	@Override

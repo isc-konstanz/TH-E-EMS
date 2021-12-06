@@ -198,10 +198,10 @@ public class Effekta extends Inverter<EffektaBattery> {
 			for (int i = 1; i <= 16; i++) {
 				if ((errormask & bitmask) != 0) {
 					if ((modeSetpoint & bitmask) != 0) {
-						container.addLong(operationMode, bitmask, timestamp);
+						container.addDouble(operationMode, bitmask, timestamp);
 						timestamp += messagesDelay;
 					} else {
-						container.addLong(operationMode, ~bitmask, timestamp);
+						container.addDouble(operationMode, ~bitmask, timestamp);
 						timestamp += messagesDelay;
 					}
 				}

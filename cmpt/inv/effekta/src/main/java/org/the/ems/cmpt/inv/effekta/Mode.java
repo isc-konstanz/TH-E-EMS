@@ -19,28 +19,42 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
+import org.the.ems.core.data.WriteContainer;
+
 public enum Mode {
 //    DISABLED; 1010 1001 0000 0000 (43264d)49920
 //    DEFAULT,
 //    CHARGE_FROM_GRID, 1100 0001 0000 0000 (49408d)
 //    FEED_INTO_GRID, 0010 1011 0000 0000 (11008)
 	
-    DISABLED("0010000100000000"),
+    DISABLED("0000000000000000"),
     DEFAULT("1011011000000000"),
-    CHARGE_FROM_GRID("1111100100000000"),
-    FEED_INTO_GRID("0111111000000000");
+    CHARGE_FROM_GRID("1110001000000000"),
+    FEED_INTO_GRID("1011111000000000");
 
-    private final int mode;
+    private final short mode;
 
     private Mode(String bitStr) {
-    	this(Integer.parseUnsignedInt(bitStr, 2));
+    	this((short) Integer.parseUnsignedInt(bitStr, 2));
     }
 
-    private Mode(int bits) {
+    private Mode(short bits) {
         this.mode = bits;
     }
+    
+    public void set(WriteContainer container, int bitNr, int binary) {
+    	if (binary == 1) {
+    		switch (bitNr) {
+    		case 1:
+    			break;
+    			
+    		}
+    	} else {
+    		
+    	}
+    }
 
-    public int getInt() {
+    public short getShort() {
         return mode;
     } 
     

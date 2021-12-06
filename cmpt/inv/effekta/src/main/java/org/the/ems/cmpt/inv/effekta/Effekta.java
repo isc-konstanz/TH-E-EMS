@@ -36,6 +36,7 @@ import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
@@ -59,8 +60,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 	@Configuration
 	protected long messagesDelay;
 
-	@Configuration
-	protected long modeChangedPause = 30;
+	@Configuration(mandatory = false, scale = 1000)
+	protected long modeChangedPause = 30000;
 
 	@Configuration
 	private Channel operationMode;
@@ -122,78 +123,95 @@ public class Effekta extends Inverter<EffektaBattery> {
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
 
-		try {
-			if (time - modeChangedTime >= modeChangedPause) {
-				setpointPower = value;
+		// if (time - modeChangedTime >= modeChangedPause) {
+		setpointPower = value;
 
-				if (setpointPower.doubleValue() == 0 && mode != Mode.DISABLED) {
-					setMode(container, time, Mode.DISABLED);
-				} else if (setpointPower.doubleValue() < 0 && mode != Mode.CHARGE_FROM_GRID && !overchargeProtection) {
-					setMode(container, time, Mode.CHARGE_FROM_GRID);
-				} else if (setpointPower.doubleValue() > 0 && mode != Mode.FEED_INTO_GRID
-						&& storage.getStateOfCharge().doubleValue() >= storage.getMinStateOfCharge()
-						|| !dischargeProtection) {
-					setMode(container, time, Mode.FEED_INTO_GRID);
-				}
-
-				switch (mode) {
-				case DEFAULT:
-					break;
-				case CHARGE_FROM_GRID:
-					if (!overchargeProtection) {
-						container.addDouble(setpointCurrentImport, -setpointPower.doubleValue() / voltage, time);
-					} else {
-						container.addDouble(setpointCurrentImport, 0, time);
-					}
-					break;
-				case FEED_INTO_GRID:
-					try {
-						if (storage.getStateOfCharge().doubleValue() >= storage.getMinStateOfCharge()) {
-							if (!dischargeProtection) {
-								container.addDouble(setpointCurrentExport, setpointPower.doubleValue() / voltage, time);
-							} else {
-								container.addDouble(setpointCurrentExport, 0, time);
-							}
-						}
-					} catch (Exception e) {
-						logger.warn("Obligatory value missing on setpoint update: {}", e.getMessage());
-					}
-					break;
-				case DISABLED:
-					break;
-				}
-			}
-		} catch (InvalidValueException e) {
-			logger.warn("Error setting mode. Obligatory value missing: {}", e);
+		if (setpointPower.doubleValue() == 0 && mode != Mode.DISABLED) {
+			setMode(container, time, Mode.DISABLED);
+		} else if (setpointPower.doubleValue() < 0 && mode != Mode.CHARGE_FROM_GRID && !overchargeProtection) {
+			setMode(container, time, Mode.CHARGE_FROM_GRID);
+		} else if (setpointPower.doubleValue() > 0 && mode != Mode.FEED_INTO_GRID && !dischargeProtection) {
+			setMode(container, time, Mode.FEED_INTO_GRID);
 		}
+
+		switch (mode) {
+		case CHARGE_FROM_GRID:
+			if (!overchargeProtection) {
+				container.addDouble(setpointCurrentImport, -setpointPower.doubleValue() / voltage, time);
+			} else {
+				container.addDouble(setpointCurrentImport, 0, time);
+			}
+			break;
+		case FEED_INTO_GRID:
+			try {
+				if (storage.getStateOfCharge().doubleValue() >= storage.getMinStateOfCharge()) {
+					if (!dischargeProtection) {
+						container.addDouble(setpointCurrentExport, setpointPower.doubleValue() / voltage, time);
+					} else {
+						container.addDouble(setpointCurrentExport, 0, time);
+					}
+				}
+			} catch (Exception e) {
+				logger.warn("Obligatory value missing on setpoint update: {}", e.getMessage());
+			}
+			break;
+		case DEFAULT:
+		case DISABLED:
+			break;
+		}
+		// }
 	}
 
 	@Override
 	protected void onInterrupt() throws ComponentException {
 		// TODO: Verify if power setpoint is actually reached
-		
-	if(System.currentTimeMillis() >= modeChangedTime + 30000) {
-		try {
-			long modeSetpoint = operationMode.getLatestValue().longValue();
-			if (modeSetpoint != mode.getLong()) {
-				WriteContainer container = new WriteContainer();
-				setMode(container, System.currentTimeMillis(), mode);
-				doWrite(container);
-			}
-		} catch (EnergyManagementException e) {
-			logger.warn("Error setting inverter mode {}: {}", e.getLocalizedMessage(), e.getMessage());
-		}
-	}
+		long time = System.currentTimeMillis();
 
+		if (System.currentTimeMillis() >= modeChangedTime + modeChangedPause) {
+			try {
+				WriteContainer container = new WriteContainer();
+
+				if (mode == Mode.CHARGE_FROM_GRID) {
+					if (storage.getVoltageSetpoint().getLatestValue().doubleValue() != storage.getVoltageMax()) {
+						container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMax(), time);
+					}
+				} else if (mode == Mode.FEED_INTO_GRID) {
+					if (storage.getVoltageSetpoint().getLatestValue().doubleValue() != storage.getVoltageMin()) {
+						container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMin(), time);
+					}
+				}
+				
+				if (operationMode.getLatestValue().longValue() != (mode.getLong() & 0xFFFFL)) {
+					setMode(container, time, mode);
+					doWrite(container);
+				}
+				
+			} catch (EnergyManagementException e) {
+				logger.warn("Error setting inverter mode {}: {}", e.getLocalizedMessage(), e.getMessage());
+			}
+		}
 	}
 
 	private void setMode(WriteContainer container, long timestamp, Mode mode) {
 
 		try {
-			long actualMode = operationMode.getLatestValue().longValue();
-			long modeSetpoint = mode.getLong();
+			long actualMode = operationMode.getLatestValue().shortValue() & 0xFFFF;
+			long modeSetpoint = mode.getLong() & 0xFFFF;
 			long errormask = modeSetpoint ^ actualMode;
 			long bitmask = 0x0001L;
+			long nBitmask;
+			
+			if (mode == Mode.CHARGE_FROM_GRID) {
+				if (storage.getVoltageSetpoint().getLatestValue().doubleValue() != storage.getVoltageMax()) {
+					container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMax(), timestamp);
+					timestamp += messagesDelay;
+				}
+			} else if (mode == Mode.FEED_INTO_GRID) {
+				if (storage.getVoltageSetpoint().getLatestValue().doubleValue() != storage.getVoltageMin()) {
+					container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMin(), timestamp);
+					timestamp += messagesDelay;
+				}
+			}
 
 			for (int i = 1; i <= 16; i++) {
 				if ((errormask & bitmask) != 0) {
@@ -201,16 +219,24 @@ public class Effekta extends Inverter<EffektaBattery> {
 						container.addDouble(operationMode, bitmask, timestamp);
 						timestamp += messagesDelay;
 					} else {
-						container.addDouble(operationMode, ~bitmask, timestamp);
+						nBitmask = (~bitmask) & 0xFFFF;
+						container.addDouble(operationMode, nBitmask, timestamp);
 						timestamp += messagesDelay;
 					}
 				}
 				bitmask = Long.rotateLeft(bitmask, 1);
 			}
 
-			this.mode = mode;
-			modeChangedTime = timestamp;
+			logger.info("Mode: {} - setting bits:", mode);
+			for (ValueList values : container.values()) {
+				for (Value value : values) {
+					logger.info("Bits: {}", Long.toBinaryString((int) value.doubleValue()));
+				}
+			}
+			logger.info(" --------------- ");
 
+			modeChangedTime = System.currentTimeMillis();
+			this.mode = mode;
 		} catch (InvalidValueException e) {
 			logger.warn("Could not change operation mode {}", e.getMessage());
 		}

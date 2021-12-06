@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
@@ -71,6 +72,12 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Override
 	public Value getStateOfCharge() throws InvalidValueException {
 		return soc.getLatestValue();
+	}
+	
+	@Override
+	public void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		
 	}
 
 	public void initialize() {

@@ -19,8 +19,6 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
-import java.util.BitSet;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
@@ -53,7 +51,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 	private boolean dischargeProtection = false;
 	private boolean overchargeProtection = false;
 	private String[] keys;
-	private long timeModeChanged = 0;
+	private long modeChangedTime = 0;
 
 	@Configuration(mandatory = false)
 	private boolean activeError = false;
@@ -62,7 +60,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 	protected long messagesDelay;
 
 	@Configuration
-	protected long modeUpdatePause;
+	protected long modeChangedPause = 30;
 
 	@Configuration
 	private Channel operationMode;
@@ -96,6 +94,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 				System.currentTimeMillis());
 		setpointPower = new DoubleValue(0, System.currentTimeMillis());
 		setpoint.setLatestValue(setpointPower);
+		modeChangedTime = System.currentTimeMillis();
 		setMode(container, System.currentTimeMillis(), Mode.DEFAULT);
 
 		try {
@@ -122,9 +121,9 @@ public class Effekta extends Inverter<EffektaBattery> {
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		long time = value.getTime();
-		
+
 		try {
-			if (time - timeModeChanged >= modeUpdatePause) {
+			if (time - modeChangedTime >= modeChangedPause) {
 				setpointPower = value;
 
 				if (setpointPower.doubleValue() == 0 && mode != Mode.DISABLED) {
@@ -169,152 +168,54 @@ public class Effekta extends Inverter<EffektaBattery> {
 		}
 	}
 
-    @Override
-    protected void onInterrupt() throws ComponentException {
-        // TODO: Verify if selected mode is actually set
-        try {
-            int operationModeByte = operationMode.getLatestValue().intValue();
-            if (operationModeByte != mode.getInt()) {
-                WriteContainer container = new WriteContainer();
-                setMode(container, System.currentTimeMillis(), mode);
-                doWrite(container);
-            }
-        } catch (EnergyManagementException e) {
-            logger.warn("");
-        }
-    }
+	@Override
+	protected void onInterrupt() throws ComponentException {
+		// TODO: Verify if power setpoint is actually reached
+		
+	if(System.currentTimeMillis() >= modeChangedTime + 30000) {
+		try {
+			long modeSetpoint = operationMode.getLatestValue().longValue();
+			if (modeSetpoint != mode.getLong()) {
+				WriteContainer container = new WriteContainer();
+				setMode(container, System.currentTimeMillis(), mode);
+				doWrite(container);
+			}
+		} catch (EnergyManagementException e) {
+			logger.warn("Error setting inverter mode {}: {}", e.getLocalizedMessage(), e.getMessage());
+		}
+	}
 
-    private void setMode(WriteContainer container, long timestamp, Mode mode) {
-        // TODO: Check if bit needs to be set before setting it to massively improve speed
-        BitSet operationModeBits;
-        String bits = mode.getByteArray();
-        String[] bitsArray = bits.split("");
-        
-        try {
-            int operationModeBytes = operationMode.getLatestValue().intValue();
-            String bitsSet = Integer.toBinaryString(operationModeBytes);
-            String[] bitsSetArray = bitsSet.split("");
-            
-            operationModeBits = BitSet.valueOf(new long[]{operationModeBytes});
+	}
 
-        } catch (InvalidValueException e) {
-            operationModeBits = new BitSet(8);
-        }
-        
-        switch (mode) {
-        case DEFAULT:
-            long timestampDelayed = timestamp;
-            if (!operationModeBits.get(0)) {
-                container.addLong(operationMode, 0x8000b, timestampDelayed);
-                timestampDelayed += messagesDelay;
-            }
-            
-            container.addLong(operationMode, 0x8000L, timestamp + messagesDelay);
-            container.addLong(operationMode, 0xbfffL, timestamp + messagesDelay * 2);
-            container.addLong(operationMode, 0x2000L, timestamp + messagesDelay * 3);
-            container.addLong(operationMode, 0x1000L, timestamp + messagesDelay * 4);
-            container.addLong(operationMode, 0x0800L, timestamp + messagesDelay * 5);
-            container.addLong(operationMode, 0xfbffL, timestamp + messagesDelay * 6);
-            container.addLong(operationMode, 0xfdffL, timestamp + messagesDelay * 7);
-            container.addLong(operationMode, 0x0100L, timestamp + messagesDelay * 8);
-            break;
+	private void setMode(WriteContainer container, long timestamp, Mode mode) {
 
-        case CHARGE_FROM_GRID:
-            container.addLong(operationMode, 0x8000L, timestamp + messagesDelay);
-            container.addLong(operationMode, 0x4000L, timestamp + messagesDelay * 2);
-            container.addLong(operationMode, 0x2000L, timestamp + messagesDelay * 3);
-            container.addLong(operationMode, 0x1000L, timestamp + messagesDelay * 4);
-            container.addLong(operationMode, 0x0800L, timestamp + messagesDelay * 5);
-            container.addLong(operationMode, 0xfbffL, timestamp + messagesDelay * 6);
-            container.addLong(operationMode, 0xfdffL, timestamp + messagesDelay * 7);
-            container.addLong(operationMode, 0x0100L, timestamp + messagesDelay * 8);
-            break;
+		try {
+			long actualMode = operationMode.getLatestValue().longValue();
+			long modeSetpoint = mode.getLong();
+			long errormask = modeSetpoint ^ actualMode;
+			long bitmask = 0x0001L;
 
-        case FEED_INTO_GRID:
-            container.addLong(operationMode, 0x7fffL, timestamp + messagesDelay);
-            container.addLong(operationMode, 0xbfffL, timestamp + messagesDelay * 2);
-            container.addLong(operationMode, 0x2000L, timestamp + messagesDelay * 3);
-            container.addLong(operationMode, 0x1000L, timestamp + messagesDelay * 4);
-            container.addLong(operationMode, 0x0800L, timestamp + messagesDelay * 5);
-            container.addLong(operationMode, 0x0400L, timestamp + messagesDelay * 6);
-            container.addLong(operationMode, 0x0200L, timestamp + messagesDelay * 7);
-            container.addLong(operationMode, 0x0100L, timestamp + messagesDelay * 8);
-            break;
+			for (int i = 1; i <= 16; i++) {
+				if ((errormask & bitmask) != 0) {
+					if ((modeSetpoint & bitmask) != 0) {
+						container.addLong(operationMode, bitmask, timestamp);
+						timestamp += messagesDelay;
+					} else {
+						container.addLong(operationMode, ~bitmask, timestamp);
+						timestamp += messagesDelay;
+					}
+				}
+				bitmask = Long.rotateLeft(bitmask, 1);
+			}
 
-        case DISABLED:
-            container.addLong(operationMode, 0x7fffL, timestamp + messagesDelay);
-            container.addLong(operationMode, 0xbfffL, timestamp + messagesDelay * 2);
-            container.addLong(operationMode, 0x2000L, timestamp + messagesDelay * 3);
-            container.addLong(operationMode, 0xefffL, timestamp + messagesDelay * 4);
-            container.addLong(operationMode, 0xf7ffL, timestamp + messagesDelay * 5);
-            container.addLong(operationMode, 0xfbffL, timestamp + messagesDelay * 6);
-            container.addLong(operationMode, 0xfdffL, timestamp + messagesDelay * 7);
-            container.addLong(operationMode, 0x0100L, timestamp + messagesDelay * 8);
-            break;
-        }
-        this.mode = mode; 
-    }
-    
-//	private void setMode(WriteContainer container, Mode mode) {
-//		long time = setpointPower.getTime();
-//		timeModeChanged = time;
-//
-//		switch (mode) {
-//		case DEFAULT:
-//			container.addDouble(operationMode, 0x8000L, time + messagesDelay);
-//			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 2);
-//			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 3);
-//			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 4);
-//			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 5);
-//			container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 6);
-//			container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 7);
-//			container.addDouble(operationMode, 0x0100L, time + messagesDelay * 8);
-//			this.mode = Mode.DEFAULT;
-//			break;
-//
-//		case CHARGE_FROM_GRID:
-//			container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMax(), time + messagesDelay);
-//			container.addDouble(operationMode, 0x8000L, time + messagesDelay * 2);
-//			container.addDouble(operationMode, 0x4000L, time + messagesDelay * 3);
-//			container.addDouble(operationMode, 0xdfffL, time + messagesDelay * 4);
-//			container.addDouble(operationMode, 0xefffL, time + messagesDelay * 5);
-//			container.addDouble(operationMode, 0xf7ffL, time + messagesDelay * 6);
-//			container.addDouble(operationMode, 0xfbffL, time + messagesDelay * 7);
-//			container.addDouble(operationMode, 0xfdffL, time + messagesDelay * 8);
-//			this.mode = Mode.CHARGE_FROM_GRID;
-//			break;
-//
-//		case FEED_INTO_GRID:
-//			container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMin(), time + messagesDelay);
-//			container.addDouble(operationMode, 0x7fffL, time + messagesDelay * 2);
-//			container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 3);
-//			container.addDouble(operationMode, 0x2000L, time + messagesDelay * 4);
-//			container.addDouble(operationMode, 0x1000L, time + messagesDelay * 5);
-//			container.addDouble(operationMode, 0x0800L, time + messagesDelay * 6);
-//			container.addDouble(operationMode, 0x0400L, time + messagesDelay * 7);
-//			container.addDouble(operationMode, 0x0200L, time + messagesDelay * 8);
-//			this.mode = Mode.FEED_INTO_GRID;
-//			break;
-//
-//		case DISABLED:
-//			if (this.mode == Mode.FEED_INTO_GRID) {
-//				container.addDouble(operationMode, 0xdfffL, time + messagesDelay * 2);
-//				container.addDouble(operationMode, 0xefffL, time + messagesDelay * 3);
-//				container.addDouble(operationMode, 0xf7ffL, time + messagesDelay * 4);
-//				container.addDouble(operationMode, 0x8000L, time + messagesDelay * 5);
-//			}
-//			if (this.mode == Mode.CHARGE_FROM_GRID) {
-//				container.addDouble(operationMode, 0xbfffL, time + messagesDelay * 2);
-//				container.addDouble(operationMode, 0x2000L, time + messagesDelay * 3);
-//			}
-//			if (this.mode == Mode.DEFAULT) {
-//				container.addDouble(operationMode, 0xefffL, time + messagesDelay * 2);
-//				container.addDouble(operationMode, 0xf7ffL, time + messagesDelay * 3);
-//			}
-//			this.mode = Mode.DISABLED;
-//			break;
-//		}
-//	}
+			this.mode = mode;
+			modeChangedTime = timestamp;
+
+		} catch (InvalidValueException e) {
+			logger.warn("Could not change operation mode {}", e.getMessage());
+		}
+
+	}
 
 	public void getDischargeProtection(Long time)
 			throws InvalidValueException, UnsupportedOperationException, EnergyManagementException {

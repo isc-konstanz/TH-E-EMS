@@ -505,7 +505,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 //			logger.debug("Requested inverter setpoint not allowed for Battery State of Charge of {}%", soc);
 //			return;
 //		}
-		onSetpointChanged(container, new DoubleValue(setpoint, value.getTime()));
+		onSetpointChanged(container, new DoubleValue(setpoint, value.getEpochMillis()));
 	}
 
     protected void doWrite(WriteContainer container) throws EnergyManagementException {

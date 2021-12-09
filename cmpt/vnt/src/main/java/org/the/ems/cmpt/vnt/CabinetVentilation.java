@@ -115,7 +115,7 @@ public class CabinetVentilation extends Component implements VentilationService,
 			if (stateValueLast != null) {
 				boolean state = value.booleanValue();
 				if (state && !stateValueLast.booleanValue()) {
-					startTimeLast = value.getTime();
+					startTimeLast = value.getEpochMillis();
 				}
 				else if (!state && temperatureHighFlags.size() > 0) {
 					temperatureHighFlags.clear();

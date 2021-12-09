@@ -133,7 +133,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		
 		double power = current*PHASE_VOLTAGE*PHASE_COUNT;
 		
-		return new DoubleValue(power, currentValue.getTime());
+		return new DoubleValue(power, currentValue.getEpochMillis());
 	}
 
 	public double getSetpointCurrentMaximum() {
@@ -164,7 +164,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		if (current > PHASE_CURRENT_MAX) {
 			current = PHASE_CURRENT_MAX;
 		}
-		return new DoubleValue(current, powerValue.getTime());
+		return new DoubleValue(current, powerValue.getEpochMillis());
 	}
 
 	@Override
@@ -305,7 +305,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 		@Override
 		public void onValueReceived(Value powerValue) {
-			long timestamp = powerValue.getTime();
+			long timestamp = powerValue.getEpochMillis();
 			//long timestamp = System.currentTimeMillis();
 			
 			double gridValue = powerValue.doubleValue();

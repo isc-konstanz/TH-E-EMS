@@ -117,7 +117,7 @@ public class ExternalPower extends Component implements ValueListener {
 		@Override
 		public void onValueReceived(Value value) {
 			if (isRunning()) {
-				DoubleValue virtualValue = new DoubleValue(value.doubleValue() - getSolar().doubleValue(), value.getTime());
+				DoubleValue virtualValue = new DoubleValue(value.doubleValue() - getSolar().doubleValue(), value.getEpochMillis());
 				virtualPower.setLatestValue(virtualValue);
 			}
 		}
@@ -128,9 +128,9 @@ public class ExternalPower extends Component implements ValueListener {
 		@Override
 		public void onValueReceived(Value value) {
 			if (solarEnergyLast != null) {
-				double hours = ((double) value.getTime() - (double) solarEnergyLast.getTime())/3600000;
+				double hours = ((double) value.getEpochMillis() - (double) solarEnergyLast.getEpochMillis())/3600000;
 				if (hours > 0) {
-					Value power = new DoubleValue((value.doubleValue() - solarEnergyLast.doubleValue())*1000/hours, value.getTime());
+					Value power = new DoubleValue((value.doubleValue() - solarEnergyLast.doubleValue())*1000/hours, value.getEpochMillis());
 					solarPower.setLatestValue(power);
 				}
 			}

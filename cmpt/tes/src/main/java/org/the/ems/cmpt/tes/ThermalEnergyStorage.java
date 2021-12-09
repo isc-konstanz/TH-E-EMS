@@ -145,7 +145,7 @@ public class ThermalEnergyStorage extends Component
 				energyInput += energy.getValue().doubleValue();
 			}
 			if (temperatureLast != null) {
-				long timeDelta = (time - temperatureLast.getTime())/1000;
+				long timeDelta = (time - temperatureLast.getEpochMillis())/1000;
 				double tempDelta = temperatureLast.doubleValue() - temperature;
 				
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
@@ -199,11 +199,11 @@ public class ThermalEnergyStorage extends Component
 		for (Channel channel : temperatures.values()) {
 			try {
 				Value temperatureValue = channel.getLatestValue();
-				if (temperatureValue.getTime() <= timestampLast) {
+				if (temperatureValue.getEpochMillis() <= timestampLast) {
 					return;
 				}
-				if (temperatureValue.getTime() > timeMax) {
-					timeMax = temperatureValue.getTime();
+				if (temperatureValue.getEpochMillis() > timeMax) {
+					timeMax = temperatureValue.getEpochMillis();
 				}
 			} catch (InvalidValueException e) {
 				return;

@@ -35,6 +35,8 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.settings.HeatingSettings;
+import org.the.ems.core.settings.ValueSettings;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -49,8 +51,8 @@ public class HeatPump extends Heating implements HeatPumpService {
 	protected double temperatureInMax;
 
 	@Configuration("temp_in")
-	protected Channel temperature;
-	protected Value temperatureValue = DoubleValue.emptyValue();
+	protected Channel temperatureInput;
+	protected Value temperatureInputValue = DoubleValue.emptyValue();
 
 	@Configuration
 	protected double cop;
@@ -63,26 +65,36 @@ public class HeatPump extends Heating implements HeatPumpService {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		temperature.registerValueListener(new TemperatureListener());
+		temperatureInput.registerValueListener(new TemperatureListener());
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		temperature.deregisterValueListeners();
+		temperatureInput.deregisterValueListeners();
 	}
 
 	@Override
-	protected void onStart(WriteContainer container, Value value) throws ComponentException {
-		if (temperatureValue.doubleValue() > temperatureInMax) {
-			throw new ComponentException("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
+	protected void onStart(WriteContainer container, ValueSettings settings) throws ComponentException {
+		super.onStart(container, settings);
+		
+		Value value = settings.getValue();
+		if (value.doubleValue() < getMaxPower()) {
+			onStart(container, HeatingSettings.newHeatingWaterHeating(settings.getEpochMillis()));
+		}
+		else {
+			onStart(container, HeatingSettings.newDomesticWaterHeating(settings.getEpochMillis()));
 		}
 	}
 
 	@Override
+	protected void onStop(WriteContainer container, ValueSettings settings) throws ComponentException {
+	}
+
+	@Override
 	protected void onStateChanged(Value value) {
-		if (value.booleanValue() && temperatureValue.doubleValue() > temperatureInMax) {
-			logger.warn("Unable to switch on heat pump: Heating cycle input temperature above threshold: " + value);
+		if (value.booleanValue() && temperatureInputValue.doubleValue() > temperatureInMax) {
+			logger.warn("Unable to switch on heat pump: Heating flow input temperature above threshold: " + value);
 			// TODO: implement virtual start signal that does not affect relay
 			try {
 				stop();
@@ -98,8 +110,8 @@ public class HeatPump extends Heating implements HeatPumpService {
 
 		@Override
 		public void onValueReceived(Value value) {
-			temperatureValue = value;
-			if (temperatureValue.doubleValue() >= temperatureInMax) {
+			temperatureInputValue = value;
+			if (temperatureInputValue.doubleValue() >= temperatureInMax) {
 				try {
 					stop();
 					

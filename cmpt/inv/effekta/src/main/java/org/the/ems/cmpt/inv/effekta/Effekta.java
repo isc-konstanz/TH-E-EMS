@@ -59,7 +59,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		double setpointPower = value.doubleValue();
-		long timestamp = value.getTime();
+		long timestamp = value.getEpochMillis();
 		
 		if (setpointPower == 0 && mode != Mode.DEFAULT) {
 			setMode(container, timestamp, Mode.DEFAULT);
@@ -175,7 +175,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 		@Override
 		public void onValueReceived(Value value) {
-			long time = value.getTime();
+			long time = value.getEpochMillis();
 			soc = value.doubleValue();
 			WriteContainer container = new WriteContainer();
 

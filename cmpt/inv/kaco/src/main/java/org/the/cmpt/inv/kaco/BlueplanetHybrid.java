@@ -97,7 +97,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 		}
 		
 		if (setpoint != setpointLatest) {
-			container.addDouble(setpointPower, -setpoint, setpointControl.getTime());
+			container.addDouble(setpointPower, -setpoint, setpointControl.getEpochMillis());
 		}
 		
 	}

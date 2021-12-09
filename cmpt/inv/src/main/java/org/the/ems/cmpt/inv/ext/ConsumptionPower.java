@@ -112,14 +112,14 @@ public class ConsumptionPower extends Component implements PowerCallbacks, Value
 
 	@Override
 	public void onPowerValueReceived(PowerType type, Value power) {
-		long time = power.getTime();
+		long time = power.getEpochMillis();
 		
 		powerValues.put(type, power);
 		if (!isRunning()) {
 			return;
 		}
 		for (Value value : powerValues.values()) {
-			if (value.getTime() != time) {
+			if (value.getEpochMillis() != time) {
 				return;
 			}
 		}

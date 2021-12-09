@@ -28,7 +28,7 @@ public class HeatingEnergy {
 		}
 		energy = value.doubleValue();
 		
-		return new DoubleValue(energyDelta, value.getTime());
+		return new DoubleValue(energyDelta, value.getEpochMillis());
 	}
 
 }

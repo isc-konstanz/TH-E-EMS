@@ -18,6 +18,8 @@ import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -75,8 +77,8 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	@Override
-	protected void onStart(WriteContainer container, Value value) throws ComponentException {
-		long time = value.getTime();
+	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
+		long time = settings.getEpochMillis();
 		
 		container.addBoolean(engine, true, time);
 		
@@ -106,19 +108,19 @@ public class InternalCombustionEngine extends Cogenerator {
 
 	@Override
 	public boolean isRunning() throws ComponentException {
-		if (powerMin > 0) {
-			try {
-				return Math.abs(getElectricalPower().doubleValue()) > powerMin;
-				
-			} catch(ComponentException | InvalidValueException e) {
-				logger.debug("Error while checking run state: {}", e.getMessage());
-			}
+		try {
+			return Math.abs(getElectricalPower().doubleValue()) >= (getMinPower() - getMaxPower()*0.01);
+			
+		} catch(ComponentException | InvalidValueException e) {
+			logger.debug("Error while checking run state: {}", e.getMessage());
 		}
 		return super.isRunning();
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
+	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
+		long time = settings.getEpochMillis();
+		
 		if (valve != null) {
 			container.addBoolean(valve, false, time);
 			time += valveDelay;

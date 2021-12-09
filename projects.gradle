@@ -33,7 +33,6 @@ project.ext {
         it.getPath() == ':main'
         it.getPath() == ':api' ||
         it.getPath() == ':cmpt' ||
-        it.getPath() == ':cmpt:apl' ||
         it.getPath() == ':cmpt:ev' ||
         it.getPath() == ':cmpt:ev:chargebig' ||
         it.getPath() == ':cmpt:chp' ||
@@ -56,7 +55,6 @@ project.ext {
     javadocProjects = distributionProjects.findAll {
         it.getPath() == ':api' ||
         it.getPath() == ':cmpt' ||
-        it.getPath() == ':cmpt:apl' ||
         it.getPath() == ':cmpt:ev' ||
         it.getPath() == ':cmpt:chp' ||
         it.getPath() == ':cmpt:hp' ||

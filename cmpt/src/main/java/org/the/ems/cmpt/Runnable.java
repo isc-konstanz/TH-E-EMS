@@ -54,6 +54,9 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Configuration(mandatory=false)
 	protected Channel state;
 
+	@Configuration(mandatory=false, value="state_writable")
+	protected boolean stateIsWritable = true;
+
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
 	protected volatile long stopTimeLast = 0;
@@ -251,8 +254,9 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	void doStart(StartSettings settings) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(true, value.getTime()));
-		
+		if (stateIsWritable && state != null) {
+			writeContainer.add(state, new BooleanValue(true, settings.getEpochMillis()));
+		}
 		setState(RunState.STARTING);
 		doStart(writeContainer, settings);
 		write(writeContainer);
@@ -336,8 +340,9 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	void doStop(StopSettings settings) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(false, time));
-		
+		if (stateIsWritable && state != null) {
+			writeContainer.add(state, new BooleanValue(false, settings.getEpochMillis()));
+		}
 		setState(RunState.STOPPING);
 		doStop(writeContainer, settings);
 		write(writeContainer);

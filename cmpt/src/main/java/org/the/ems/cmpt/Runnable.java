@@ -33,10 +33,14 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
+import org.the.ems.core.settings.ValueSettings;
 
 public abstract class Runnable extends Component implements RunnableService {
 	private final static Logger logger = LoggerFactory.getLogger(Runnable.class);
@@ -49,6 +53,9 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	@Configuration(mandatory=false)
 	protected Channel state;
+
+	@Configuration(mandatory=false, value="state_writable")
+	protected boolean stateIsWritable = true;
 
 	protected volatile Value stateValueLast = null;
 	protected volatile long startTimeLast = 0;
@@ -92,9 +99,21 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
+	public StartSettings getStartSettings(long timestamp) throws ComponentException, InvalidValueException {
+		Value value = getStartValue(timestamp);
+		return new ValueSettings(value);
+	}
+
+	@Override
+	public StopSettings getStopSettings(long timestamp) throws ComponentException, InvalidValueException {
+		Value value = getStopValue(timestamp);
+		return new ValueSettings(value);
+	}
+
+	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		if (state != null) {
+		if (state != null && stateIsWritable) {
 			state.registerValueListener(new StateListener());
 		}
 		runState = RunState.STANDBY;
@@ -144,19 +163,19 @@ public abstract class Runnable extends Component implements RunnableService {
 		write(container);
 	}
 
-	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException, InvalidValueException {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
-			if (value.doubleValue() == 0) {
-				if (value.getTime() - startTimeLast < runtimeMin) {
+			if (value.doubleValue() == getStopValue(value.getEpochMillis()).doubleValue()) {
+				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
 					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
 				}
-				onStop(container, value.getTime());
+				onStop(container, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() == 0) {
-				startTimeLast = value.getTime();
+				startTimeLast = value.getEpochMillis();
 				onStart(container, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() != value.doubleValue()) {
@@ -177,25 +196,26 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
+		Value stopValue = getStopValue(value.getEpochMillis());
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-			if (value.doubleValue() > 0) {
-				if (value.getTime() - stopTimeLast < idletimeMin) {
+			if (value.doubleValue() > stopValue.doubleValue()) {
+				if (value.getEpochMillis() - stopTimeLast < idletimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
 							idletimeMin/60000));
 				}
-				doStart(value);
+				doStart(new ValueSettings(value));
 			}
 			break;
 		case STARTING:
 		case RUNNING:
-			if (value.doubleValue() == 0) {
-				if (value.getTime() - startTimeLast < runtimeMin) {
+			if (value.doubleValue() == stopValue.doubleValue()) {
+				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 							runtimeMin/60000));
 				}
-				doStop(value.getTime());
+				doStop(new ValueSettings(value));
 			}
 			break;
 		default:
@@ -217,24 +237,50 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
-	public final void start(Value value) throws EnergyManagementException {
+	public final void start(long timestamp) throws EnergyManagementException {
+		start(getStartSettings(timestamp));
+	}
+
+	@Override
+	public final void start(StartSettings settings) throws EnergyManagementException {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		if (!isStartable(value.getTime())) {
+		if (!isStartable(settings.getEpochMillis()) && !settings.isEnforced()) {
 			throw new ComponentException("Unable to start component");
 		}
-		doStart(value);
+		doStart(settings);
 	}
 
-	void doStart(Value value) throws EnergyManagementException {
+	void doStart(StartSettings settings) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(true, value.getTime()));
-		
+		if (stateIsWritable && state != null) {
+			writeContainer.add(state, new BooleanValue(true, settings.getEpochMillis()));
+		}
 		setState(RunState.STARTING);
-		onStart(writeContainer, value);
+		doStart(writeContainer, settings);
 		write(writeContainer);
-		startTimeLast = value.getTime();
+		startTimeLast = settings.getEpochMillis();
+	}
+
+	void doStart(WriteContainer container, StartSettings settings) throws EnergyManagementException {
+		if (settings instanceof ValueSettings) {
+			doStart(container, (ValueSettings) settings);
+		}
+		onStart(container, settings);
+	}
+
+	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	void doStart(WriteContainer container, ValueSettings settings) throws EnergyManagementException {
+		onStart(container, settings);
+		onStart(container, settings.getValue());
+	}
+
+	protected void onStart(WriteContainer container, ValueSettings settings) throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
@@ -277,27 +323,53 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
-	public final void stop(long time) throws EnergyManagementException {
+	public final void stop(long timestamp) throws EnergyManagementException {
+		stop(getStopSettings(timestamp));
+	}
+
+	@Override
+	public final void stop(StopSettings settings) throws EnergyManagementException {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		if (!isStoppable(time)) {
+		if (!isStoppable(settings.getEpochMillis()) && !settings.isEnforced()) {
 			throw new ComponentException("Unable to stop component");
 		}
-		doStop(time);
+		doStop(settings);
 	}
 
-	void doStop(long time) throws EnergyManagementException {
+	void doStop(StopSettings settings) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(false, time));
-		
+		if (stateIsWritable && state != null) {
+			writeContainer.add(state, new BooleanValue(false, settings.getEpochMillis()));
+		}
 		setState(RunState.STOPPING);
-		onStop(writeContainer, time);
+		doStop(writeContainer, settings);
 		write(writeContainer);
-		stopTimeLast = time;
+		startTimeLast = settings.getEpochMillis();
 	}
 
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
+	void doStop(WriteContainer container, StopSettings settings) throws EnergyManagementException {
+		if (settings instanceof ValueSettings) {
+			doStop(container, (ValueSettings) settings);
+		}
+		onStop(container, settings);
+	}
+
+	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	void doStop(WriteContainer container, ValueSettings settings) throws EnergyManagementException {
+		onStop(container, settings);
+		onStop(container, settings.getValue());
+	}
+
+	protected void onStop(WriteContainer container, ValueSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onStop(WriteContainer container, Value value) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
@@ -350,13 +422,13 @@ public abstract class Runnable extends Component implements RunnableService {
 					case STANDBY:
 					case STOPPING:
 						if (value.booleanValue()) {
-							doStart(getStartValue());
+							doStart(getStartSettings(System.currentTimeMillis()));
 						}
 						break;
 					case STARTING:
 					case RUNNING:
 						if (!value.booleanValue()) {
-							doStop(System.currentTimeMillis());
+							doStop(getStopSettings(System.currentTimeMillis()));
 						}
 						break;
 					default:

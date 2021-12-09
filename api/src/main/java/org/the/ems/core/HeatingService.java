@@ -26,6 +26,17 @@ import org.the.ems.core.data.ValueListener;
 
 public interface HeatingService extends RunnableService {
 
+	/*
+	 * Get the active heating {@link Season}.
+	 * Not every heating will support heating seasons.
+	 * 
+	 * @return the active heating {@link Season}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the season
+	 * @throws InvalidValueException if the retrieved season returned invalid
+	 */
+	public Season getSeason() throws ComponentException, InvalidValueException;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -37,9 +48,24 @@ public interface HeatingService extends RunnableService {
 	/*
 	 * Get the default power with which a component will be started with in watts [W].
 	 * 
-	 * @return the default power with which a component will be started with
+	 * @return the default power to which a component will be stopped to
 	 */
 	public double getStartPower();
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public default Value getStopValue(long time) {
+		return new DoubleValue(getStopPower(), time);
+	}
+
+	/*
+	 * Get the default value to which a component will be stopped to in watts [W].
+	 * 
+	 * @return the default power with which a component will be started with
+	 */
+	public double getStopPower();
 
 	/*
 	 * Get the minimum power of this heating component in watts [W].

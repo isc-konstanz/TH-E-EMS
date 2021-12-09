@@ -20,6 +20,7 @@
 package org.the.ems.cmpt;
 
 import java.text.MessageFormat;
+import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +29,19 @@ import org.the.ems.cmpt.circ.CirculationPump;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingService;
-import org.the.ems.core.RunState;
+import org.the.ems.core.HeatingMode;
+import org.the.ems.core.Season;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
+import org.the.ems.core.settings.HeatingSettings;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
+import org.the.ems.core.settings.ValueSettings;
 
 public abstract class Heating extends Runnable implements HeatingService {
 	private final static Logger logger = LoggerFactory.getLogger(Heating.class);
@@ -47,11 +52,11 @@ public abstract class Heating extends Runnable implements HeatingService {
 	protected static final String THERMAL_ENERGY_VALUE = "th_energy";
 	protected static final String THERMAL_POWER_VALUE = "th_power";
 
-	@Configuration(scale=1000)
-	protected double powerMax;
-
 	@Configuration(scale=1000, mandatory=false)
-	protected double powerMin = -1;
+	private double powerMax = -1;
+
+	@Configuration(scale=1000)
+	private double powerMin;
 
 	protected final Circulation circulation;
 	protected final CirculationPump circulationPump;
@@ -60,6 +65,11 @@ public abstract class Heating extends Runnable implements HeatingService {
 		super();
 		circulation = new Circulation();
 		circulationPump = new CirculationPump(circulation);
+	}
+
+	@Override
+	public Season getSeason() throws ComponentException, InvalidValueException {
+		return Season.valueOf(Instant.now());
 	}
 
 	/**
@@ -198,8 +208,19 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 * {@inheritDoc}
 	 */
 	@Override
+    public double getStopPower() {
+		return 0.0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
     public double getMaxPower() {
-        return powerMax;
+        if (powerMax >= 0) {
+            return powerMax;
+        }
+        return getMinPower();
     }
 
 	/**
@@ -207,10 +228,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
     public double getMinPower() {
-        if (powerMin >= 0) {
-            return powerMin;
-        }
-        return getMaxPower();
+        return powerMin;
     }
 
 	@Override
@@ -244,14 +262,14 @@ public abstract class Heating extends Runnable implements HeatingService {
 				throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 			}
 			else if (value.doubleValue() == 0) {
-				if (value.getTime() - startTimeLast < runtimeMin) {
+				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
 					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
 				}
-				onStop(container, value.getTime());
+				onStop(container, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() == 0) {
-				startTimeLast = value.getTime();
+				startTimeLast = value.getEpochMillis();
 				onStart(container, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() != value.doubleValue()) {
@@ -271,17 +289,61 @@ public abstract class Heating extends Runnable implements HeatingService {
 	}
 
 	@Override
-	void doStart(Value value) throws EnergyManagementException {
+	void doStart(WriteContainer container, StartSettings settings) throws EnergyManagementException {
+		if (settings instanceof ValueSettings) {
+			doStart(container, (ValueSettings) settings);
+		}
+		if (settings instanceof HeatingSettings) {
+			doStart(container, (HeatingSettings) settings);
+		}
+		onStart(container, settings);
+	}
+
+	void doStart(WriteContainer container, HeatingSettings settings) throws EnergyManagementException {
+		onStart(container, settings);
+		onStart(container, settings.getMode());
+	}
+
+	protected void onStart(WriteContainer container, HeatingSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onStart(WriteContainer container, HeatingMode type) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	@Override
+	void doStart(WriteContainer container, ValueSettings settings) throws EnergyManagementException {
+		Value value = settings.getValue();
 		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
-		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(true, value.getTime()));
-		
-		setState(RunState.STARTING);
-		onStart(writeContainer, value);
-		write(writeContainer);
-		startTimeLast = value.getTime();
+		onStart(container, settings);
+		onStart(container, value);
+	}
+
+	@Override
+	void doStop(WriteContainer container, StopSettings settings) throws EnergyManagementException {
+		if (settings instanceof ValueSettings) {
+			doStop(container, (ValueSettings) settings);
+		}
+		if (settings instanceof HeatingSettings) {
+			doStop(container, (HeatingSettings) settings);
+		}
+		onStop(container, settings);
+	}
+
+	void doStop(WriteContainer container, HeatingSettings settings) throws EnergyManagementException {
+		onStop(container, settings);
+		onStop(container, settings.getMode());
+	}
+
+	protected void onStop(WriteContainer container, HeatingSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onStop(WriteContainer container, HeatingMode type) throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	@Override

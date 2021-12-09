@@ -47,7 +47,6 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.SchedulableService;
 import org.the.ems.core.UnknownComponentException;
-import org.the.ems.core.cmpt.ApplianceService;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricVehicleService;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
@@ -173,18 +172,6 @@ public final class EnergyManager extends Configurable
 
 	protected void unbindScheduleService(ScheduleService scheduleService) {
 		scheduleService.deregisterScheduleListener(this);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindApplianceService(ApplianceService applianceService) {
-		bindComponentService(applianceService);
-	}
-
-	protected void unbindApplianceService(ApplianceService applianceService) {
-		unbindComponentService(applianceService);
 	}
 
 	@Reference(

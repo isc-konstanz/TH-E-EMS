@@ -3,14 +3,15 @@ package org.the.cmpt.hp.weider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
+import org.the.ems.core.HeatingMode;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.WriteContainer;
 
-public class ChargingHandler extends Component {
-	private static final Logger logger = LoggerFactory.getLogger(ChargingHandler.class);
+public class HeatingHandler extends Component {
+	private static final Logger logger = LoggerFactory.getLogger(HeatingHandler.class);
 
 	@Configuration(value = "state", section = Configurations.GENERAL)
 	private Channel compressorState;
@@ -35,9 +36,9 @@ public class ChargingHandler extends Component {
 	private double waterTempMin;
 
 
-	private final ChargingMode mode;
+	private final HeatingMode mode;
 
-	public ChargingHandler(ChargingMode mode) {
+	public HeatingHandler(HeatingMode mode) {
 		super(mode.toString());
 		this.mode = mode;
 	}

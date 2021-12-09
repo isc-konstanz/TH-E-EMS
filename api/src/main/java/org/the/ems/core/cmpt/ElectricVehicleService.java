@@ -52,6 +52,13 @@ public interface ElectricVehicleService extends RunnableService {
 	public double getStartPower();
 
 	/*
+	 * Get the default power to which an electric vehicle will be stopped to in watts [W].
+	 * 
+	 * @return the default power to which an electric vehicle will be stopped to
+	 */
+	public double getStopPower();
+
+	/*
 	 * Get the minimum charging power in watts [W].
 	 * 
 	 * @return the minimum charging power of this electric vehicle

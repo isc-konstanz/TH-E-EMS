@@ -131,7 +131,7 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 		public void onValueReceived(Value value) {
 			boolean state = value.booleanValue();
 			if (state && !stateValueLast.booleanValue()) {
-				startTimeLast = value.getTime();
+				startTimeLast = value.getEpochMillis();
 			}
 			stateValueLast = value;
 		}

@@ -17,34 +17,28 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.data;
+package org.the.ems.core.settings;
 
-import java.util.Comparator;
-import java.util.LinkedList;
+abstract class StartStopSettings implements StartSettings, StopSettings {
 
-public class ValueList extends LinkedList<Value> {
-	private static final long serialVersionUID = -5725862833767844148L;
+	boolean enforced = false;
 
-	public ValueList() {
+	StartStopSettings(boolean enforce) {
+		super();
+		this.enforced = enforce;
+	}
+
+	StartStopSettings() {
 		super();
 	}
 
-	public ValueList(Value value) {
-		super();
-		add(value);
+	@Override
+	public boolean isEnforced() {
+		return enforced;
 	}
 
-	public ValueList sort() {
-		Comparator<Value> comparator = new SortTime();
-		sort(comparator);
-		
-		return this;
+	public void setEnforced(boolean enforce) {
+		enforced = enforce;
 	}
 
-	private class SortTime implements Comparator<Value> {
-		@Override
-		public int compare(Value v1, Value v2) {
-			return (int) (v1.getEpochMillis() - v2.getEpochMillis());
-		}
-	}
 }

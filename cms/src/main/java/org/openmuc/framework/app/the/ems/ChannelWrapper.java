@@ -134,7 +134,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	@Override
 	public void write(Value value) {
 		Runnable task = () -> {
-			if (value.getTime() <= System.currentTimeMillis()) {
+			if (value.getEpochMillis() <= System.currentTimeMillis()) {
 				channel.write(encodeValue(value));
 			}
 			else {
@@ -152,7 +152,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 			ListIterator<Value> iter = values.sort().listIterator();
 			while(iter.hasNext()) {
 				Value value = iter.next();
-				if(value.getTime() <= time) {
+				if(value.getEpochMillis() <= time) {
 					iter.remove();
 					
 					channel.write(encodeValue(value));
@@ -290,7 +290,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 
 	private static org.openmuc.framework.data.Record encodeRecord(Value value) {
 		org.openmuc.framework.data.Value recordValue = encodeValue(value);
-		return new org.openmuc.framework.data.Record(recordValue, value.getTime(), Flag.VALID);
+		return new org.openmuc.framework.data.Record(recordValue, value.getEpochMillis(), Flag.VALID);
 	}
 
 	private static List<org.openmuc.framework.data.FutureValue> encodeFutureValueList(ValueList values) {
@@ -307,7 +307,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	private static org.openmuc.framework.data.FutureValue encodeFutureValue(Value value) {
 		org.openmuc.framework.data.Value future = encodeValue(value);
 		if (future != null) {
-			return new org.openmuc.framework.data.FutureValue(future, value.getTime());
+			return new org.openmuc.framework.data.FutureValue(future, value.getEpochMillis());
 		}
 		return null;
 	}

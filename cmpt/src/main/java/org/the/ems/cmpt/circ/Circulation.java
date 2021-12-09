@@ -123,10 +123,10 @@ public class Circulation extends Component implements CirculationTemperatureCall
 			break;
 		}
 		if (type == FlowTemperature.OUT || type == FlowTemperature.IN) {
-			if (flowTempOutLast.getTime() == flowTempInLast.getTime()) {
+			if (flowTempOutLast.getEpochMillis() == flowTempInLast.getEpochMillis()) {
 				
 				double delta = flowTempOutLast.doubleValue() - flowTempInLast.doubleValue();
-				Value value = new DoubleValue(delta, flowTempOutLast.getTime());
+				Value value = new DoubleValue(delta, flowTempOutLast.getEpochMillis());
 				
 				flowTempDelta.setLatestValue(value);
 				flowTempValues.add(delta);
@@ -166,12 +166,12 @@ public class Circulation extends Component implements CirculationTemperatureCall
 				double energy = flowSpecificHeat*flowMass*tempDelta;
 				
 				// Calculate average power since last counter tick
-				long timeDelta = (counter.getTime() - flowEnergyLast.getTime())/1000;
+				long timeDelta = (counter.getEpochMillis() - flowEnergyLast.getEpochMillis())/1000;
 				double power = energy/timeDelta;
-				flowPower.setLatestValue(new DoubleValue(power, counter.getTime()));
+				flowPower.setLatestValue(new DoubleValue(power, counter.getEpochMillis()));
 				
 				double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
-				flowEnergyLast = new DoubleValue(energyTotal, counter.getTime());
+				flowEnergyLast = new DoubleValue(energyTotal, counter.getEpochMillis());
 				flowEnergy.setLatestValue(flowEnergyLast);
 			}
 			flowCounterLast = counter.doubleValue();

@@ -10,12 +10,13 @@ import org.the.ems.core.ComponentType;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.HeatingService;
-import org.the.ems.core.RunnableService;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.config.ConfigurationCollection.BooleanCollection;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
 import org.the.ems.ctrl.HeatingControl.HeatingCallbacks;
 import org.the.ems.ctrl.HeatingControl.HeatingCollection;
 import org.the.ems.ctrl.InverterControl.InverterCallbacks;
@@ -106,12 +107,12 @@ public abstract class Control extends Component implements InverterCallbacks, He
 	}
 
 	@Override
-	public void onStart(HeatingService heating, Value value) throws EnergyManagementException {
+	public void onStart(HeatingService heating, StartSettings settings) throws EnergyManagementException {
 		// Default implementation to be overridden
 	}
 
 	@Override
-	public void onStop(HeatingService heating) throws EnergyManagementException {
+	public void onStop(HeatingService heating, StopSettings settings) throws EnergyManagementException {
 		// Default implementation to be overridden
 	}
 

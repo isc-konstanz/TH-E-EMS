@@ -119,6 +119,10 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		return getSetpointCurrentMaximum()*PHASE_VOLTAGE*PHASE_COUNT;
 	}
 
+	public double getSetpointPowerMinimum() {
+		return getSetpointCurrentMinimum()*PHASE_VOLTAGE*PHASE_COUNT;
+	}
+
 	public Value getSetpointPower() throws ComponentException, InvalidValueException {
 		return setpointPower.getLatestValue();
 	}
@@ -148,6 +152,12 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 		return setpointPowerMax/PHASE_VOLTAGE/PHASE_COUNT;
 	}
 
+	public double getSetpointCurrentMinimum() {
+		return chargePoints.stream()
+				.filter(Objects::nonNull) //.filter(c -> c.isConnected())
+				.mapToDouble(c -> c.getCurrentLimitMinimum()).sum();
+	}
+
 	private Value getSetpointCurrent(Value powerValue) throws ComponentException {
 		if (powerValue == null) {
 			throw new ComponentException("Unable to retrieve setpoint current");
@@ -165,6 +175,10 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 			current = PHASE_CURRENT_MAX;
 		}
 		return new DoubleValue(current, powerValue.getEpochMillis());
+	}
+
+	private double getGridPowerMaximum() {
+		return Math.max(gridPowerMax + getSetpointPowerMinimum(), 0);
 	}
 
 	@Override
@@ -314,7 +328,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 					// FIXME: Think of a way to avoid oscillation of setpoint values
 				}
 	            double setpointPowerMax = getSetpointPowerMaximum();
-				double setpointPowerError = gridPowerMax - gridValue;
+				double setpointPowerError = getGridPowerMaximum() - gridValue;
 				if (setpointPowerError > setpointPowerMax) {
 					setpointPowerError = setpointPowerMax;
 				}

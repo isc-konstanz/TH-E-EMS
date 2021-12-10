@@ -287,7 +287,9 @@ public final class EnergyManager extends Configurable
 					logger.debug(msg);
 				}
 				components.put(id, componentService);
-				manager.interrupt();
+				if (manager != null) {
+					manager.interrupt();
+				}
 			}
 		}
 	}

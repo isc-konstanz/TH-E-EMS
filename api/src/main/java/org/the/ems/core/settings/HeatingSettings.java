@@ -69,9 +69,8 @@ public class HeatingSettings extends StartStopSettings {
 	}
 
 	@Override
-	public long getEpochMillis() {
-		return instant.getEpochSecond() +
-				instant.getNano() / 1000L;
+	public long getEpochMillis() { //throws ArithmeticException {
+		return instant.toEpochMilli();
 	}
 
 	public HeatingMode getMode() {

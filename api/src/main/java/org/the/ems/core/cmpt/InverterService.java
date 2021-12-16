@@ -36,6 +36,15 @@ public interface InverterService extends SchedulableService {
 	};
 
 	/*
+	 * Get the {@link ElectricalEnergyStorageService}, related to this inverter.
+	 * 
+	 * @return the {@link ElectricalEnergyStorageService}, related to this inverter.
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the service
+	 */
+	public ElectricalEnergyStorageService getEnergyStorage() throws ComponentException;
+
+	/*
 	 * Set the inverter island mode, decoupling it from the grid.
 	 * 
 	 * @param enabled the flag whether the island mode should be enabled or not

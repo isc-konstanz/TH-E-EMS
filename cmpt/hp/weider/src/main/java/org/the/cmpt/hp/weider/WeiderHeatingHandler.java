@@ -3,15 +3,15 @@ package org.the.cmpt.hp.weider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
-import org.the.ems.core.HeatingMode;
+import org.the.ems.core.HeatingType;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.WriteContainer;
 
-public class HeatingHandler extends Component {
-	private static final Logger logger = LoggerFactory.getLogger(HeatingHandler.class);
+public class WeiderHeatingHandler extends Component {
+	private static final Logger logger = LoggerFactory.getLogger(WeiderHeatingHandler.class);
 
 	@Configuration(value = "state", section = Configurations.GENERAL)
 	private Channel compressorState;
@@ -36,11 +36,11 @@ public class HeatingHandler extends Component {
 	private double waterTempMin;
 
 
-	private final HeatingMode mode;
+	private final HeatingType type;
 
-	public HeatingHandler(HeatingMode mode) {
-		super(mode.toString());
-		this.mode = mode;
+	public WeiderHeatingHandler(HeatingType type) {
+		super(type.toString());
+		this.type = type;
 	}
 
 	public void onStart(WriteContainer container, long time) {
@@ -52,7 +52,7 @@ public class HeatingHandler extends Component {
 			return waterTemp.getLatestValue().doubleValue() <= waterTempMax;
 			
 		} catch (InvalidValueException e) {
-			logger.debug("Error retrieving {} temperature: {}", mode.toString().toLowerCase(),  
+			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
 					e.getMessage());
 		}
 		return true;
@@ -64,7 +64,7 @@ public class HeatingHandler extends Component {
 					pumpState.getLatestValue().booleanValue();
 			
 		} catch (InvalidValueException e) {
-			logger.debug("Error retrieving {} state: {}", mode.toString().toLowerCase(),  
+			logger.debug("Error retrieving {} state: {}", type.toString().toLowerCase(),  
 					e.getMessage());
 		}
 		return false;
@@ -76,7 +76,7 @@ public class HeatingHandler extends Component {
 			waterTempSetpointValue += waterTempHysteresis.getLatestValue().doubleValue();
 			
 		} catch (InvalidValueException e) {
-			logger.debug("Error retrieving {} temperature hysteresis: {}", mode.toString().toLowerCase(),  
+			logger.debug("Error retrieving {} temperature hysteresis: {}", type.toString().toLowerCase(),  
 					e.getMessage());
 		}
 		container.addDouble(waterTempSetpoint, waterTempSetpointValue, time);
@@ -87,7 +87,7 @@ public class HeatingHandler extends Component {
 			return waterTemp.getLatestValue().doubleValue() >= waterTempMin;
 			
 		} catch (InvalidValueException e) {
-			logger.debug("Error retrieving {} temperature: {}", mode.toString().toLowerCase(),  
+			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
 					e.getMessage());
 		}
 		return true;

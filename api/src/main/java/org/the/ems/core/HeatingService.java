@@ -19,6 +19,7 @@
  */
 package org.the.ems.core;
 
+import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -36,6 +37,15 @@ public interface HeatingService extends RunnableService {
 	 * @throws InvalidValueException if the retrieved season returned invalid
 	 */
 	public Season getSeason() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the {@link ThermalEnergyStorageService}, related to this heating.
+	 * 
+	 * @return the {@link ThermalEnergyStorageService}, related to this heating.
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the service
+	 */
+	public ThermalEnergyStorageService getEnergyStorage() throws ComponentException;
 
 	/**
 	 * {@inheritDoc}

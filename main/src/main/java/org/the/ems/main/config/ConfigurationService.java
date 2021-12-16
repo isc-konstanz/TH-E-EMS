@@ -48,9 +48,11 @@ public final class ConfigurationService extends Thread {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
 	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "cmpt.d" + File.separator;
-	private final static String CONFIG_DIR = System.getProperty("org.the.ems.core.config", CONFIG_DIR_DEFAULT);
+	private final static String CONFIG_DIR = System.getProperty("org.the.ems.config", CONFIG_DIR_DEFAULT);
 
 	private final Path dir = Paths.get(CONFIG_DIR);
+
+	private File[] files = dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 
 	private Map<WatchKey, Path> keys = new HashMap<WatchKey, Path>();
 	private Map<String, Long> times = new HashMap<String, Long>();
@@ -82,29 +84,36 @@ public final class ConfigurationService extends Thread {
 	public void run() {
 		logger.debug("Starting TH-E Configuration");
 		try {
-			File[] files = this.dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
-			if (files == null || files.length < 1) {
+			if (files == null || files.length <= 1) {
 				return;
 			}
-			for (ComponentType type : ComponentType.values()) {
-				switch(type) {
-				//case GENERAL:
-				case CONTROL:
-					try {
-						// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
-						// and only continue if all bundles are active
-						Thread.sleep(1000);
-						
-					} catch (InterruptedException e) {
-					}
-				default:
-					break;
-				}
-				register(files, type);
-			}
+			// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
+			// and only continue if all bundles are active, instead of waiting a second
+			
+			register(ComponentType.GENERAL);
+			register(ComponentType.ELECTRIC_VEHICLE, ComponentType.VENTILATION);
+			register(ComponentType.ELECTRICAL_ENERGY_STORAGE, 
+					ComponentType.THERMAL_ENERGY_STORAGE);
+			
+			wait(1);
+			register(ComponentType.COMBINED_HEAT_POWER, 
+					ComponentType.HEAT_PUMP, 
+					ComponentType.HEATING_ROD);
+			register(ComponentType.INVERTER);
+			
+			wait(1);
+			register(ComponentType.CONTROL);
 			
 		} catch (Exception e) {
 			logger.error("Error while initializing configurations: {}", e.getMessage());
+		}
+	}
+
+	private void wait(int seconds) {
+		try {
+			Thread.sleep(seconds*1000);
+			
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -154,34 +163,36 @@ public final class ConfigurationService extends Thread {
 		keys.put(key, dir);
 	}
 
-	private void register(File[] files, ComponentType type) throws Exception {
-		files:
-		for (File file : files) {
-			String id = file.getName();
-			int pos = id.lastIndexOf(".");
-			if (pos > 0) {
-				id = id.substring(0, pos);
-			}
-			if (id.equals(EnergyManager.ID)) {
-				continue;
-			}
-			if (!id.startsWith(type.getKey())) {
-				if (type != ComponentType.GENERAL) {
+	private void register(ComponentType... types) throws Exception {
+		for (ComponentType type : types) {
+			files:
+			for (File file : files) {
+				String id = file.getName();
+				int pos = id.lastIndexOf(".");
+				if (pos > 0) {
+					id = id.substring(0, pos);
+				}
+				if (id.equals(EnergyManager.ID)) {
 					continue;
 				}
-				else {
-					for (ComponentType t : ComponentType.values()) {
-						if (id.startsWith(t.getKey())) {
-							continue files;
+				if (!id.startsWith(type.getKey())) {
+					if (type != ComponentType.GENERAL) {
+						continue;
+					}
+					else {
+						for (ComponentType t : ComponentType.values()) {
+							if (id.startsWith(t.getKey())) {
+								continue files;
+							}
 						}
 					}
 				}
+				Path dir = this.dir.resolve(id.concat(".d"));
+				if (dir.toFile().isDirectory()) {
+					register(dir);
+				}
+				load(file, id, type);
 			}
-			Path dir = this.dir.resolve(id.concat(".d"));
-			if (dir.toFile().isDirectory()) {
-				register(dir);
-			}
-			load(file, id, type);
 		}
 	}
 

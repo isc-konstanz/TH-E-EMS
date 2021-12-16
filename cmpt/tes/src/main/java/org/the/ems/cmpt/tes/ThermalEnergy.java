@@ -6,17 +6,21 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
-public class HeatingEnergy {
+public class ThermalEnergy {
 
 	private final HeatingService component;
 
 	private Double energy = Double.NaN;
 
-	public HeatingEnergy(HeatingService component) {
+	public ThermalEnergy(HeatingService component) {
 		this.component = component;
 	}
 
-	public HeatingService getService() {
+	public String getHeatingId() {
+		return component.getId();
+	}
+
+	public HeatingService getHeating() {
 		return component;
 	}
 

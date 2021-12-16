@@ -107,6 +107,14 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	}
 
 	@Override
+	public ElectricalEnergyStorageService getEnergyStorage() throws ComponentException {
+		if (storage == null) {
+			throw new ComponentException("Electrical energy storage unavailable");
+		}
+		return storage;
+	}
+
+	@Override
 	public boolean setIsland(boolean enabled) throws UnsupportedOperationException {
 		throw new UnsupportedOperationException();
 	}

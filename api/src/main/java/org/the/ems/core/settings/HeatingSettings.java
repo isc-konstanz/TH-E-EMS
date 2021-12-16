@@ -24,25 +24,25 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import org.the.ems.core.HeatingMode;
+import org.the.ems.core.HeatingType;
 import org.the.ems.core.data.Value;
 
 public class HeatingSettings extends StartStopSettings {
 
 	protected final Instant instant;
-	protected final HeatingMode mode;
+	protected final HeatingType type;
 
 	public static HeatingSettings newHeatingWaterHeating(long timestamp) {
-		return new HeatingSettings(HeatingMode.HEATING_WATER, timestamp);
+		return new HeatingSettings(HeatingType.HEATING_WATER, timestamp);
 	}
 
 	public static HeatingSettings newDomesticWaterHeating(long timestamp) {
-		return new HeatingSettings(HeatingMode.DOMESTIC_WATER, timestamp);
+		return new HeatingSettings(HeatingType.DOMESTIC_WATER, timestamp);
 	}
 
-	public HeatingSettings(HeatingMode mode, long timestamp) {
+	public HeatingSettings(HeatingType type, long timestamp) {
 		super();
-		this.mode = mode;
+		this.type = type;
 
 		// TODO: Add additional constructors and start refactoring to work with time library instead of timestamps
 		this.instant = Instant.ofEpochMilli(timestamp);
@@ -73,8 +73,8 @@ public class HeatingSettings extends StartStopSettings {
 		return instant.toEpochMilli();
 	}
 
-	public HeatingMode getMode() {
-		return mode;
+	public HeatingType getType() {
+		return type;
 	}
 
 }

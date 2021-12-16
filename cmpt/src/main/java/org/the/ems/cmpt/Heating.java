@@ -22,15 +22,23 @@ package org.the.ems.cmpt;
 import java.text.MessageFormat;
 import java.time.Instant;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation;
 import org.the.ems.cmpt.circ.CirculationPump;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.HeatingService;
-import org.the.ems.core.HeatingMode;
+import org.the.ems.core.HeatingType;
 import org.the.ems.core.Season;
+import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.InvalidValueException;
@@ -52,6 +60,8 @@ public abstract class Heating extends Runnable implements HeatingService {
 	protected static final String THERMAL_ENERGY_VALUE = "th_energy";
 	protected static final String THERMAL_POWER_VALUE = "th_power";
 
+	protected ThermalEnergyStorageService storage;
+
 	@Configuration(scale=1000, mandatory=false)
 	private double powerMax = -1;
 
@@ -70,6 +80,37 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	public Season getSeason() throws ComponentException, InvalidValueException {
 		return Season.valueOf(Instant.now());
+	}
+
+	@Override
+	public ThermalEnergyStorageService getEnergyStorage() throws ComponentException {
+		if (storage == null) {
+			throw new ComponentException("Thermal energy storage unavailable");
+		}
+		return storage;
+	}
+
+	protected void bindEnergyStorage(BundleContext context, Configurations configs) 
+			throws ComponentException {
+		ThermalEnergyStorageService storage = null;
+		EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
+		for (ComponentService component : manager.getComponents(ComponentType.THERMAL_ENERGY_STORAGE)) {
+			// TODO: implement configurations to filter TES, if more than one is available
+			storage = (ThermalEnergyStorageService) component;
+		}
+		bindEnergyStorage(storage);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindEnergyStorage(ThermalEnergyStorageService service) {
+		storage = service;
+	}
+
+	protected void unbindEnergyStorage(ThermalEnergyStorageService service) {
+		storage = null;
 	}
 
 	/**
@@ -232,6 +273,12 @@ public abstract class Heating extends Runnable implements HeatingService {
     }
 
 	@Override
+	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+		super.onActivate(context, configs);
+		bindEnergyStorage(context, configs);
+	}
+
+	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		registerService(getId().concat("_").concat("circ"), configs, circulation);
@@ -301,14 +348,14 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	void doStart(WriteContainer container, HeatingSettings settings) throws EnergyManagementException {
 		onStart(container, settings);
-		onStart(container, settings.getMode());
+		onStart(container, settings.getType());
 	}
 
 	protected void onStart(WriteContainer container, HeatingSettings settings) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected void onStart(WriteContainer container, HeatingMode type) throws ComponentException {
+	protected void onStart(WriteContainer container, HeatingType type) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
@@ -335,14 +382,14 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	void doStop(WriteContainer container, HeatingSettings settings) throws EnergyManagementException {
 		onStop(container, settings);
-		onStop(container, settings.getMode());
+		onStop(container, settings.getType());
 	}
 
 	protected void onStop(WriteContainer container, HeatingSettings settings) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected void onStop(WriteContainer container, HeatingMode type) throws ComponentException {
+	protected void onStop(WriteContainer container, HeatingType type) throws ComponentException {
 		// Default implementation to be overridden
 	}
 

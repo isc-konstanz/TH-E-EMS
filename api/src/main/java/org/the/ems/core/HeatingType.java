@@ -1,6 +1,6 @@
 package org.the.ems.core;
 
-public enum HeatingMode {
+public enum HeatingType {
 	DOMESTIC_WATER,
 	HEATING_WATER;
 
@@ -11,7 +11,7 @@ public enum HeatingMode {
 		case HEATING_WATER:
 			return "Heating water";
 		default:
-			throw new IllegalArgumentException("");
+			throw new IllegalArgumentException("Heating layer name unavailable");
 		}
 	}
 }

@@ -26,6 +26,7 @@ import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallb
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
@@ -58,8 +59,12 @@ public class Circulation extends Component implements CirculationTemperatureCall
 	private double flowDensity = 1;
 
 	// The channel key of the counter in liters
-	@Configuration
+	@Configuration(mandatory = false)
 	private Channel flowCounter;
+
+	// The channel key of the volume in liter hours
+	@Configuration(mandatory = false)
+	private Channel flowVolume;
 
 	@Configuration
 	private Channel flowEnergy;
@@ -80,8 +85,6 @@ public class Circulation extends Component implements CirculationTemperatureCall
 
 	private Value flowTempInLast = DoubleValue.emptyValue();
 	private Value flowTempOutLast = DoubleValue.emptyValue();
-	private Value flowEnergyLast = DoubleValue.emptyValue();
-	private Double flowCounterLast = Double.NaN;
 
 	public Circulation() {
 		super(SECTION);
@@ -93,7 +96,15 @@ public class Circulation extends Component implements CirculationTemperatureCall
 		if (!isEnabled()) {
 			return;
 		}
-		flowCounter.registerValueListener(new FlowCountListener());
+		if (flowVolume != null) {
+			flowVolume.registerValueListener(new FlowVolumeListener());
+		}
+		else if (flowCounter != null) {
+			flowCounter.registerValueListener(new FlowCountListener());
+		}
+		else {
+			throw new ConfigurationException("Missing configured flow volume or counter");
+		}
 		flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
 		flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
 	}
@@ -137,42 +148,72 @@ public class Circulation extends Component implements CirculationTemperatureCall
 		}
 	}
 
-	private class FlowCountListener implements ValueListener {
+	private class FlowListener implements ValueListener {
+
+		private Value flowEnergyLast = DoubleValue.emptyValue();
+
+		protected void onLitersReceived(double flow, long timestamp) {
+			// Flow since last calculation in kilogram
+			double flowMass = flow*flowDensity;
+			
+			double tempDelta;
+			if (flowTempValues.size() > 0) {
+				tempDelta = 0;
+				for (double temp : flowTempValues) {
+					tempDelta += temp;
+				}
+				tempDelta /= flowTempValues.size();
+				flowTempValues.clear();
+			}
+			else {
+				try {
+					tempDelta = flowTempDelta.getLatestValue().doubleValue();
+					
+				} catch (InvalidValueException e) {
+					tempDelta = 0;
+				}
+			}
+			// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
+			double energy = flowSpecificHeat*flowMass*tempDelta;
+			
+			// Calculate average power since last counter tick
+			long timeDelta = (timestamp - flowEnergyLast.getEpochMillis())/1000;
+			double power = energy/timeDelta;
+			flowPower.setLatestValue(new DoubleValue(power, timestamp));
+			
+			double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
+			flowEnergyLast = new DoubleValue(energyTotal, timestamp);
+			flowEnergy.setLatestValue(flowEnergyLast);
+		}
+	}
+
+	private class FlowVolumeListener extends FlowListener {
+
+		private long flowTimeLast = -1;
+
+		@Override
+		public void onValueReceived(Value counter) {
+			long flowTime = counter.getEpochMillis();
+			if (flowTimeLast > 0) {
+				long flowTimeDelta = flowTime - flowTimeLast;
+				// Flow since last calculation in liters
+				double flow = counter.doubleValue()/(double) flowTimeDelta;
+				onLitersReceived(flow, flowTime);
+			}
+			flowTimeLast = flowTime;
+		}
+	}
+
+	private class FlowCountListener extends FlowListener {
+
+		private Double flowCounterLast = Double.NaN;
 
 		@Override
 		public void onValueReceived(Value counter) {
 			if (!flowCounterLast.isNaN()) {
-				// Flow since last calculation in kilogram
-				double flowMass = (counter.doubleValue() - flowCounterLast)*flowDensity;
-				
-				double tempDelta;
-				if (flowTempValues.size() > 0) {
-					tempDelta = 0;
-					for (double temp : flowTempValues) {
-						tempDelta += temp;
-					}
-					tempDelta /= flowTempValues.size();
-					flowTempValues.clear();
-				}
-				else {
-					try {
-						tempDelta = flowTempDelta.getLatestValue().doubleValue();
-						
-					} catch (InvalidValueException e) {
-						tempDelta = 0;
-					}
-				}
-				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
-				double energy = flowSpecificHeat*flowMass*tempDelta;
-				
-				// Calculate average power since last counter tick
-				long timeDelta = (counter.getEpochMillis() - flowEnergyLast.getEpochMillis())/1000;
-				double power = energy/timeDelta;
-				flowPower.setLatestValue(new DoubleValue(power, counter.getEpochMillis()));
-				
-				double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
-				flowEnergyLast = new DoubleValue(energyTotal, counter.getEpochMillis());
-				flowEnergy.setLatestValue(flowEnergyLast);
+				// Flow since last calculation in liters
+				double flow = counter.doubleValue() - flowCounterLast;
+				onLitersReceived(flow, counter.getEpochMillis());
 			}
 			flowCounterLast = counter.doubleValue();
 		}

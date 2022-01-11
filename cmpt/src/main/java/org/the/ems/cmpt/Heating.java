@@ -309,8 +309,8 @@ public abstract class Heating extends Runnable implements HeatingService {
 				throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 			}
 			else if (value.doubleValue() == 0) {
-				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
-					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
+				if (value.getEpochMillis() - startTimeLast < getMinRuntime()) {
+					logger.debug("Unable to stop component after interval shorter than {}mins", getMinRuntime()/60000);
 					continue;
 				}
 				onStop(container, value);
@@ -369,6 +369,11 @@ public abstract class Heating extends Runnable implements HeatingService {
 		onStart(container, value);
 	}
 
+	public boolean isRunning(HeatingType type) throws ComponentException {
+		// Default implementation to be overridden
+		return isRunning();
+	}
+
 	@Override
 	void doStop(WriteContainer container, StopSettings settings) throws EnergyManagementException {
 		if (settings instanceof ValueSettings) {
@@ -391,6 +396,11 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	protected void onStop(WriteContainer container, HeatingType type) throws ComponentException {
 		// Default implementation to be overridden
+	}
+
+	public boolean isStandby(HeatingType type) throws ComponentException {
+		// Default implementation to be overridden
+		return isStandby();
 	}
 
 	@Override

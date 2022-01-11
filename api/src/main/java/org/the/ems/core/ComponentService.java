@@ -31,6 +31,4 @@ public interface ComponentService {
 
 	public ComponentStatus getStatus();
 
-	public void setStatus(ComponentStatus status) throws EnergyManagementException;
-
 }

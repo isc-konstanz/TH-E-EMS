@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.osgi.service.component.annotations.Activate;
@@ -275,28 +276,36 @@ public final class EnergyManager extends Configurable
 		policy = ReferencePolicy.DYNAMIC
 	)
 	protected void bindComponentService(ComponentService componentService) {
-		String id = componentService.getId();
 		synchronized (components) {
+			String id = componentService.getId();
 			String msg = MessageFormat.format("Registered TH-E EMS {0}: {1}", 
 					componentService.getType().getFullName(), id);
-			if (!components.containsKey(id)) {
-				if (componentService.getType() != ComponentType.GENERAL) {
-					logger.info(msg);
+			
+			if (componentService instanceof Component) {
+				if (!components.containsKey(id)) {
+					if (componentService.getType() != ComponentType.GENERAL) {
+						logger.info(msg);
+					}
+					else if (logger.isDebugEnabled()) {
+						logger.debug(msg);
+					}
+					components.put(id, (Component) componentService);
+					if (manager != null) {
+						manager.interrupt();
+					}
 				}
-				else if (logger.isDebugEnabled()) {
-					logger.debug(msg);
-				}
-				components.put(id, componentService);
-				if (manager != null) {
-					manager.interrupt();
-				}
+			}
+			else {
+				logger.warn("Registered component of unknown type \"{}\". "
+						+ "Scheduling and interrupting will not be handled for this service!", 
+						componentService.getClass().getSimpleName());
 			}
 		}
 	}
 
 	protected void unbindComponentService(ComponentService componentService) {
-		String id = componentService.getId();
 		synchronized (components) {
+			String id = componentService.getId();
 			String msg = MessageFormat.format("Deregistered TH-E EMS {0}: {1}", 
 					componentService.getType().getFullName(), id);
 			if (componentService.getType() != ComponentType.GENERAL) {
@@ -319,7 +328,8 @@ public final class EnergyManager extends Configurable
 
 	@Override
 	public List<ComponentService> getComponents(ComponentType... types) {
-		return components.getAll(types);
+		return components.getAll(types).stream().map(ComponentService.class::cast)
+		        .collect(Collectors.toList());
 	}
 
 	@Override
@@ -381,7 +391,7 @@ public final class EnergyManager extends Configurable
 			schedule = scheduleUpdate;
 		}
 		synchronized (components) {
-			for (ComponentService component : components.values()) {
+			for (Component component : components.values()) {
 				try {
 					if (maintenance) {
 						component.setStatus(ComponentStatus.MAINTENANCE);
@@ -394,10 +404,9 @@ public final class EnergyManager extends Configurable
 						if (component instanceof SchedulableService && scheduleFlag) {
 							handleComponentSchedule((SchedulableService) component);
 						}
-						if (component instanceof Component) {
-							handleComponentInterrupt((Component) component);
-						}
 					}
+					handleComponentInterrupt(component);
+					
 				} catch (EnergyManagementException e) {
 					logger.warn("Error while handling event for component \"{}\": ", component.getId(), e);
 				}

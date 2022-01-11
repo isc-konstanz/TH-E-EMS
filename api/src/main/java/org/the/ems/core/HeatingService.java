@@ -28,17 +28,6 @@ import org.the.ems.core.data.ValueListener;
 public interface HeatingService extends RunnableService {
 
 	/*
-	 * Get the active heating {@link Season}.
-	 * Not every heating will support heating seasons.
-	 * 
-	 * @return the active heating {@link Season}
-	 * 
-	 * @throws ComponentException if any kind of error occurs retrieving the season
-	 * @throws InvalidValueException if the retrieved season returned invalid
-	 */
-	public Season getSeason() throws ComponentException, InvalidValueException;
-
-	/*
 	 * Get the {@link ThermalEnergyStorageService}, related to this heating.
 	 * 
 	 * @return the {@link ThermalEnergyStorageService}, related to this heating.
@@ -46,6 +35,17 @@ public interface HeatingService extends RunnableService {
 	 * @throws ComponentException if any kind of error occurs retrieving the service
 	 */
 	public ThermalEnergyStorageService getEnergyStorage() throws ComponentException;
+
+	/*
+	 * Get the active heating {@link Season}.
+	 * Not every heating will support heating seasons.
+	 * 
+	 * @return the active season {@link Season}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the season
+	 * @throws InvalidValueException if the retrieved season returned invalid
+	 */
+	public Season getSeason() throws ComponentException, InvalidValueException;
 
 	/**
 	 * {@inheritDoc}
@@ -105,6 +105,8 @@ public interface HeatingService extends RunnableService {
 	 * Get the generated thermal energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new thermal energy values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the generated thermal energy {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -143,6 +145,8 @@ public interface HeatingService extends RunnableService {
 	/*
 	 * Get the generated thermal power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new thermal power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the generated thermal power {@link Value}
 	 * 

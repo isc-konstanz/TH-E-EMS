@@ -225,7 +225,7 @@ public class ThermalEnergyStorage extends Component
 				
 				energyLast += energyDelta/3600;
 				energy.setLatestValue(new DoubleValue(energyLast, time));
-				power.setLatestValue(new DoubleValue(energyDelta/timeDelta, time));
+				power.setLatestValue(new DoubleValue(energyDelta*1000/timeDelta, time));
 			}
 			temperatureLast = new DoubleValue(temperature, time);
 			

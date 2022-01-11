@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface CogeneratorService extends HeatingService {
 
-	static final String PID = "org.the.ems.cmpt.chp";
+	public static final String PID = "org.the.ems.cmpt.chp";
 
 	@Override
 	public default ComponentType getType() {
@@ -57,6 +57,8 @@ public interface CogeneratorService extends HeatingService {
 	/*
 	 * Get the generated electrical energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new electrical energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the generated electrical energy {@link Value}
 	 * 
@@ -91,6 +93,8 @@ public interface CogeneratorService extends HeatingService {
 	/*
 	 * Get the generated electrical power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new electrical power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the generated electrical power {@link Value}
 	 * 

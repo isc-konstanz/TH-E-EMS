@@ -62,7 +62,7 @@ public class PeakShavingControl extends TwoPointControl {
 
 	@Configuration(mandatory=false, value={"power_limit", "power_limitation"})
 	protected Channel powerLimit;
-	
+
 	@Configuration(mandatory=false)
 	protected double powerScale = 1;
 
@@ -155,7 +155,7 @@ public class PeakShavingControl extends TwoPointControl {
 		if (controlValue != 0) {
 			logger.trace("Power control value update: {}", controlValue);
 		}
-		this.inverters.set(new DoubleValue(controlValue, value.getTime()));
+		this.inverters.set(new DoubleValue(controlValue, value.getEpochMillis()));
 	}
 
 	protected double getPowerImportMax() {
@@ -212,7 +212,7 @@ public class PeakShavingControl extends TwoPointControl {
 		public void onValueReceived(Value value) {
 			logger.trace("Received power value: {}W", value);
 			
-			Value power = new DoubleValue(value.doubleValue()*powerScale, value.getTime());
+			Value power = new DoubleValue(value.doubleValue()*powerScale, value.getEpochMillis());
 			if (power.doubleValue() != powerValue.doubleValue()) {
 				// Only update PID control if the power value changed.
 				// Measurements will most probably always differ and only values read via a SCADA

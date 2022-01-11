@@ -55,6 +55,11 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
 		return getMinPower();
 	}
 
+	@Override
+    public double getStopPower() {
+		return 0.0;
+	}
+
     @Override
     public double getMaxPower() {
         return powerMax;

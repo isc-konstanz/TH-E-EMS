@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface HeatingRodService extends HeatingService {
 
-	static final String PID = "org.the.ems.cmpt.hr";
+	public static final String PID = "org.the.ems.cmpt.hr";
 
 	@Override
 	public default ComponentType getType() {
@@ -48,6 +48,8 @@ public interface HeatingRodService extends HeatingService {
 	/*
 	 * Get the consumed electrical energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new electrical energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the consumed electrical energy {@link Value}
 	 * 
@@ -87,6 +89,8 @@ public interface HeatingRodService extends HeatingService {
 	/*
 	 * Get the consumed electrical power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new electrical power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the consumed electrical power {@link Value}
 	 * 

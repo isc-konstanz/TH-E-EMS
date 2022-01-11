@@ -26,8 +26,9 @@ import org.the.ems.cmpt.Heating;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -38,13 +39,13 @@ import org.the.ems.core.data.WriteContainer;
 public class HeatingRod extends Heating implements HeatingRodService {
 
 	@Override
-	protected void onStart(WriteContainer container, Value value) throws ComponentException {
-		container.add(state, new BooleanValue(true, value.getTime()));
+	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
+		container.add(state, new BooleanValue(true, settings.getEpochMillis()));
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
-		container.add(state, new BooleanValue(false, time));
+	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
+		container.add(state, new BooleanValue(false, settings.getEpochMillis()));
 	}
 
 }

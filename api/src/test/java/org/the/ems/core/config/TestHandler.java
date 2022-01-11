@@ -59,7 +59,7 @@ public class TestHandler extends Configurable {
 	@Configuration(value="test*")
 	private List<String> testList;
 
-	@Configuration(value={"test", "test_channel"})
+	@Configuration(value={"test", "test_channel1"})
 	private ChannelCollection testCollection;
 
 	@Configuration(value="test_channel*")

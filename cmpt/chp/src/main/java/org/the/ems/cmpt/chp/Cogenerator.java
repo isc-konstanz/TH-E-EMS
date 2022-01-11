@@ -27,8 +27,9 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -55,13 +56,13 @@ public class Cogenerator extends Heating implements CogeneratorService {
 	}
 
 	@Override
-	protected void onStart(WriteContainer container, Value value) throws ComponentException {
-		container.add(state, new BooleanValue(true, value.getTime()));
+	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
+		container.add(state, new BooleanValue(true, settings.getEpochMillis()));
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
-		container.add(state, new BooleanValue(false, time));
+	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
+		container.add(state, new BooleanValue(false, settings.getEpochMillis()));
 	}
 
 }

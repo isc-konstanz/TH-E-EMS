@@ -11,7 +11,7 @@ public class InverterControl extends ComponentControl<InverterService> {
 	private final static Logger logger = LoggerFactory.getLogger(InverterControl.class);
 
 	public static class InverterCollection extends ComponentCollection<InverterControl> {
-		private static final long serialVersionUID = -3866430817469938810L;
+		private static final long serialVersionUID = -4628704408727170104L;
 
 		public void set(Value value) {
 			for (InverterControl controlledInverter : values()) {

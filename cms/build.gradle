@@ -25,7 +25,7 @@ project.ext {
     projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 }
 dependencies {
-    api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+    api fileTree(dir: 'lib/openmuc', include: ['*.jar'])
     api project(':api')
 }
 
@@ -33,7 +33,7 @@ jar {
     bnd('Bundle-Name':        projectName,
         'Bundle-Description': projectDescription,
         'Import-Package':     'org.openmuc.framework.*;version=0,*',
-        'Export-Package':     '')
+        'Export-Package':     'org.openmuc.framework.app.the.ems.*')
 }
 
 eclipse {

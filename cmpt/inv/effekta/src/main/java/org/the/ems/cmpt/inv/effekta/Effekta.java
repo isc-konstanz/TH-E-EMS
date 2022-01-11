@@ -59,7 +59,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
 		double setpointPower = value.doubleValue();
-		long timestamp = value.getTime();
+		long timestamp = value.getEpochMillis();
 		
 		if (setpointPower == 0 && mode != Mode.DEFAULT) {
 			setMode(container, timestamp, Mode.DEFAULT);
@@ -97,8 +97,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 	protected void onInterrupt() throws ComponentException {
 		// TODO: Verify if selected mode is actually set
 //		try {
-//			byte operationModeByte = operationMode.getLatestValue().byteValue();
-//			if (operationModeByte != mode.getByte()) {
+//			byte operationModeBytes = operationMode.getLatestValue().shortValue();
+//			if (operationModeBytes != mode.getMode()) {
 //		        WriteContainer container = new WriteContainer();
 //				setMode(container, System.currentTimeMillis(), mode);
 //		        doWrite(container);
@@ -112,7 +112,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 		// TODO: Check if bit needs to be set before setting it to massively improve speed
 //		BitSet operationModeBits;
 //		try {
-//			long operationModeBytes = operationMode.getLatestValue().longValue();
+//			short operationModeBytes = operationMode.getLatestValue().shortValue();
 //			operationModeBits = BitSet.valueOf(new long[]{operationModeBytes});
 //			
 //		} catch (InvalidValueException e) {
@@ -175,7 +175,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 		@Override
 		public void onValueReceived(Value value) {
-			long time = value.getTime();
+			long time = value.getEpochMillis();
 			soc = value.doubleValue();
 			WriteContainer container = new WriteContainer();
 

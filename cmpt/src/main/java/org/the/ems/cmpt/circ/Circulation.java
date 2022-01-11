@@ -22,19 +22,22 @@ package org.the.ems.cmpt.circ;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
-import org.the.ems.core.Configurable;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class Circulation extends Configurable implements CirculationTemperatureCallbacks {
+public class Circulation extends Component implements CirculationTemperatureCallbacks {
+
+	private static final Logger logger = LoggerFactory.getLogger(Circulation.class);
 
 	private final static String SECTION = "Circulation";
 
@@ -51,8 +54,6 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	 */
 	private volatile CirculationCallbacks callbacks = null;
 
-	private ContentManagementService content;
-
 	// The specific heat capacity of the flow medium. Default is 4.1813 of water.
 	@Configuration(mandatory=false)
 	private double flowSpecificHeat = 4.1813;
@@ -62,8 +63,12 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	private double flowDensity = 1;
 
 	// The channel key of the counter in liters
-	@Configuration
+	@Configuration(mandatory = false)
 	private Channel flowCounter;
+
+	// The channel key of the volume in liter hours
+	@Configuration(mandatory = false)
+	private Channel flowVolume;
 
 	@Configuration
 	private Channel flowEnergy;
@@ -80,33 +85,32 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 	@Configuration
 	private Channel flowTempDelta;
 
-	private List<Double> flowTempValues = new ArrayList<Double>();
+	private List<Value> flowTempDeltaValues = new ArrayList<Value>();
 
 	private Value flowTempInLast = DoubleValue.emptyValue();
 	private Value flowTempOutLast = DoubleValue.emptyValue();
-	private Value flowEnergyLast = DoubleValue.emptyValue();
-	private Double flowCounterLast = Double.NaN;
 
 	public Circulation() {
-		setConfiguredSection(SECTION);
+		super(SECTION);
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
-	}
-
-	public Circulation activate(ContentManagementService content, Configurations configs) 
-			throws ConfigurationException {
-
-		if (configs.isEnabled(SECTION)) {
-			configure(configs);
-			
-			flowCounter.registerValueListener(new FlowCountListener());
-			flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
-			flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
+	protected void onActivate() throws ComponentException {
+		super.onActivate();
+		if (!isEnabled()) {
+			return;
 		}
-		return this;
+		if (flowVolume != null) {
+			flowVolume.registerValueListener(new FlowVolumeListener());
+		}
+		else if (flowCounter != null) {
+			flowCounter.registerValueListener(new FlowCountListener());
+		}
+		else {
+			throw new ConfigurationException("Missing configured flow volume or counter");
+		}
+		flowTempIn.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.IN));
+		flowTempOut.registerValueListener(new FlowTemperatureListener(this, FlowTemperature.OUT));
 	}
 
 	public void register(CirculationCallbacks callbacks) {
@@ -117,7 +121,9 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 		this.callbacks = null;
 	}
 
-	public void deactivate() {
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
 		this.deregisterConfiguredValueListeners();
 	}
 
@@ -131,14 +137,14 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 			flowTempOutLast = temperature;
 			break;
 		}
-		if (type == FlowTemperature.OUT || type == FlowTemperature.IN) {
-			if (flowTempOutLast.getTime() == flowTempInLast.getTime()) {
-				
-				double delta = flowTempOutLast.doubleValue() - flowTempInLast.doubleValue();
-				Value value = new DoubleValue(delta, flowTempOutLast.getTime());
-				
+		if ((type == FlowTemperature.OUT || type == FlowTemperature.IN) &&
+				Math.abs(flowTempOutLast.getEpochMillis() - flowTempInLast.getEpochMillis()) < 1000) {
+			double delta = flowTempOutLast.doubleValue() - flowTempInLast.doubleValue();
+			Value value = new DoubleValue(delta, System.currentTimeMillis());
+			
+			synchronized (flowTempDeltaValues) {
 				flowTempDelta.setLatestValue(value);
-				flowTempValues.add(delta);
+				flowTempDeltaValues.add(value);
 				if (callbacks != null) {
 					callbacks.onTemperatureDeltaUpdated(value);
 				}
@@ -146,42 +152,93 @@ public class Circulation extends Configurable implements CirculationTemperatureC
 		}
 	}
 
-	private class FlowCountListener implements ValueListener {
+	private class FlowListener implements ValueListener {
+
+		private Value flowEnergyLast = null;
+
+		protected void onLitersReceived(double flow, long timestamp) {
+			logger.debug("Received {}l water flowing in circulation", flow);
+
+			// Flow since last calculation in kilogram
+			double flowMass = flow*flowDensity;
+
+			Double flowTempDeltaValue = Double.NaN;
+			synchronized (flowTempDeltaValues) {
+				try {
+					if (flowTempDeltaValues.size() > 0) {
+						flowTempDeltaValue= flowTempDeltaValues.stream()
+								.mapToDouble(d -> d.doubleValue())
+								.average().orElse(Double.NaN);
+						
+						flowTempDeltaValues.clear();
+					}
+					else {
+						flowTempDeltaValue = flowTempDelta.getLatestValue().doubleValue();
+					}
+				} catch (InvalidValueException e) {
+					// Do nothing, as value is already NaN
+				}
+				if (flowTempDeltaValue.isNaN()) {
+					flowTempDeltaValues.clear();
+					return;
+				}
+			}
+			// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
+			double flowEnergyValue = flowSpecificHeat*flowMass*flowTempDeltaValue;
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("Water flow with delta temperature of {}°C circulated {} kWh", 
+						String.format("%.2f", flowTempDeltaValue), 
+						String.format("%.2f", flowEnergyValue));
+			}
+			if (flowEnergyLast == null) {
+				flowEnergyLast = DoubleValue.emptyValue();
+			}
+			else {
+				// Calculate average power since last counter tick
+				long timeDelta = (timestamp - flowEnergyLast.getEpochMillis())/1000;
+				double flowPowerValue = flowEnergyValue/timeDelta;
+				flowPower.setLatestValue(new DoubleValue(flowPowerValue*1000, timestamp));
+
+				if (logger.isDebugEnabled()) {
+					logger.debug("Water flow represents {}W power", 
+							String.format("%.2f", flowPowerValue*1000));
+				}
+			}
+			double energyTotal = flowEnergyLast.doubleValue() + flowEnergyValue/3600;
+			flowEnergyLast = new DoubleValue(energyTotal, timestamp);
+			flowEnergy.setLatestValue(flowEnergyLast);
+		}
+	}
+
+	private class FlowVolumeListener extends FlowListener {
+
+		private long flowTimeLast = -1;
+
+		@Override
+		public void onValueReceived(Value volume) {
+			long flowTime = volume.getEpochMillis();
+			if (flowTimeLast > 0) {
+				long flowTimeDelta = flowTime - flowTimeLast;
+				// Flow since last calculation in liters
+				double flow = volume.doubleValue()*((double) flowTimeDelta/3600000);
+				onLitersReceived(flow, flowTime);
+			}
+			flowTimeLast = flowTime;
+		}
+	}
+
+	private class FlowCountListener extends FlowListener {
+
+		private Double flowCounterLast = Double.NaN;
 
 		@Override
 		public void onValueReceived(Value counter) {
+			long flowTime = counter.getEpochMillis();
 			if (!flowCounterLast.isNaN()) {
-				// Flow since last calculation in kilogram
-				double flowMass = (counter.doubleValue() - flowCounterLast)*flowDensity;
-				
-				double tempDelta;
-				if (flowTempValues.size() > 0) {
-					tempDelta = 0;
-					for (double temp : flowTempValues) {
-						tempDelta += temp;
-					}
-					tempDelta /= flowTempValues.size();
-					flowTempValues.clear();
-				}
-				else {
-					try {
-						tempDelta = flowTempDelta.getLatestValue().doubleValue();
-						
-					} catch (InvalidValueException e) {
-						tempDelta = 0;
-					}
-				}
-				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
-				double energy = flowSpecificHeat*flowMass*tempDelta;
-				
-				// Calculate average power since last counter tick
-				long timeDelta = (counter.getTime() - flowEnergyLast.getTime())/1000;
-				double power = energy/timeDelta;
-				flowPower.setLatestValue(new DoubleValue(power, counter.getTime()));
-				
-				double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
-				flowEnergyLast = new DoubleValue(energyTotal, counter.getTime());
-				flowEnergy.setLatestValue(flowEnergyLast);
+				// Flow since last calculation in liters
+				double flow = counter.doubleValue() - flowCounterLast;
+				onLitersReceived(flow, flowTime);
 			}
 			flowCounterLast = counter.doubleValue();
 		}

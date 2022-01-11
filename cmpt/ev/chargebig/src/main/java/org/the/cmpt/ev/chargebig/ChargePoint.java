@@ -77,6 +77,17 @@ public class ChargePoint {
 		return ChargePointState.valueOf(state.getLatestValue().intValue());
 	}
 
+	public boolean isConnected() {
+		try {
+			return this.getState() == ChargePointState.CHARGING ||
+					this.getState() == ChargePointState.CONNECTED;
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving charge point state: {}", e.getMessage());
+			return false;
+		}
+	}
+
 	public boolean isCharging() {
 		try {
 			return this.getState() == ChargePointState.CHARGING;

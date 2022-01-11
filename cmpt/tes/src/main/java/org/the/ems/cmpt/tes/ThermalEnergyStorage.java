@@ -4,14 +4,18 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +24,12 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.HeatingService;
+import org.the.ems.core.HeatingType;
 import org.the.ems.core.UnknownComponentException;
+import org.the.ems.core.cmpt.CogeneratorService;
+import org.the.ems.core.cmpt.HeatPumpService;
+import org.the.ems.core.cmpt.HeatingRodService;
+import org.the.ems.core.cmpt.StratifiedChargeStorage;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
@@ -40,9 +49,12 @@ import org.the.ems.core.schedule.NamedThreadFactory;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class ThermalEnergyStorage extends Component 
-		implements ThermalEnergyStorageService, ValueListener, Runnable {
+		implements ThermalEnergyStorageService, StratifiedChargeStorage, ValueListener, Runnable {
 
 	private static final Logger logger = LoggerFactory.getLogger(ThermalEnergyStorage.class);
+
+	protected static final String TEMP_WATER_DOM_VALUE = "temp_dom";
+	protected static final String TEMP_WATER_HT_VALUE = "temp_ht";
 
 	protected ScheduledExecutorService executor;
 
@@ -63,7 +75,7 @@ public class ThermalEnergyStorage extends Component
 	protected double mass;
 
 	@Configuration(value="heating*")
-	protected List<String> heatings;
+	protected List<String> heatingIds;
 
 	@Configuration(value="temp_*")
 	protected ChannelCollection temperatures;
@@ -81,20 +93,77 @@ public class ThermalEnergyStorage extends Component
 	protected Channel energy;
 	protected double energyLast = 0;
 
-	protected final List<HeatingEnergy> energyValues = new ArrayList<HeatingEnergy>();
+	protected final Map<String, ThermalEnergy> heatingEnergies = new HashMap<String, ThermalEnergy>();
+
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindCogeneratorService(CogeneratorService cogeneratorService) {
+		bindHeatingService(cogeneratorService);
+	}
+
+	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
+		unbindHeatingService(cogeneratorService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
+		bindHeatingService(heatPumpService);
+	}
+
+	protected void unbindHeatPumpService(HeatPumpService heatPumpService) {
+		unbindHeatingService(heatPumpService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
+		bindHeatingService(heatingRodService);
+	}
+
+	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
+		unbindHeatingService(heatingRodService);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindHeatingService(HeatingService heatingService) {
+		String id = heatingService.getId();
+		synchronized (heatingEnergies) {
+			if (!heatingEnergies.containsKey(id)) {
+				logger.debug("Registering heating component \"{}\" to be feeding into thermal storage {}", id);
+				
+				ThermalEnergy energy = new ThermalEnergy(heatingService);
+				heatingEnergies.put(id, energy);
+			}
+		}
+	}
+
+	protected void unbindHeatingService(HeatingService heatingService) {
+		String id = heatingService.getId();
+		synchronized (heatingEnergies) {
+			logger.debug("Deregistered heating component: {}", id);
+			heatingEnergies.remove(id);
+		}
+	}
 
 	@Override
-	public void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
 		try {
 			EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
-			for (String heating : heatings) {
+			for (String heating : heatingIds) {
 				ComponentService component = manager.getComponent(heating);
 				if (component instanceof HeatingService) {
-					logger.debug("Registering heating component \"{}\" to be feeding into thermal storage {}", heating, getId());
-					
-					HeatingEnergy energy = new HeatingEnergy((HeatingService) component);
-					energyValues.add(energy);
+					bindHeatingService((HeatingService) component);
 				}
 			}
 			for (Channel temperature : temperatures.values()) {
@@ -120,7 +189,7 @@ public class ThermalEnergyStorage extends Component
 	}
 
 	@Override
-	public void onDeactivate() throws ComponentException {
+	protected void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		executor.shutdown();
 	}
@@ -131,7 +200,7 @@ public class ThermalEnergyStorage extends Component
 			long time = System.currentTimeMillis();
 			double temperature;
 			if (temperatures.size() > 0) {
-				temperature = getAverageTemperature();
+				temperature = getAverageWaterTemperature();
 			}
 			else {
 				Value temp = getTemperature();
@@ -141,11 +210,13 @@ public class ThermalEnergyStorage extends Component
 				temperature = temp.doubleValue();
 			}
 			double energyInput = 0;
-			for (HeatingEnergy energy : energyValues) {
-				energyInput += energy.getValue().doubleValue();
+			synchronized (heatingEnergies) {
+				for (ThermalEnergy energy : heatingEnergies.values()) {
+					energyInput += energy.getValue().doubleValue();
+				}
 			}
 			if (temperatureLast != null) {
-				long timeDelta = (time - temperatureLast.getTime())/1000;
+				long timeDelta = (time - temperatureLast.getEpochMillis())/1000;
 				double tempDelta = temperatureLast.doubleValue() - temperature;
 				
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
@@ -154,7 +225,7 @@ public class ThermalEnergyStorage extends Component
 				
 				energyLast += energyDelta/3600;
 				energy.setLatestValue(new DoubleValue(energyLast, time));
-				power.setLatestValue(new DoubleValue(energyDelta/timeDelta, time));
+				power.setLatestValue(new DoubleValue(energyDelta*1000/timeDelta, time));
 			}
 			temperatureLast = new DoubleValue(temperature, time);
 			
@@ -174,11 +245,99 @@ public class ThermalEnergyStorage extends Component
 	}
 
 	@Override
+	public Value getThermalPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return power.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerThermalPowerListener(ValueListener listener) throws ComponentException {
+		power.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterThermalPowerListener(ValueListener listener) throws ComponentException {
+		power.deregisterValueListener(listener);
+	}
+
+	@Override
 	public Value getTemperature() throws ComponentException, InvalidValueException {
 		return temperature.getLatestValue();
 	}
 
-	protected double getAverageTemperature() {
+	@Override
+	public Value getTemperature(ValueListener listener) throws ComponentException, InvalidValueException {
+		return temperature.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerTemperaturereListener(ValueListener listener) throws ComponentException {
+		temperature.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterTemperatureListener(ValueListener listener) throws ComponentException {
+		temperature.deregisterValueListener(listener);
+	}
+
+	@Configuration(value=TEMP_WATER_DOM_VALUE, mandatory=false)
+	protected Channel getDomesticWaterTemperature() throws ComponentException {
+		return getConfiguredChannel(TEMP_WATER_DOM_VALUE);
+	}
+
+	@Configuration(value=TEMP_WATER_HT_VALUE, mandatory=false)
+	protected Channel getHeatingWaterTemperature() throws ComponentException {
+		return getConfiguredChannel(TEMP_WATER_HT_VALUE);
+	}
+
+	@Override
+	public Value getTemperature(HeatingType type) throws ComponentException, InvalidValueException {
+		switch (type) {
+		case DOMESTIC_WATER:
+			return getDomesticWaterTemperature().getLatestValue();
+		case HEATING_WATER:
+			return getHeatingWaterTemperature().getLatestValue();
+		default:
+			throw new IllegalArgumentException("Unknown heating type: " + type);
+		}
+	}
+
+	@Override
+	public Value getTemperature(HeatingType type, ValueListener listener) throws ComponentException, InvalidValueException {
+		switch (type) {
+		case DOMESTIC_WATER:
+			return getDomesticWaterTemperature().getLatestValue(listener);
+		case HEATING_WATER:
+			return getHeatingWaterTemperature().getLatestValue(listener);
+		default:
+			throw new IllegalArgumentException("Unknown heating type: " + type);
+		}
+	}
+
+	@Override
+	public void registerTemperaturereListener(HeatingType type, ValueListener listener) throws ComponentException {
+		switch (type) {
+		case DOMESTIC_WATER:
+			getDomesticWaterTemperature().registerValueListener(listener);
+		case HEATING_WATER:
+			getHeatingWaterTemperature().registerValueListener(listener);
+		default:
+			throw new IllegalArgumentException("Unknown heating type: " + type);
+		}
+	}
+
+	@Override
+	public void deregisterTemperatureListener(HeatingType type, ValueListener listener) throws ComponentException {
+		switch (type) {
+		case DOMESTIC_WATER:
+			getDomesticWaterTemperature().deregisterValueListener(listener);
+		case HEATING_WATER:
+			getHeatingWaterTemperature().deregisterValueListener(listener);
+		default:
+			throw new IllegalArgumentException("Unknown heating type: " + type);
+		}
+	}
+
+	protected double getAverageWaterTemperature() {
 		int tempCount = 0;
 		double tempSum = 0;
 		for (Channel channel : temperatures.values()) {
@@ -199,18 +358,18 @@ public class ThermalEnergyStorage extends Component
 		for (Channel channel : temperatures.values()) {
 			try {
 				Value temperatureValue = channel.getLatestValue();
-				if (temperatureValue.getTime() <= timestampLast) {
+				if (temperatureValue.getEpochMillis() <= timestampLast) {
 					return;
 				}
-				if (temperatureValue.getTime() > timeMax) {
-					timeMax = temperatureValue.getTime();
+				if (temperatureValue.getEpochMillis() > timeMax) {
+					timeMax = temperatureValue.getEpochMillis();
 				}
 			} catch (InvalidValueException e) {
 				return;
 			}
 		}
 		timestampLast = timeMax;
-		temperature.setLatestValue(new DoubleValue(getAverageTemperature(), timestampLast));
+		temperature.setLatestValue(new DoubleValue(getAverageWaterTemperature(), timestampLast));
 	}
 
 	private TemporalAdjuster next(int interval) {

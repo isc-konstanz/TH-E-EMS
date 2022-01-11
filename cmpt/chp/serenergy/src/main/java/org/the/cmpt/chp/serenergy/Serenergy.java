@@ -18,6 +18,8 @@ import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -69,8 +71,8 @@ public class Serenergy extends Cogenerator {
 	}
 
 	@Override
-	protected void onStart(WriteContainer container, Value value) throws ComponentException {
-		long time = value.getTime();
+	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
+		long time = settings.getEpochMillis();
 		
 		container.add(enable, Request.ENABLE.encode(time));
 		container.add(start, Request.START.encode(time+enableDelay));
@@ -78,7 +80,9 @@ public class Serenergy extends Cogenerator {
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
+	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
+		long time = settings.getEpochMillis();
+		
 		container.add(stop, Request.STOP.encode(time));
 		// TODO: reset stackLimit
 	}

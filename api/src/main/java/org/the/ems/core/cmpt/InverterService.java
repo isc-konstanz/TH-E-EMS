@@ -28,12 +28,21 @@ import org.the.ems.core.data.ValueListener;
 
 public interface InverterService extends SchedulableService {
 
-	static final String PID = "org.the.ems.cmpt.inv";
+	public static final String PID = "org.the.ems.cmpt.inv";
 
 	@Override
 	public default ComponentType getType() {
 		return ComponentType.INVERTER;
 	};
+
+	/*
+	 * Get the {@link ElectricalEnergyStorageService}, related to this inverter.
+	 * 
+	 * @return the {@link ElectricalEnergyStorageService}, related to this inverter.
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the service
+	 */
+	public ElectricalEnergyStorageService getEnergyStorage() throws ComponentException;
 
 	/*
 	 * Set the inverter island mode, decoupling it from the grid.
@@ -81,6 +90,8 @@ public interface InverterService extends SchedulableService {
 	 * Get the setpoint power value to control the import/export power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new setpoint values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the setpoint power {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -119,6 +130,8 @@ public interface InverterService extends SchedulableService {
 	/*
 	 * Get the generated DC input energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new DC input energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the generated DC input energy {@link Value}
 	 * 
@@ -159,6 +172,8 @@ public interface InverterService extends SchedulableService {
 	 * Get the imported energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new energy values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the imported energy {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -197,6 +212,8 @@ public interface InverterService extends SchedulableService {
 	/*
 	 * Get the exported energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the exported energy {@link Value}
 	 * 
@@ -237,6 +254,8 @@ public interface InverterService extends SchedulableService {
 	 * Get the generated DC input power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new DC input power values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the generated DC input power {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -275,6 +294,8 @@ public interface InverterService extends SchedulableService {
 	/*
 	 * Get the active power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the active power {@link Value}
 	 * 
@@ -345,6 +366,8 @@ public interface InverterService extends SchedulableService {
 	 * Get the reactive power in [var].
 	 * Additionally, register a {@link ValueListener}, to be notified of new power values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the reactive power {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -399,6 +422,8 @@ public interface InverterService extends SchedulableService {
 	 * Get the voltage in volt [V].
 	 * Additionally, register a {@link ValueListener}, to be notified of new voltage values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the voltage {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -452,6 +477,8 @@ public interface InverterService extends SchedulableService {
 	/*
 	 * Get the frequency of the grid in hertz [Hz].
 	 * Additionally, register a {@link ValueListener}, to be notified of new frequency values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the frequency {@link Value}
 	 * 

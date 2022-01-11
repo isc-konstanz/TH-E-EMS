@@ -26,8 +26,10 @@ import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationCollection;
@@ -43,11 +45,18 @@ import org.the.ems.core.data.ValueListener;
 
 public abstract class Configurable {
 
-	private boolean enabled = false;
+	private final Map<String, Channel> channels = new HashMap<String, Channel>();
+
+	private Configurations configs;
 
 	private String section = Configurations.GENERAL;
 
-	private final ChannelCollection channels = new ChannelCollection();
+	protected Configurable(String section) {
+		this.section = section;
+	}
+
+	protected Configurable() {
+	}
 
 	@SuppressWarnings("unchecked")
 	public final <C extends Configurable> C configure(Configurations configs) throws ConfigurationException {
@@ -56,23 +65,22 @@ public abstract class Configurable {
 	}
 
 	void doConfigure(Configurations configs) throws ConfigurationException {
-		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
-		Class<?> type = this.getClass();
-		while(type.getSuperclass() != null) {
-			elements.addAll(Arrays.asList(type.getDeclaredFields()));
-			elements.addAll(Arrays.asList(type.getDeclaredMethods()));
-		    type = type.getSuperclass();
-		}
-		configureElements(configs, elements);
+		this.configs = configs;
 		
-		onConfigure(configs);
+		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
+		Class<?> clazz = this.getClass();
+		while(clazz.getSuperclass() != null) {
+			elements.addAll(Arrays.asList(clazz.getDeclaredFields()));
+			elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+		    clazz = clazz.getSuperclass();
+		}
+		if (isEnabled()) {
+			doConfigure(configs, elements);
+			onConfigure(configs);
+		}
 	}
 
-	protected void onConfigure(Configurations configs) throws ConfigurationException {
-		// Default implementation to be overridden
-	}
-
-	protected final void configureElements(Configurations configs, List<AnnotatedElement> elements) 
+	void doConfigure(Configurations configs, List<AnnotatedElement> elements) 
 			throws ConfigurationException {
 		
 		for (AnnotatedElement element : elements) {
@@ -102,9 +110,10 @@ public abstract class Configurable {
 						section, parse(keys, element)));
 			}
 		}
-		if (configs.isEnabled(section)) {
-			enabled = true;
-		}
+	}
+
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		// Default implementation to be overridden
 	}
 
 	private boolean configureMethod(Configurations configs, Method method,
@@ -288,24 +297,24 @@ public abstract class Configurable {
 
 	private Channel configureChannel(Configurations configs,  
 			String section, String key) throws ConfigurationException {
-		
-		if (channels.containsKey(key)) {
-			return channels.get(key);
+
+		String channelId = configs.get(section, key);
+		if (channels.containsKey(channelId)) {
+			return channels.get(channelId);
 		}
 		try {
-			String id = configs.get(section, key);
-			Channel channel = new ChannelListener(getContentManagement().getChannel(id));
-			channels.put(key, channel);
+			Channel channel = new ChannelListener(getContentManagement().getChannel(channelId));
+			channels.put(channelId, channel);
 			
 			return channel;
 			
 		} catch (UnknownChannelException e) {
-			throw new ConfigurationException(MessageFormat.format("Unknown channel \"{0}\" in section {1}", 
-					key, section));
+			throw new ConfigurationException(MessageFormat.format("Unknown channel \"{0}\" for in section {1}", 
+					channelId, section));
 			
 		} catch (UnsupportedOperationException | NullPointerException e) {
 			throw new ConfigurationException(MessageFormat.format("Unable to configure channel \"{0}\" in section {1}", 
-					key, section));
+					channelId, section));
 		}
 	}
 
@@ -314,12 +323,18 @@ public abstract class Configurable {
 		throw new UnsupportedOperationException();
 	}
 
-	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
-		Channel channel = channels.get(key);
+	protected Channel getConfiguredChannel(String key, String section) throws ConfigurationException {
+		String channelId = configs.get(section, key);
+		Channel channel = channels.get(channelId);
 		if (channel == null) {
 			throw new ConfigurationException("Unable to get unconfigured channel: "+key);
 		}
 		return channel;
+	}
+
+	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
+		return getConfiguredChannel(key, 
+				getConfiguredSection());
 	}
 
 	protected Channel getConfiguredChannel(String key, ValueListener listener) throws ConfigurationException {
@@ -358,29 +373,8 @@ public abstract class Configurable {
 		return channel.getLatestValue();
 	}
 
-	protected String getConfiguredKey() throws ComponentException {
-		StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-		for (int i = stackTrace.length - 1; i >= 0; i--) {
-			try {
-				String method = stackTrace[i].getMethodName();
-				
-				Configuration config = this.getClass().getMethod(method).getAnnotation(Configuration.class);
-				if (config == null) {
-					continue;
-				}
-				String key = config.value()[0];
-				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-					if (method.startsWith("get")) {
-						method = method.substring(3);
-					}
-					key = parse(method);
-				}
-				return key;
-				
-			} catch (NoSuchMethodException | SecurityException e) {
-			}
-		}
-		throw new ComponentException("Error retrieving configured method key");
+	public Configurations getConfigurations() {
+		return configs;
 	}
 
 	protected String getConfiguredSection() {
@@ -394,11 +388,7 @@ public abstract class Configurable {
 	}
 
 	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+		return getConfigurations().isEnabled(section);
 	}
 
 	private ConfigurationException newConfigException(String message) {

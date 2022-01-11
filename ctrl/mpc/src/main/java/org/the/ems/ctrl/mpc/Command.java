@@ -31,9 +31,6 @@ public class Command extends Configurable implements ValueListener {
 		if (command != null) {
 			command.registerValueListener(this);
 		}
-		else {
-			setEnabled(false);
-		}
 	}
 
 	public Command register(CommandCallbacks callbacks) {
@@ -49,6 +46,13 @@ public class Command extends Configurable implements ValueListener {
 		if (isEnabled()) {
 			command.deregisterValueListeners();
 		}
+	}
+
+	public boolean isEnabled() {
+		if (command != null) {
+			return true;
+		}
+		return super.isEnabled();
 	}
 
 	@Override

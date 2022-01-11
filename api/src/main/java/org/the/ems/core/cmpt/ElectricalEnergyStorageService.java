@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 
 public interface ElectricalEnergyStorageService extends SchedulableService {
 
-	static final String PID = "org.the.ems.cmpt.ees";
+	public static final String PID = "org.the.ems.cmpt.ees";
 
 	@Override
 	public default ComponentType getType() {
@@ -70,6 +70,8 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	 * Get the state of charge in percent [%] between 0 and 100%.
 	 * Additionally, register a {@link ValueListener}, to be notified of new state values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the state of charge {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -109,6 +111,8 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	 * Get the DC power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new power values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the DC power {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -147,6 +151,8 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	/*
 	 * Get the voltage in volt [V].
 	 * Additionally, register a {@link ValueListener}, to be notified of new voltage values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the voltage {@link Value}
 	 * 

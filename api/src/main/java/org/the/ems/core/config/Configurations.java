@@ -214,7 +214,7 @@ public class Configurations extends Hashtable<String, Object> {
 		//String packageName = Configurations.class.getPackage().getName().replace(".core.config", "").toLowerCase();
 		StringBuilder result = new StringBuilder()
 				//.append(packageName).append(".")
-				.append(section.toLowerCase());
+				.append(section.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_"));
 
 		return result.toString();
 	}

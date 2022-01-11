@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+# Create necessary directory
+mkdir -p /var/opt/ems
+
+#DEBHELPER#
+
+# Stop service if still running
+if systemctl is-active --quiet openmuc; then
+    systemctl stop openmuc
+fi
+
+exit 0

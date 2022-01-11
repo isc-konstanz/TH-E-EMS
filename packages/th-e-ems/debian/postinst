@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+# Set permissions of the framework directories
+chown muc:muc    /opt/openmuc/bundle/th-e-*
+chown muc:muc -R /var/opt/ems
+
+#DEBHELPER#
+
+# Start service if still idle
+if ! systemctl is-active --quiet openmuc; then
+    systemctl start openmuc
+fi
+
+exit 0

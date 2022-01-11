@@ -1,0 +1,3 @@
+#!/usr/bin/dh-exec
+bundle     /opt/openmuc
+conf/*.cfg /var/opt/ems/

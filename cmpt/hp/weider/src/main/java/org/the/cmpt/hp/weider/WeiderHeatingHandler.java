@@ -39,7 +39,7 @@ public class WeiderHeatingHandler extends Component {
 	private final HeatingType type;
 
 	public WeiderHeatingHandler(HeatingType type) {
-		super(type.toString());
+		super(type.getFullName());
 		this.type = type;
 	}
 

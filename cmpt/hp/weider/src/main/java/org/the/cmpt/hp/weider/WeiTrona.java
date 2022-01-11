@@ -91,12 +91,32 @@ public class WeiTrona extends HeatPump {
 		onStart(container, new HeatingSettings(type, time));
 	}
 
+	public boolean isStartable(HeatingType type) {
+		return heatings.get(type).isStartable();
+	}
+
 	@Override
 	public boolean isStartable(long time) {
 		if (!heatings.values().stream().anyMatch(c -> c.isStartable())) {
 			return false;
 		}
 		return super.isStartable(time);
+	}
+
+	@Override
+	public boolean isRunning(HeatingType type) throws ComponentException {
+		if (isRunning()) {
+			// The heating water pump will always be shown as true, even if domestic water is beeing prepared
+			boolean running = heatings.get(HeatingType.DOMESTIC_WATER).isRunning();
+			switch (type) {
+			case DOMESTIC_WATER:
+				return running;
+			case HEATING_WATER:
+			default:
+				return !running;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -116,12 +136,21 @@ public class WeiTrona extends HeatPump {
 		}
 	}
 
+	public boolean isStoppable(HeatingType type) {
+		return heatings.get(type).isStoppable();
+	}
+
 	@Override
 	public boolean isStoppable(long time) {
 		if (!heatings.values().stream().anyMatch(c -> c.isStoppable())) {
 			return false;
 		}
 		return super.isStoppable(time);
+	}
+
+	@Override
+	public boolean isStandby(HeatingType type) throws ComponentException {
+		return !isRunning(type);
 	}
 
 	@Override

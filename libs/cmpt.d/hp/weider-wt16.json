@@ -219,7 +219,7 @@
             "name": "<node>*flow*volume",
             "description": "Flow volume",
             "address": "<unitId>:HOLDING_REGISTERS:44:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "lh"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "DOUBLE", "unit": "lh"}
         },
         {
             "name": "<node>*flow*temp*out",
@@ -232,6 +232,12 @@
             "description": "Flow inlet temperature",
             "address": "<unitId>:HOLDING_REGISTERS:26:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
+        },
+        {
+            "name": "<node>*flow*temp*delta",
+            "description": "Flow delta temperature",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "°C"}
         },
         {
             "name": "<node>*flow*temp*setpoint",
@@ -251,7 +257,7 @@
         {
             "name": "<node>*water*dom*pump*state",
             "description": "Circulator pump state",
-            "address": "<unitId>:HOLDING_REGISTERS:680:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:685:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
                 "feed": {"name": "Circulator pump state", "tag": "<name> domestic water"}
@@ -260,7 +266,7 @@
         {
             "name": "<node>*water*dom*temp",
             "description": "Buffer temperature",
-            "address": "<unitId>:HOLDING_REGISTERS:16:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:2:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
                 "feed": {"name": "Buffer temperature", "tag": "<name> domestic water"}
@@ -269,7 +275,7 @@
         {
             "name": "<node>*water*dom*temp*setpoint",
             "description": "Setpoint temperature",
-            "address": "<unitId>:HOLDING_REGISTERS:4113:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:1:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
                 "feed": {"name": "Setpoint temperature", "tag": "<name> domestic water"}
@@ -278,7 +284,7 @@
         {
             "name": "<node>*water*dom*temp*hyst",
             "description": "Buffer temperature hysteresis",
-            "address": "<unitId>:HOLDING_REGISTERS:461:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:4:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
         },
         {
@@ -290,34 +296,34 @@
         {
             "name": "<node>*water*ht*pump*state",
             "description": "Circulator pump state",
-            "address": "<unitId>:HOLDING_REGISTERS:685:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:680:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
-                "feed": {"name": "Circulator pump state", "tag": "<name> heating water"}
+                "feed": {"name": "Circulator pump state", "tag": "<name> domestic water"}
             }
         },
         {
             "name": "<node>*water*ht*temp",
             "description": "Buffer temperature",
-            "address": "<unitId>:HOLDING_REGISTERS:2:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:16:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
-                "feed": {"name": "Buffer temperature", "tag": "<name> heating water"}
+                "feed": {"name": "Buffer temperature", "tag": "<name> domestic water"}
             }
         },
         {
             "name": "<node>*water*ht*temp*setpoint",
             "description": "Setpoint temperature",
-            "address": "<unitId>:HOLDING_REGISTERS:1:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:4113:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
-                "feed": {"name": "Setpoint temperature", "tag": "<name> heating water"}
+                "feed": {"name": "Setpoint temperature", "tag": "<name> domestic water"}
             }
         },
         {
             "name": "<node>*water*ht*temp*hyst",
             "description": "Buffer temperature hysteresis",
-            "address": "<unitId>:HOLDING_REGISTERS:4:INT16",
+            "address": "<unitId>:HOLDING_REGISTERS:461:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
         }
     ],

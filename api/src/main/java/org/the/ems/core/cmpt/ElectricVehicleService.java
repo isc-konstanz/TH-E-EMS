@@ -100,6 +100,8 @@ public interface ElectricVehicleService extends RunnableService {
 	 * Get the state of charge in percent [%] between 0 and 100%.
 	 * Additionally, register a {@link ValueListener}, to be notified of new state values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the state of charge {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -139,6 +141,8 @@ public interface ElectricVehicleService extends RunnableService {
 	 * Get the charged energy in kilowatt hours [kWh].
 	 * Additionally, register a {@link ValueListener}, to be notified of new energy values.
 	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
 	 * @return the charged energy {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -177,6 +181,8 @@ public interface ElectricVehicleService extends RunnableService {
 	/*
 	 * Get the charging power in watts [W].
 	 * Additionally, register a {@link ValueListener}, to be notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @return the charging power {@link Value}
 	 * 

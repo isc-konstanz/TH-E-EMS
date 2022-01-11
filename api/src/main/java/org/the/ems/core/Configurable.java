@@ -26,8 +26,10 @@ import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationCollection;
@@ -43,7 +45,7 @@ import org.the.ems.core.data.ValueListener;
 
 public abstract class Configurable {
 
-	private final ChannelCollection channels = new ChannelCollection();
+	private final Map<String, Channel> channels = new HashMap<String, Channel>();
 
 	private Configurations configs;
 
@@ -295,24 +297,24 @@ public abstract class Configurable {
 
 	private Channel configureChannel(Configurations configs,  
 			String section, String key) throws ConfigurationException {
-		
-		if (channels.containsKey(key)) {
-			return channels.get(key);
+
+		String channelId = configs.get(section, key);
+		if (channels.containsKey(channelId)) {
+			return channels.get(channelId);
 		}
 		try {
-			String id = configs.get(section, key);
-			Channel channel = new ChannelListener(getContentManagement().getChannel(id));
-			channels.put(key, channel);
+			Channel channel = new ChannelListener(getContentManagement().getChannel(channelId));
+			channels.put(channelId, channel);
 			
 			return channel;
 			
 		} catch (UnknownChannelException e) {
-			throw new ConfigurationException(MessageFormat.format("Unknown channel \"{0}\" in section {1}", 
-					key, section));
+			throw new ConfigurationException(MessageFormat.format("Unknown channel \"{0}\" for in section {1}", 
+					channelId, section));
 			
 		} catch (UnsupportedOperationException | NullPointerException e) {
 			throw new ConfigurationException(MessageFormat.format("Unable to configure channel \"{0}\" in section {1}", 
-					key, section));
+					channelId, section));
 		}
 	}
 
@@ -321,12 +323,18 @@ public abstract class Configurable {
 		throw new UnsupportedOperationException();
 	}
 
-	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
-		Channel channel = channels.get(key);
+	protected Channel getConfiguredChannel(String key, String section) throws ConfigurationException {
+		String channelId = configs.get(section, key);
+		Channel channel = channels.get(channelId);
 		if (channel == null) {
 			throw new ConfigurationException("Unable to get unconfigured channel: "+key);
 		}
 		return channel;
+	}
+
+	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
+		return getConfiguredChannel(key, 
+				getConfiguredSection());
 	}
 
 	protected Channel getConfiguredChannel(String key, ValueListener listener) throws ConfigurationException {
@@ -365,7 +373,7 @@ public abstract class Configurable {
 		return channel.getLatestValue();
 	}
 
-	protected Configurations getConfigurations() {
+	public Configurations getConfigurations() {
 		return configs;
 	}
 

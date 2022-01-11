@@ -21,6 +21,7 @@ package org.the.ems.core;
 
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.settings.StartSettings;
 import org.the.ems.core.settings.StopSettings;
 
@@ -32,6 +33,78 @@ public interface RunnableService extends SchedulableService {
 	 * @return the current run state
 	 */
 	public RunState getState();
+
+	/*
+	 * Get the current {@link RunState} of the component.
+	 * Additionally, register a {@link RunStateListener}, to be notified of changed states.
+	 * 
+	 * @param listener the {@link RunStateListener} to be notified of states
+	 * 
+	 * @return the current run state
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the season
+	 * @throws InvalidValueException if the retrieved season returned invalid
+	 */
+	public RunState getState(RunStateListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link RunStateListener}, to be notified of changed states.
+	 * 
+	 * @param listener the {@link RunStateListener} to be notified of states
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerStateListener(RunStateListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link RunStateListener}, to be notified of changed states.
+	 * 
+	 * @param listener the {@link RunStateListener} to be notified of states
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterStateListener(RunStateListener listener) throws ComponentException;
+
+	/*
+	 * Get the current state {@link Value} of the component.
+	 * 
+	 * @return the current state {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getStateValue() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the current state {@link Value} of the component.
+	 * Additionally, register a {@link ValueListener}, to be notified of changed states.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of states
+	 * 
+	 * @return the current run state
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the season
+	 * @throws InvalidValueException if the retrieved season returned invalid
+	 */
+	public Value getStateValue(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of changed states.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of states
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerStateValueListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, to be notified of changed states.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of states
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterStateValueListener(ValueListener listener) throws ComponentException;
 
 	/*
 	 * Get the current runtime in milliseconds [ms].

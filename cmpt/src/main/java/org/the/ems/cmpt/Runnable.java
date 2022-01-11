@@ -20,6 +20,8 @@
 package org.the.ems.cmpt;
 
 import java.text.MessageFormat;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.RunState;
+import org.the.ems.core.RunStateListener;
 import org.the.ems.core.RunnableService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
@@ -46,30 +49,94 @@ public abstract class Runnable extends Component implements RunnableService {
 	private final static Logger logger = LoggerFactory.getLogger(Runnable.class);
 
 	@Configuration(mandatory=false, scale=60000) // Default runtime minimum of 10 minutes
-	protected int runtimeMin = 600000;
+	private int runtimeMin = 600000;
 
 	@Configuration(mandatory=false, scale=6000) // Default idletime minimum of 1 minute
-	protected int idletimeMin = 60000;
+	private int idletimeMin = 60000;
+
+	@Configuration(mandatory=false, value="state_writable")
+	private boolean stateIsWritable = true;
 
 	@Configuration(mandatory=false)
 	protected Channel state;
 
-	@Configuration(mandatory=false, value="state_writable")
-	protected boolean stateIsWritable = true;
+	private volatile Value stateValue = null;
+	private volatile long startTimeLast = 0;
+	private volatile long stopTimeLast = 0;
 
-	protected volatile Value stateValueLast = null;
-	protected volatile long startTimeLast = 0;
-	protected volatile long stopTimeLast = 0;
+	private volatile RunState runState = RunState.DEFAULT;
 
-	protected volatile RunState runState = RunState.DEFAULT;
+	private final List<RunStateListener> runStateListeners = new LinkedList<RunStateListener>();
 
 	@Override
 	public RunState getState() {
 		return runState;
 	}
 
+	@Override
+	public RunState getState(RunStateListener listener) throws ComponentException, InvalidValueException {
+		registerStateListener(listener);
+		return getState();
+	}
+
+	@Override
+	public void registerStateListener(RunStateListener listener) throws ComponentException {
+		synchronized (runStateListeners) {
+			if (!runStateListeners.contains(listener)) {
+				runStateListeners.add(listener);
+			}
+		}
+	}
+
+	@Override
+	public void deregisterStateListener(RunStateListener listener) throws ComponentException {
+		synchronized (runStateListeners) {
+			if (runStateListeners.contains(listener)) {
+				runStateListeners.remove(listener);
+			}
+		}
+	}
+
+	protected void deregisterStateListeners() {
+		synchronized (runStateListeners) {
+			runStateListeners.clear();
+		}
+	}
+
 	public void setState(RunState state) {
+		if (runState != state) {
+			synchronized (runStateListeners) {
+				for (RunStateListener stateListener : runStateListeners) {
+					try {
+						stateListener.onStateChanged(state);
+						
+					} catch (EnergyManagementException e) {
+						logger.warn("Error notifying of state change: {}", e.getMessage());
+					}
+				}
+			}
+		}
 		this.runState = state;
+	}
+
+	@Override
+	public Value getStateValue() throws ComponentException, InvalidValueException {
+		return state.getLatestValue();
+	}
+
+	@Override
+	public Value getStateValue(ValueListener listener) throws ComponentException, InvalidValueException {
+		return state.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerStateValueListener(ValueListener listener) throws ComponentException {
+		state.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterStateValueListener(ValueListener listener) throws ComponentException {
+		state.deregisterValueListener(listener);
 	}
 
 	@Override
@@ -113,7 +180,7 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		if (state != null && stateIsWritable) {
+		if (state != null) {
 			state.registerValueListener(new StateListener());
 		}
 		runState = RunState.STANDBY;
@@ -408,6 +475,10 @@ public abstract class Runnable extends Component implements RunnableService {
 		}
 	}
 
+	protected void onStateChanged(RunState state) throws EnergyManagementException {
+		// Default implementation to be overridden
+	}
+
 	protected void onStateChanged(Value state) throws EnergyManagementException {
 		// Default implementation to be overridden
 	}
@@ -416,32 +487,53 @@ public abstract class Runnable extends Component implements RunnableService {
 
 		@Override
 		public synchronized void onValueReceived(Value value) {
-			if (stateValueLast == null || stateValueLast.booleanValue() != value.booleanValue()) {
+			if (stateValue == null || !stateValue.equals(value)) {
 				try {
 					switch(getState()) {
 					case STANDBY:
 					case STOPPING:
 						if (value.booleanValue()) {
-							doStart(getStartSettings(System.currentTimeMillis()));
+							if (stateIsWritable) {
+								doStart(getStartSettings(System.currentTimeMillis()));
+							}
+							else {
+								setState(RunState.RUNNING);
+							}
 						}
 						break;
 					case STARTING:
 					case RUNNING:
 						if (!value.booleanValue()) {
-							doStop(getStopSettings(System.currentTimeMillis()));
+							if (stateIsWritable) {
+								doStop(getStopSettings(System.currentTimeMillis()));
+							}
+							else {
+								setState(RunState.STANDBY);
+							}
 						}
 						break;
 					default:
 						break;
 					}
-					onStateChanged(value);
-					
 				} catch (EnergyManagementException e) {
-					state.setLatestValue(new BooleanValue(!value.booleanValue()));
+					if (stateIsWritable) {
+						state.setLatestValue(new BooleanValue(!value.booleanValue()));
+					}
 					logger.warn("Error handling state change: {}", e.getMessage());
 				}
+				try {
+					onStateChanged(value);
+					
+					synchronized (runStateListeners) {
+						for (RunStateListener stateListener : runStateListeners) {
+							stateListener.onStateChanged(value);
+						}
+					}
+				} catch (EnergyManagementException e) {
+					logger.warn("Error notifying of state change: {}", e.getMessage());
+				}
 			}
-			stateValueLast = value;
+			stateValue = value;
 		}
 	}
 

@@ -22,6 +22,8 @@ package org.the.ems.cmpt.circ;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
@@ -34,6 +36,8 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
 public class Circulation extends Component implements CirculationTemperatureCallbacks {
+
+	private static final Logger logger = LoggerFactory.getLogger(Circulation.class);
 
 	private final static String SECTION = "Circulation";
 
@@ -81,7 +85,7 @@ public class Circulation extends Component implements CirculationTemperatureCall
 	@Configuration
 	private Channel flowTempDelta;
 
-	private List<Double> flowTempValues = new ArrayList<Double>();
+	private List<Value> flowTempDeltaValues = new ArrayList<Value>();
 
 	private Value flowTempInLast = DoubleValue.emptyValue();
 	private Value flowTempOutLast = DoubleValue.emptyValue();
@@ -133,14 +137,14 @@ public class Circulation extends Component implements CirculationTemperatureCall
 			flowTempOutLast = temperature;
 			break;
 		}
-		if (type == FlowTemperature.OUT || type == FlowTemperature.IN) {
-			if (flowTempOutLast.getEpochMillis() == flowTempInLast.getEpochMillis()) {
-				
-				double delta = flowTempOutLast.doubleValue() - flowTempInLast.doubleValue();
-				Value value = new DoubleValue(delta, flowTempOutLast.getEpochMillis());
-				
+		if ((type == FlowTemperature.OUT || type == FlowTemperature.IN) &&
+				Math.abs(flowTempOutLast.getEpochMillis() - flowTempInLast.getEpochMillis()) < 1000) {
+			double delta = flowTempOutLast.doubleValue() - flowTempInLast.doubleValue();
+			Value value = new DoubleValue(delta, System.currentTimeMillis());
+			
+			synchronized (flowTempDeltaValues) {
 				flowTempDelta.setLatestValue(value);
-				flowTempValues.add(delta);
+				flowTempDeltaValues.add(value);
 				if (callbacks != null) {
 					callbacks.onTemperatureDeltaUpdated(value);
 				}
@@ -150,38 +154,58 @@ public class Circulation extends Component implements CirculationTemperatureCall
 
 	private class FlowListener implements ValueListener {
 
-		private Value flowEnergyLast = DoubleValue.emptyValue();
+		private Value flowEnergyLast = null;
 
 		protected void onLitersReceived(double flow, long timestamp) {
+			logger.debug("Received {}l water flowing in circulation", flow);
+
 			// Flow since last calculation in kilogram
 			double flowMass = flow*flowDensity;
-			
-			double tempDelta;
-			if (flowTempValues.size() > 0) {
-				tempDelta = 0;
-				for (double temp : flowTempValues) {
-					tempDelta += temp;
-				}
-				tempDelta /= flowTempValues.size();
-				flowTempValues.clear();
-			}
-			else {
+
+			Double flowTempDeltaValue = Double.NaN;
+			synchronized (flowTempDeltaValues) {
 				try {
-					tempDelta = flowTempDelta.getLatestValue().doubleValue();
-					
+					if (flowTempDeltaValues.size() > 0) {
+						flowTempDeltaValue= flowTempDeltaValues.stream()
+								.mapToDouble(d -> d.doubleValue())
+								.average().orElse(Double.NaN);
+						
+						flowTempDeltaValues.clear();
+					}
+					else {
+						flowTempDeltaValue = flowTempDelta.getLatestValue().doubleValue();
+					}
 				} catch (InvalidValueException e) {
-					tempDelta = 0;
+					// Do nothing, as value is already NaN
+				}
+				if (flowTempDeltaValue.isNaN()) {
+					flowTempDeltaValues.clear();
+					return;
 				}
 			}
 			// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
-			double energy = flowSpecificHeat*flowMass*tempDelta;
-			
-			// Calculate average power since last counter tick
-			long timeDelta = (timestamp - flowEnergyLast.getEpochMillis())/1000;
-			double power = energy/timeDelta;
-			flowPower.setLatestValue(new DoubleValue(power, timestamp));
-			
-			double energyTotal = flowEnergyLast.doubleValue() + energy/3600;
+			double flowEnergyValue = flowSpecificHeat*flowMass*flowTempDeltaValue;
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("Water flow with delta temperature of {}°C circulated {} kWh", 
+						String.format("%.2f", flowTempDeltaValue), 
+						String.format("%.2f", flowEnergyValue));
+			}
+			if (flowEnergyLast == null) {
+				flowEnergyLast = DoubleValue.emptyValue();
+			}
+			else {
+				// Calculate average power since last counter tick
+				long timeDelta = (timestamp - flowEnergyLast.getEpochMillis())/1000;
+				double flowPowerValue = flowEnergyValue/timeDelta;
+				flowPower.setLatestValue(new DoubleValue(flowPowerValue*1000, timestamp));
+
+				if (logger.isDebugEnabled()) {
+					logger.debug("Water flow represents {}W power", 
+							String.format("%.2f", flowPowerValue*1000));
+				}
+			}
+			double energyTotal = flowEnergyLast.doubleValue() + flowEnergyValue/3600;
 			flowEnergyLast = new DoubleValue(energyTotal, timestamp);
 			flowEnergy.setLatestValue(flowEnergyLast);
 		}
@@ -192,12 +216,12 @@ public class Circulation extends Component implements CirculationTemperatureCall
 		private long flowTimeLast = -1;
 
 		@Override
-		public void onValueReceived(Value counter) {
-			long flowTime = counter.getEpochMillis();
+		public void onValueReceived(Value volume) {
+			long flowTime = volume.getEpochMillis();
 			if (flowTimeLast > 0) {
 				long flowTimeDelta = flowTime - flowTimeLast;
 				// Flow since last calculation in liters
-				double flow = counter.doubleValue()/(double) flowTimeDelta;
+				double flow = volume.doubleValue()*((double) flowTimeDelta/3600000);
 				onLitersReceived(flow, flowTime);
 			}
 			flowTimeLast = flowTime;
@@ -210,10 +234,11 @@ public class Circulation extends Component implements CirculationTemperatureCall
 
 		@Override
 		public void onValueReceived(Value counter) {
+			long flowTime = counter.getEpochMillis();
 			if (!flowCounterLast.isNaN()) {
 				// Flow since last calculation in liters
 				double flow = counter.doubleValue() - flowCounterLast;
-				onLitersReceived(flow, counter.getEpochMillis());
+				onLitersReceived(flow, flowTime);
 			}
 			flowCounterLast = counter.doubleValue();
 		}

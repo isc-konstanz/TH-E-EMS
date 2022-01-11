@@ -113,6 +113,7 @@ public abstract class Value implements TemporalValue {
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof Value)) {
 			return false;

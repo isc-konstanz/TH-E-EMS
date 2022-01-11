@@ -72,7 +72,6 @@ public abstract class Component extends Configurable implements ComponentService
 		return componentStatus;
 	}
 
-	@Override
 	public void setStatus(ComponentStatus status) throws EnergyManagementException {
 		switch(status) {
 		case MAINTENANCE:

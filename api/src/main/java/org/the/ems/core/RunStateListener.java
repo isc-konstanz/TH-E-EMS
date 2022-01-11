@@ -19,16 +19,12 @@
  */
 package org.the.ems.core;
 
-public interface ComponentService {
+import org.the.ems.core.data.Value;
 
-	public static final String PID = "org.the.ems.cmpt";
+public interface RunStateListener {
 
-	public String getId();
+	public void onStateChanged(RunState state) throws EnergyManagementException;
 
-	public default ComponentType getType() {
-		return ComponentType.GENERAL;
-	}
-
-	public ComponentStatus getStatus();
+	public void onStateChanged(Value state) throws EnergyManagementException;
 
 }

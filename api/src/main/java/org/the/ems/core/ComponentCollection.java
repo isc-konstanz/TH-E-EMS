@@ -26,25 +26,25 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ComponentCollection extends HashMap<String, ComponentService> {
+public class ComponentCollection extends HashMap<String, Component> {
 	private static final long serialVersionUID = 2296740817884958428L;
 
 	private final static Logger logger = LoggerFactory.getLogger(ComponentCollection.class);
 
-	public ComponentService add(ComponentService component) {
+	public Component add(Component component) {
 		return put(component.getId(), component);
 	}
 
-	public void addAll(List<ComponentService> components) {
-		for (ComponentService component : components) {
+	public void addAll(List<Component> components) {
+		for (Component component : components) {
 			put(component.getId(), component);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	public <C extends ComponentService> List<C> getAll(Class<C> type) {
+	public <C extends Component> List<C> getAll(Class<C> type) {
 		List<C> components = new ArrayList<C>();
-		for (ComponentService component : values()) {
+		for (Component component : values()) {
 			if (type.isAssignableFrom(component.getClass())) {
 				components.add((C) component);
 			}
@@ -52,19 +52,20 @@ public class ComponentCollection extends HashMap<String, ComponentService> {
 		return components;
 	}
 
-	public List<ComponentService> getAll(ComponentType... types) {
-		List<ComponentService> components = new ArrayList<ComponentService>();
-		for (ComponentService component : values()) {
+	@SuppressWarnings("unchecked")
+	public <C extends Component> List<C> getAll(ComponentType... types) {
+		List<C> components = new ArrayList<C>();
+		for (Component component : values()) {
 			for (ComponentType type : types) {
 				if (component.getType() == type) {
-					components.add(component);
+					components.add((C) component);
 				}
 			}
 		}
 		return components;
 	}
 
-	public <C extends ComponentService> C get(Class<C> type) {
+	public <C extends Component> C get(Class<C> type) {
 		List<C> components = getAll(type);
 		if (components.size() > 0) {
 			if (components.size() > 1) {
@@ -75,8 +76,8 @@ public class ComponentCollection extends HashMap<String, ComponentService> {
 		return null;
 	}
 
-	public ComponentService get(ComponentType type) {
-		List<ComponentService> components = getAll(type);
+	public <C extends Component> C get(ComponentType type) {
+		List<C> components = getAll(type);
 		if (components.size() > 0) {
 			if (components.size() > 1) {
 				logger.warn("Several components available for type: {}", type.getFullName());
@@ -87,11 +88,11 @@ public class ComponentCollection extends HashMap<String, ComponentService> {
 	}
 
 	public boolean containsType(ComponentType type) {
-		List<ComponentService> components = getAll(type);
+		List<Component> components = getAll(type);
 		return components.size() > 0;
 	}
 
-	public <C extends ComponentService> boolean contains(Class<C> type) {
+	public <C extends Component> boolean contains(Class<C> type) {
 		List<C> components = getAll(type);
 		return components.size() > 0;
 	}

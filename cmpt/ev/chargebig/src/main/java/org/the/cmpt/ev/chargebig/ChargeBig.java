@@ -120,7 +120,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	public double getSetpointPowerMinimum() {
-		return getSetpointCurrentMinimum()*PHASE_VOLTAGE*PHASE_COUNT;
+		return getSetpointCurrentMinimum()*PHASE_VOLTAGE;
 	}
 
 	public Value getSetpointPower() throws ComponentException, InvalidValueException {
@@ -178,7 +178,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	private double getGridPowerMaximum() {
-		return Math.max(gridPowerMax + getSetpointPowerMinimum(), 0);
+		return Math.max(gridPowerMax - getSetpointPowerMinimum(), 0);
 	}
 
 	@Override

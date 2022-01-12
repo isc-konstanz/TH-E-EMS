@@ -1,15 +1,10 @@
 #!/bin/sh
 set -e
 
-# Set permissions of the framework directories
-chown muc:muc    /opt/openmuc/bundle/th-e-*
-chown muc:muc -R /etc/ems /var/opt/ems
-
-# If EmonMUC is installed, link device template files
+# If EmonMUC is installed, set device template permissions
 if [ -d /var/opt/emonmuc ]; then
     emonuser=$(ls -ld /var/opt/emonmuc | awk '{print $3}')
     chown emonuser:emonuser -R /var/opt/ems/dev
-    sudo -u emonuser ln -s /var/opt/ems/dev /var/opt/emonmuc/device/ems
 fi
 
 #DEBHELPER#

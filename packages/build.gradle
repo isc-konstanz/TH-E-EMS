@@ -1,7 +1,7 @@
 import java.nio.file.Paths
 
 String projectReplace(String line, String date, String projectName, String projectDesc, projectDepends) {
-	return line.replaceAll('<date>', date)
+    return line.replaceAll('<date>', date)
                .replaceAll('<package>', projectName)
                .replaceAll('<description>', projectDesc)
                .replaceAll('<depends>', projectDepends)
@@ -39,25 +39,30 @@ task debianPackages {
             def projectBundles = Paths.get(projectPackage, 'bundle').toString()
             
             def projectDepends = project.configurations.runtimeClasspath { transitive = false }
-								                       .findAll { it.getName().startsWith('th-e-') }
-								                       .collect { it.getName().replaceAll('th-e-api-.*jar', 'th-e-ems')
-								                                              .replaceAll('-[0-9].*jar', '') }.unique().join(', ')
+                                                       .findAll { it.getName().startsWith('th-e-') }
+                                                       .collect { it.getName().replaceAll('th-e-api-.*jar', 'th-e-ems')
+                                                                              .replaceAll('-[0-9].*jar', '') }.unique().join(', ')
             if (!projectDepends?.trim()) {
                 projectDepends = 'th-e-ems'
             }
-			copy {
-				//from project.configurations.default
-				from project.configurations.default.getAllArtifacts().getFiles()
-				into Paths.get(projectPackage, 'bundle').toString()
-			}
-			copy {
+            copy {
+                //from project.configurations.default
+                from project.configurations.default.getAllArtifacts().getFiles()
+                into Paths.get(projectPackage, 'bundle').toString()
+            }
+            copy {
                 from Paths.get(rootDir.getPath(), 'packages', 'debian')
                 into Paths.get(projectPackage, 'debian')
                 filter {
                     line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
                 }
             }
-			def packageDir = Paths.get(projectDir, 'pkg').toString()
+            ['conf', 'lib'].each { dir -> copy {
+                    from Paths.get(projectDir, dir)
+                    into Paths.get(projectPackage, dir)
+                }
+            }
+            def packageDir = Paths.get(projectDir, 'pkg').toString()
             if (new File(packageDir).exists()) {
                 copy {
                     from Paths.get(projectDir, 'pkg')
@@ -67,10 +72,15 @@ task debianPackages {
                     }
                     exclude '*.gradle'
                 }
-				def gradleFile = new File(packageDir, 'debian.gradle')
-				if (gradleFile.exists()) {
-					apply from: gradleFile.getPath()
-				}
+                ['conf', 'lib'].each { dir -> copy {
+                        from Paths.get(projectDir, dir)
+                        into Paths.get(projectPackage, dir)
+                    }
+                }
+                def gradleFile = new File(packageDir, 'debian.gradle')
+                if (gradleFile.exists()) {
+                    apply from: gradleFile.getPath()
+                }
             }
         }
         new File(rootDir.getPath(), 'packages').eachDir { dir ->

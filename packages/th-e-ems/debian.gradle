@@ -2,7 +2,7 @@ def projectPackage = rootDir.getPath() + '/build/dpkg/th-e-ems-' + projectVersio
 
 configurations.create("th_e_ems")
 configurations.th_e_ems.transitive = false;
-	
+
 repositories {
     mavenCentral()
     flatDir {
@@ -15,4 +15,8 @@ dependencies {
 copy {
     from project.configurations.th_e_ems
     into projectPackage + '/bundle'
+}
+copy {
+    from project(':main').getProjectDir().getPath() + '/conf'
+    into projectPackage + '/conf'
 }

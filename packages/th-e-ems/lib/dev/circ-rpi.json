@@ -1,0 +1,88 @@
+{
+    "name": "Circulation",
+    "group": "TH-E EMS",
+    "category": "Miscellaneous",
+    "description": "Basic circulation pump utilities",
+
+    "devices": [
+        {
+            "name": "<node>*pump",
+            "description": "Circulation pump",
+            "driver": "rpi-gpio",
+            "address": "pin:<pin>",
+            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+        },
+        {
+            "name": "<node>",
+            "description": "Circulation",
+            "driver": "virtual"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "pin",
+            "name": "Pin",
+            "description": "The Pin number, according to the <a href='https://pi4j.com/1.4/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "scan": true,
+            "default": -1,
+            "mandatory": false
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*pump*state",
+            "description": "<name> pump state",
+            "device": "<node>",
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name> flow"}
+            }
+        },
+        {
+            "name": "<node>*delta*temp",
+            "description": "<name> flow temperature",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": 15000, "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true}
+        },
+        {
+            "name": "<node>*flow*power",
+            "description": "<name> flow power",
+            "device": "<node>",
+            "configs": {"scalingFactor": 1000, "valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 15000, "loggingDelayMaximum": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name> flow"}
+            }
+        },
+        {
+            "name": "<node>*flow*energy",
+            "description": "<name> flow energy",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "<name> flow",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*pump*state"
+        },
+        {
+            "name": "Power",
+            "tag": "<name> flow",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*pump*power"
+        }
+    ]
+}

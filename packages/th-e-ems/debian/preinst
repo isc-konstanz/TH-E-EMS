@@ -2,7 +2,7 @@
 set -e
 
 # Create necessary directory
-mkdir -p /var/opt/ems
+mkdir -p /etc/ems /var/opt/ems/dev
 
 #DEBHELPER#
 

@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+# If EmonMUC device template link exists, remove it
+if [ -e /var/opt/emonmuc/device/ems ]; then
+    rm /var/opt/emonmuc/device/ems
+fi
+
+#DEBHELPER#
+
+exit 0

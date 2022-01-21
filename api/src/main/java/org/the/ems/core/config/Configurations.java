@@ -60,24 +60,24 @@ public class Configurations extends Hashtable<String, Object> {
 	}
 
 	public Object put(String section, String key, Object value) {
-		return put(parse(section, key), value);
+		return put(parseSectionKey(section, key), value);
 	}
 
 	public Object put(String section, String key, String value) {
-		return put(parse(section, key), value);
+		return put(parseSectionKey(section, key), value);
 	}
 
 	public boolean contains(String section, String key) {
-		return containsKey(parse(section, key));
+		return containsKey(parseSectionKey(section, key));
 	}
 
 	protected boolean contains(String section) {
-		String parsedSection = parse(section);
+		String parsedSection = parseSection(section);
 		return keySet().stream().anyMatch(s -> s.startsWith(parsedSection));
 	}
 
 	public String get(String section, String key) {
-		return String.valueOf(get(parse(section, key)));
+		return String.valueOf(get(parseSectionKey(section, key)));
 	}
 
 	public Boolean getBoolean(String section, String key) {
@@ -175,8 +175,8 @@ public class Configurations extends Hashtable<String, Object> {
 	public List<String> search(String section, String pattern) {
 		List<String> result = new ArrayList<String>();
 		for (Entry<String, Object> entry : entrySet()) {
-			if (entry.getKey().matches(parse(section, pattern).replace("?", ".?").replace("*", ".*?"))) {
-				result.add(entry.getKey().substring(parse(section).length()+1));
+			if (entry.getKey().matches(parseSectionKey(section, pattern).replace("?", ".?").replace("*", ".*?"))) {
+				result.add(entry.getKey().substring(parseSection(section).length()+1));
 			}
 		}
 		return result;
@@ -210,7 +210,7 @@ public class Configurations extends Hashtable<String, Object> {
 				key, type));
 	}
 
-	private static String parse(String section) {
+	private static String parseSection(String section) {
 		//String packageName = Configurations.class.getPackage().getName().replace(".core.config", "").toLowerCase();
 		StringBuilder result = new StringBuilder()
 				//.append(packageName).append(".")
@@ -219,9 +219,9 @@ public class Configurations extends Hashtable<String, Object> {
 		return result.toString();
 	}
 
-	private static String parse(String section, String key) {
+	private static String parseSectionKey(String section, String key) {
 		StringBuilder result = new StringBuilder()
-				.append(parse(section)).append(".")
+				.append(parseSection(section)).append(".")
 				.append(key.toLowerCase());
 		
 		return result.toString();

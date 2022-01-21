@@ -31,8 +31,8 @@ def ini4jVersion = '0.5.4'
 
 dependencies {
     implementation project(':cmpt')
-    implementation group: 'org.osgi', name: 'org.osgi.service.cm', version: '1.6.0'
-    implementation group:'org.apache.felix',name:'org.apache.felix.gogo.runtime', version:'1.1.0'
+    implementation group: 'org.osgi', name: 'org.osgi.service.cm', version: '1.6.1'
+    implementation group: 'org.apache.felix', name: 'org.apache.felix.gogo.runtime', version: '1.1.4'
 
     implementation group: 'org.ini4j', name: 'ini4j', version: ini4jVersion
 

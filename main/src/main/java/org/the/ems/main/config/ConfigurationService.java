@@ -47,7 +47,7 @@ import org.the.ems.main.EnergyManager;
 public final class ConfigurationService extends Thread {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
-	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "cmpt.d" + File.separator;
+	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "components" + File.separator;
 	private final static String CONFIG_DIR = System.getProperty("org.the.ems.config", CONFIG_DIR_DEFAULT);
 
 	private final Path dir = Paths.get(CONFIG_DIR);

@@ -100,14 +100,14 @@ public abstract class Configurable {
 			
 			boolean configured = false;
 			if (element instanceof Field) {
-				configured = configureField(configs, (Field) element, section, keys, config.scale());
+				configured = configureField((Field) element, section, keys, config.scale());
 			}
 			else {
-				configured = configureMethod(configs, (Method) element, section, keys);
+				configured = configureMethod((Method) element, section, keys);
 			}
 			if (!configured && config.mandatory()) {
 				throw newConfigException(MessageFormat.format("Mandatory configuration of section \"{0}\" not found: {1}",
-						section, parse(keys, element)));
+						section, parseKey(keys, element)));
 			}
 		}
 	}
@@ -116,7 +116,7 @@ public abstract class Configurable {
 		// Default implementation to be overridden
 	}
 
-	private boolean configureMethod(Configurations configs, Method method,
+	private boolean configureMethod(Method method,
 			String section, String[] keys) throws ConfigurationException {
 		
 		if (keys.length > 1) {
@@ -124,36 +124,36 @@ public abstract class Configurable {
 					method.getName()));
 		}
 		
-		String key = parse(keys, method);
+		String key = parseKey(keys, method);
 		if (configs.contains(section, key)) {
-			configureChannel(configs, section, key);
+			configureChannel(section, key);
 			
 			return true;
 		}
 		return false;
 	}
 
-	private boolean configureField(Configurations configs, Field field, 
+	private boolean configureField(Field field, 
 			String section, String[] keys, double scale) throws ConfigurationException {
 		Object value = null;
 		
 		Class<?> type = field.getType();
 		if (ChannelCollection.class.isAssignableFrom(type)) {
-			value = configureChannels(configs, section, keys);
+			value = configureChannels(section, keys);
 		}
 		else if (ConfigurationCollection.class.isAssignableFrom(type)) {
-			value = configureCollection(configs, section, keys, type);
+			value = configureCollection(section, keys, type);
 		}
 		else if (Collection.class.isAssignableFrom(type)) {
-			value = configureList(configs, section, keys);
+			value = configureList(section, keys);
 		}
 		else {
 			for (String key : keys) {
 				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
-					key = parse(field.getName());
+					key = parseKey(field.getName());
 				}
 				if (configs.contains(section, key)) {
-					value = configureField(configs, type, section, key);
+					value = configureField(type, section, key);
 					break;
 				}
 			}
@@ -196,12 +196,12 @@ public abstract class Configurable {
 		return false;
 	}
 
-	private Object configureField(Configurations configs, Class<?> type, 
+	private Object configureField(Class<?> type, 
 			String section, String key) throws ConfigurationException {
 
 		try {
 			if (Channel.class.isAssignableFrom(type)) {
-				Channel channel = configureChannel(configs, section, key);
+				Channel channel = configureChannel(section, key);
 				
 				return channel;
 			}
@@ -215,9 +215,7 @@ public abstract class Configurable {
 		}
 	}
 
-	private Collection<String> configureList(Configurations configs, 
-			String section, String[] keys) throws ConfigurationException {
-		
+	private Collection<String> configureList(String section, String[] keys) throws ConfigurationException {
 		Collection<String> collection = new LinkedList<String>();
 		for (String key : keys) {
 			try {
@@ -241,9 +239,8 @@ public abstract class Configurable {
 		return collection;
 	}
 
-	private ConfigurationCollection<?> configureCollection(Configurations configs, 
-			String section, String[] keys, Class<?> type) throws ConfigurationException {
-		
+	private ConfigurationCollection<?> configureCollection(String section, String[] keys, 
+			Class<?> type) throws ConfigurationException {
         try {
         	ConfigurationCollection<?> collection = (ConfigurationCollection<?>) type.getDeclaredConstructor().newInstance();
     		for (String key : keys) {
@@ -273,9 +270,7 @@ public abstract class Configurable {
         }
 	}
 
-	private ChannelCollection configureChannels(Configurations configs, 
-			String section, String[] keys) throws ConfigurationException {
-		
+	private ChannelCollection configureChannels(String section, String[] keys) throws ConfigurationException {
 		ChannelCollection channels = new ChannelCollection();
 		for (String key : keys) {
 			if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
@@ -283,20 +278,19 @@ public abstract class Configurable {
 			}
 			else if (key.contains("?") || key.contains("*")) {
 				for (String k : configs.search(section, key)) {
-					Channel channel = configureChannel(configs, section, k);
+					Channel channel = configureChannel(section, k);
 					channels.put(k, channel);
 				}
 			}
 			else if (configs.contains(section, key)) {
-				Channel channel = configureChannel(configs, section, key);
+				Channel channel = configureChannel(section, key);
 				channels.put(key, channel);
 			}
 		}
 		return channels;
 	}
 
-	private Channel configureChannel(Configurations configs,  
-			String section, String key) throws ConfigurationException {
+	private Channel configureChannel(String section, String key) throws ConfigurationException {
 
 		String channelId = configs.get(section, key);
 		if (channels.containsKey(channelId)) {
@@ -327,7 +321,7 @@ public abstract class Configurable {
 		String channelId = configs.get(section, key);
 		Channel channel = channels.get(channelId);
 		if (channel == null) {
-			throw new ConfigurationException("Unable to get unconfigured channel: "+key);
+			channel = configureChannel(section, key);
 		}
 		return channel;
 	}
@@ -396,7 +390,7 @@ public abstract class Configurable {
 				this.getClass().getSimpleName(), message));
 	}
 
-	private static String parse(String[] keys, AnnotatedElement element) {
+	private static String parseKey(String[] keys, AnnotatedElement element) {
 		String key = keys[0];
 		if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
 			String name;
@@ -409,12 +403,12 @@ public abstract class Configurable {
 					name = name.substring(3);
 				}
 			}
-			key = parse(name);
+			key = parseKey(name);
 		}
 		return key;
 	}
 
-	private static String parse(String key) {
+	private static String parseKey(String key) {
 		LinkedList<String> result = new LinkedList<String>();
 		for (String str : key.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])")) {
 			result.add(str.toLowerCase());

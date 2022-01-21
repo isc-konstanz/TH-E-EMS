@@ -1,6 +1,20 @@
 #!/bin/sh
 set -e
 
+# Create necessary device variables directory
+mkdir -p /var/opt/ems/dev
+
+case "$1" in
+    install)
+		# Add the Multi Utility Communication user, if it does not exist
+        if ! grep -E "^muc:" /etc/passwd > /dev/null 2>&1; then
+		    useradd --system --no-create-home --comment="Multi Utility Communication" "muc"
+        fi
+        ;;
+    *)
+        ;;
+esac
+
 #DEBHELPER#
 
 # Stop service if still running

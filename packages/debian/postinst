@@ -4,6 +4,15 @@ set -e
 # Set permissions of the bundle jar
 chown muc:muc /opt/openmuc/bundle/<package>-<version>.jar
 
+# If EmonMUC devices are installed, link template files and set permissions
+if [ -d /var/opt/emonmuc/device ]; then
+    emonuser=$(ls -ld /var/opt/emonmuc/device | awk '{print $3}')
+    if [ -e /var/opt/emonmuc/device/ems ]; then
+        sudo -u $emonuser ln -s /var/opt/ems/dev /var/opt/emonmuc/device/ems
+    fi
+    chown $emonuser:$emonuser -R /var/opt/ems/dev
+fi
+
 #DEBHELPER#
 
 # Start service if still idle

@@ -1,0 +1,22 @@
+def projectPackage = rootDir.getPath() + '/build/dpkg/th-e-ems-' + projectVersion
+
+configurations.create("th_e_ems")
+configurations.th_e_ems.transitive = false;
+
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs rootDir.getPath() + '/build/libs'
+    }
+}
+dependencies {
+    th_e_ems project(':api'), project(':cmpt'), project(':cms'), project(':main')
+}
+copy {
+    from project.configurations.th_e_ems
+    into projectPackage + '/bundle'
+}
+copy {
+    from project(':main').getProjectDir().getPath() + '/conf'
+    into projectPackage + '/conf'
+}

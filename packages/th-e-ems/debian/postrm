@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    remove | purge)
+            # If EmonMUC device template link exists, remove it
+            if [ -e /var/opt/emonmuc/device/ems ]; then
+                rm /var/opt/emonmuc/device/ems
+            fi
+        ;;
+    *)
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

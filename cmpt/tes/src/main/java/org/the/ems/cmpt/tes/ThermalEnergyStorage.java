@@ -219,7 +219,7 @@ public class ThermalEnergyStorage extends Component
 				long timeDelta = (time - temperatureLast.getEpochMillis())/1000;
 				double tempDelta = temperatureLast.doubleValue() - temperature;
 				
-				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
+				// Calculate energy in Q[kJ] = cp*m[kg]*dT[Â°C]
 				double energyDelta = specificHeat*mass*tempDelta;
 				energyDelta = Math.max(energyDelta + energyInput, 0);
 				

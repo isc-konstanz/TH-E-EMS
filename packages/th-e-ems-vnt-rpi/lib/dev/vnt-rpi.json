@@ -1,0 +1,69 @@
+{
+    "name": "GPIO (Raspberry Pi)",
+    "group": "General",
+    "category": "Ventilation",
+    "description": "Basic cabinet ventilation",
+
+    "devices": [
+        {
+            "name": "<node>",
+            "description": "<name>",
+            "driver": "rpi-gpio",
+            "address": "pin:<pin>",
+            "settings": "mode:DIGITAL_OUTPUT"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "pin",
+            "name": "Pin",
+            "description": "The Pin number, according to the <a href='https://pi4j.com/1.4/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "type": "text",
+            "scan": true,
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*state", "value": true },
+                "OFF": { "channel": "<node>*state", "value": false }
+            },
+            "input": "<node>*state"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*state",
+            "description": "Ventilation control",
+            "device": "<node>",
+            "configs": {"samplingInterval": 5000, "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name>"}
+            }
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "<name>",
+            "tag": "State",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*state"
+        }
+    ]
+}

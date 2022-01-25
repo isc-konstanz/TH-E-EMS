@@ -183,11 +183,11 @@ public class Circulation extends Component implements CirculationTemperatureCall
 					return;
 				}
 			}
-			// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
+			// Calculate energy in Q[kJ] = cp*m[kg]*dT[Â°C]
 			double flowEnergyValue = flowSpecificHeat*flowMass*flowTempDeltaValue;
 
 			if (logger.isDebugEnabled()) {
-				logger.debug("Water flow with delta temperature of {}°C circulated {} kWh", 
+				logger.debug("Water flow with delta temperature of {}Â°C circulated {} kWh", 
 						String.format("%.2f", flowTempDeltaValue), 
 						String.format("%.2f", flowEnergyValue));
 			}

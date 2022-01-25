@@ -80,7 +80,7 @@ public interface ThermalEnergyStorageService extends ComponentService {
 	public void deregisterThermalPowerListener(ValueListener listener) throws ComponentException;
 
 	/*
-	 * Get the average temperature in degree celsius [°C].
+	 * Get the average temperature in degree celsius [Â°C].
 	 * 
 	 * @return the average temperature {@link Value}
 	 * 
@@ -90,7 +90,7 @@ public interface ThermalEnergyStorageService extends ComponentService {
 	public Value getTemperature() throws ComponentException, InvalidValueException;
 
 	/*
-	 * Get the average temperature in degree celsius [°C].
+	 * Get the average temperature in degree celsius [Â°C].
 	 * Additionally, register a {@link ValueListener}, to be notified of new temperature values.
 	 * 
 	 * @return the average temperature {@link Value}

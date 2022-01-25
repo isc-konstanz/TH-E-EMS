@@ -172,7 +172,8 @@ public class WeiTrona extends HeatPump {
     				stop(heatingSettings);
     			}
 			} catch (EnergyManagementException e) {
-				logger.warn("Error ");
+				logger.warn("Error verifying heating {} temperature setpoint value: {}",
+						heating.type.toString().toLowerCase(), e.getMessage());
 			}
 		}
 	}

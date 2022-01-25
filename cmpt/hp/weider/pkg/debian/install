@@ -1,4 +1,4 @@
 #!/usr/bin/dh-exec
-bundle     /opt/openmuc
-lib/*.json /var/opt/ems/dev/
+bundle /opt/openmuc
 conf/*.cfg /etc/ems/
+lib/dev/*.json /var/opt/ems/dev/

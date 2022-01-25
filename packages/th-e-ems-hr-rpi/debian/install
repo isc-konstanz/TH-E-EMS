@@ -1,3 +1,3 @@
 #!/usr/bin/dh-exec
-lib/*.json /var/opt/ems/dev/
 conf/*.cfg /etc/ems/
+lib/dev/*.json /var/opt/ems/dev/

@@ -405,6 +405,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	@Override
 	protected void onStateChanged(Value state) throws EnergyManagementException {
+		super.onStateChanged(state);
 		if (state.booleanValue()) {
 			if (circulationPump.isEnabled()) {
 				circulationPump.start();

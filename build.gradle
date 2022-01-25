@@ -59,7 +59,7 @@ configure(javaProjects()) {
         bnd('Bundle-SymbolicName': project.group+'.'+project.name,
             'Bundle-Name':         project.name,
             'Bundle-Vendor':       projectVendor,
-            'Bundle-DocURL':       projectRepository)
+            'Bundle-DocURL':       projectSite)
     }
 
     if (!project.properties.containsKey('javaVersion')) {

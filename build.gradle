@@ -71,9 +71,11 @@ configure(javaProjects()) {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
+    javadoc {
+	    options.encoding = 'utf-8'
+        exclude '**/internal/**'
+        exclude '**/java-gen/**'
+        exclude '**/app/**'
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -81,11 +83,16 @@ configure(javaProjects()) {
         from javadoc.destinationDir
     }
 
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
     task jarAll(type: Copy) {
         // Include the jar file created, as well as all artifacts:
         from jar
-        from sourcesJar
         from javadocJar
+        from sourcesJar
 
         if (copyDependencies) {
             // Includes all the dependencies:
@@ -100,14 +107,8 @@ configure(javaProjects()) {
     tasks.eclipse.dependsOn(cleanEclipse)
 
     artifacts {
-        archives sourcesJar
         archives javadocJar
-    }
-
-    javadoc {
-        exclude '**/internal/**'
-        exclude '**/java-gen/**'
-        exclude '**/app/**'
+        archives sourcesJar
     }
 }
 

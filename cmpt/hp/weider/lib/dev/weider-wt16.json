@@ -147,7 +147,7 @@
             "type": "Text",
             "label": "Domestic water temperature",
             "format": "%.1f °C",
-            "input": "<node>*water*ht*temp"
+            "input": "<node>*water*dom*temp"
         },
         {
             "id": "water-dom-setpoint",
@@ -155,19 +155,19 @@
             "label": "Domestic setpoint temperature",
             "format": "%.1f °C",
             "max": 55,
-            "min": 45,
+            "min": 41,
             "step": 0.5,
             "mapping": {
-                "SET": { "channel": "<node>*water*ht*temp*setpoint" }
+                "SET": { "channel": "<node>*water*dom*temp*setpoint" }
             },
-            "input": "<node>*water*ht*temp*setpoint"
+            "input": "<node>*water*dom*temp*setpoint"
         },
         {
             "id": "water-ht-temp",
             "type": "Text",
             "label": "Heating water temperature",
             "format": "%.1f °C",
-            "input": "<node>*water*dom*temp"
+            "input": "<node>*water*ht*temp"
         },
         {
             "id": "water-ht-setpoint",
@@ -175,12 +175,12 @@
             "label": "Heating stpoint temperature",
             "format": "%.1f °C",
             "max": 55,
-            "min": 25,
+            "min": 21,
             "step": 0.5,
             "mapping": {
-                "SET": { "channel": "<node>*water*dom*temp*setpoint" }
+                "SET": { "channel": "<node>*water*ht*temp*setpoint" }
             },
-            "input": "<node>*water*dom*temp*setpoint"
+            "input": "<node>*water*ht*temp*setpoint"
         }
     ],
 
@@ -196,7 +196,7 @@
             "description": "External temperature",
             "address": "<unitId>:HOLDING_REGISTERS:15:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
-            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
                 "feed": {"name": "External temperature", "tag": "<name>"}
             }
         },
@@ -225,13 +225,19 @@
             "name": "<node>*flow*temp*out",
             "description": "Flow outlet temperature",
             "address": "<unitId>:HOLDING_REGISTERS:25:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Flow outlet temperature", "tag": "<name>"}
+            }
         },
         {
             "name": "<node>*flow*temp*in",
             "description": "Flow inlet temperature",
             "address": "<unitId>:HOLDING_REGISTERS:26:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Flow inlet temperature", "tag": "<name>"}
+            }
         },
         {
             "name": "<node>*flow*temp*delta",
@@ -268,7 +274,7 @@
             "description": "Buffer temperature",
             "address": "<unitId>:HOLDING_REGISTERS:2:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
-            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
                 "feed": {"name": "Buffer temperature", "tag": "<name> domestic water"}
             }
         },
@@ -307,7 +313,7 @@
             "description": "Buffer temperature",
             "address": "<unitId>:HOLDING_REGISTERS:16:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"},
-            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
                 "feed": {"name": "Buffer temperature", "tag": "<name> heating water"}
             }
         },
@@ -335,6 +341,22 @@
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*ext*temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Flow inlet temperature",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*flow*temp*in",
+            "unit": "°C"
+        },
+        {
+            "name": "Flow outlet temperature",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*flow*temp*out",
             "unit": "°C"
         },
         {

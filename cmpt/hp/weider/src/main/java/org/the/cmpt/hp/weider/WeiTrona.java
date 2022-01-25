@@ -160,6 +160,24 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
+	protected void onStandby() throws ComponentException {
+		super.onStandby();
+
+		long timestamp = System.currentTimeMillis();
+		for (WeiderHeatingHandler heating : heatings.values()) {
+			try {
+    			if (!heating.isStopped()) {
+    				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
+    				heatingSettings.setEnforced(true);
+    				stop(heatingSettings);
+    			}
+			} catch (EnergyManagementException e) {
+				logger.warn("Error ");
+			}
+		}
+	}
+
+	@Override
 	protected void onInterrupt() throws ComponentException {
 		super.onInterrupt();
 		
@@ -168,18 +186,16 @@ public class WeiTrona extends HeatPump {
 			try {
     	        switch (getState()) {
     	        case STARTING:
-        			if (isRunning(heating.type) && 
-        					!heating.isStarted()) {
-
+        			if (!heating.isStarted() && isRunning(heating.type)) {
         				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
         				heatingSettings.setEnforced(true);
         				start(heatingSettings);
+
         			}
     				break;
     	        case STOPPING:
-        			if (isStandby(heating.type) && 
-        					!heating.isStopped()) {
-
+    	        case STANDBY:
+        			if (!heating.isStopped()) {
         				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
         				heatingSettings.setEnforced(true);
         				stop(heatingSettings);
@@ -189,7 +205,8 @@ public class WeiTrona extends HeatPump {
     	            break;
     	        }
 			} catch (EnergyManagementException e) {
-				logger.warn("Error ");
+				logger.warn("Error verifying heating {} temperature setpoint value: {}",
+						heating.type.toString().toLowerCase(), e.getMessage());
 			}
 		}
 	}

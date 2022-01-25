@@ -94,10 +94,14 @@ public class HeatPump extends Heating implements HeatPumpService {
 	@Override
 	protected void onStateChanged(Value value) {
 		if (value.booleanValue() && temperatureInputValue.doubleValue() > temperatureInMax) {
-			logger.warn("Unable to switch on heat pump: Heating flow input temperature above threshold: " + value);
+			logger.warn("Unable to switch on heat pump: Heating flow input temperature above threshold: {}", 
+					temperatureInputValue.doubleValue());
+
 			// TODO: implement virtual start signal that does not affect relay
 			try {
-				stop();
+				ValueSettings stopSettings = ValueSettings.ofBoolean(false, value.getEpochMillis());
+				stopSettings.setEnforced(true);
+				stop(stopSettings);
 				
 			} catch (EnergyManagementException e) {
 				logger.warn("Error while switching off heat pump due to temperature threshold violation: {}",
@@ -113,7 +117,9 @@ public class HeatPump extends Heating implements HeatPumpService {
 			temperatureInputValue = value;
 			if (temperatureInputValue.doubleValue() >= temperatureInMax) {
 				try {
-					stop();
+					ValueSettings stopSettings = ValueSettings.ofBoolean(false, value.getEpochMillis());
+					stopSettings.setEnforced(true);
+					stop(stopSettings);
 					
 				} catch (EnergyManagementException e) {
 					logger.warn("Error while switching off heat pump due to temperature threshold violation: {}",

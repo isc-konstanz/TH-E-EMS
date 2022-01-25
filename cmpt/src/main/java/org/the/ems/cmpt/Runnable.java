@@ -498,6 +498,7 @@ public abstract class Runnable extends Component implements RunnableService {
 							}
 							else {
 								setState(RunState.RUNNING);
+								onRunning();
 							}
 						}
 						break;
@@ -509,6 +510,7 @@ public abstract class Runnable extends Component implements RunnableService {
 							}
 							else {
 								setState(RunState.STANDBY);
+								onStandby();
 							}
 						}
 						break;

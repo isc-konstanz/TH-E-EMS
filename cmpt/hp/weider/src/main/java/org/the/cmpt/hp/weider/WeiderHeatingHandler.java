@@ -36,7 +36,7 @@ public class WeiderHeatingHandler extends Component {
 	private double waterTempMin;
 
 
-	private final HeatingType type;
+	final HeatingType type;
 
 	public WeiderHeatingHandler(HeatingType type) {
 		super(type.getFullName());
@@ -44,12 +44,27 @@ public class WeiderHeatingHandler extends Component {
 	}
 
 	public void onStart(WriteContainer container, long time) {
-		container.addDouble(waterTempSetpoint, waterTempMax, time);
+		container.addDouble(waterTempSetpoint, getStartSetpoint(), time);
+	}
+
+	private double getStartSetpoint() {
+		return waterTempMax;
+	}
+
+	public boolean isStarted() {
+		try {
+			return waterTempSetpoint.getLatestValue().doubleValue() >= getStartSetpoint();
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving {} temperature setpoint: {}", type.toString().toLowerCase(),  
+					e.getMessage());
+		}
+		return false;
 	}
 
 	public boolean isStartable() {
 		try {
-			return waterTemp.getLatestValue().doubleValue() <= waterTempMax;
+			return waterTemp.getLatestValue().doubleValue() < waterTempMax;
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
@@ -71,20 +86,35 @@ public class WeiderHeatingHandler extends Component {
 	}
 
 	public void onStop(WriteContainer container, long time) {
-		double waterTempSetpointValue = waterTempMin;
+		container.addDouble(waterTempSetpoint, getStopSetpoint(), time);
+	}
+
+	private double getStopSetpoint() {
+		double setpointValue = waterTempMin;
 		try {
-			waterTempSetpointValue += waterTempHysteresis.getLatestValue().doubleValue();
+			setpointValue += waterTempHysteresis.getLatestValue().doubleValue();
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature hysteresis: {}", type.toString().toLowerCase(),  
 					e.getMessage());
 		}
-		container.addDouble(waterTempSetpoint, waterTempSetpointValue, time);
+		return setpointValue;
+	}
+
+	public boolean isStopped() {
+		try {
+			return waterTempSetpoint.getLatestValue().doubleValue() <= getStopSetpoint();
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving {} temperature setpoint: {}", type.toString().toLowerCase(),  
+					e.getMessage());
+		}
+		return false;
 	}
 
 	public boolean isStoppable() {
 		try {
-			return waterTemp.getLatestValue().doubleValue() >= waterTempMin;
+			return waterTemp.getLatestValue().doubleValue() > waterTempMin;
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  

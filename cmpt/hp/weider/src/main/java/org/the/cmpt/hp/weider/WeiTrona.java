@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.hp.HeatPump;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingType;
 import org.the.ems.core.Season;
 import org.the.ems.core.cmpt.HeatPumpService;
@@ -156,6 +157,41 @@ public class WeiTrona extends HeatPump {
 	@Override
 	public boolean isStandby() throws ComponentException {
 		return heatings.values().stream().anyMatch(c -> c.isStandby());
+	}
+
+	@Override
+	protected void onInterrupt() throws ComponentException {
+		super.onInterrupt();
+		
+		long timestamp = System.currentTimeMillis();
+		for (WeiderHeatingHandler heating : heatings.values()) {
+			try {
+    	        switch (getState()) {
+    	        case STARTING:
+        			if (isRunning(heating.type) && 
+        					!heating.isStarted()) {
+
+        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
+        				heatingSettings.setEnforced(true);
+        				start(heatingSettings);
+        			}
+    				break;
+    	        case STOPPING:
+        			if (isStandby(heating.type) && 
+        					!heating.isStopped()) {
+
+        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
+        				heatingSettings.setEnforced(true);
+        				stop(heatingSettings);
+        			}
+    	            break;
+    	        default:
+    	            break;
+    	        }
+			} catch (EnergyManagementException e) {
+				logger.warn("Error ");
+			}
+		}
 	}
 
 }

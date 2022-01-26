@@ -2,7 +2,8 @@
 set -e
 
 # Set permissions of the bundle jar
-chown muc:muc /opt/openmuc/bundle/<package>-<version>.jar
+chown muc:muc    /opt/openmuc/bundle/<package>-<version>.jar
+chown muc:muc -R /etc/ems /var/opt/ems
 
 # If EmonMUC devices are installed, link template files and set permissions
 if [ -d /var/opt/emonmuc/device ]; then

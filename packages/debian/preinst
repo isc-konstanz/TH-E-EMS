@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-# Create necessary device variables directory
-mkdir -p /var/opt/ems/dev
-
 case "$1" in
     install)
 		# Add the Multi Utility Communication user, if it does not exist

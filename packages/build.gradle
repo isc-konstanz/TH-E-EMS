@@ -29,7 +29,7 @@ task debianPackages {
             if (project.getProjectDir().equals(getProjectDir())) {
                 continue
             }
-            if (['api', 'cms'].any { project.name.contains(it) }) {
+            if (['api', 'cmpt', 'cms'].any { project.name.contains(it) }) {
                 continue
             }
             def projectName = project.projectKey
@@ -40,7 +40,9 @@ task debianPackages {
             
             def projectDepends = project.configurations.runtimeClasspath { transitive = false }
                                                        .findAll { it.getName().startsWith('th-e-') }
-                                                       .collect { it.getName().replaceAll('th-e-api-.*jar', 'th-e-ems')
+                                                       .collect { it.getName().replaceAll('th-e-ems-api-.*jar',  'th-e-ems')
+                                                                              .replaceAll('th-e-ems-cmpt-.*jar', 'th-e-ems')
+                                                                              .replaceAll('th-e-ems-cms-.*jar',  'th-e-ems')
                                                                               .replaceAll('-[0-9].*jar', '') }.unique().join(', ')
             if (!projectDepends?.trim()) {
                 projectDepends = 'th-e-ems'

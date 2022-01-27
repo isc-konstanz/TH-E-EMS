@@ -55,13 +55,6 @@ configure(javaProjects()) {
         implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.10'
     }
 
-    jar {
-        bnd('Bundle-SymbolicName': project.group+'.'+project.name,
-            'Bundle-Name':         project.name,
-            'Bundle-Vendor':       projectVendor,
-            'Bundle-DocURL':       projectRepository)
-    }
-
     if (!project.properties.containsKey('javaVersion')) {
         project.ext {
             javaVersion = '1.8'
@@ -105,6 +98,23 @@ configure(javaProjects()) {
 
     eclipse.pathVariables([GRADLE_USER_HOME:file(gradle.gradleUserHomeDir)])
     tasks.eclipse.dependsOn(cleanEclipse)
+
+    afterEvaluate {
+        eclipse {
+            project {
+                name = projectName
+            }
+        }
+        jar {
+            bnd('Bundle-Vendor':       projectVendor,
+                'Bundle-DocURL':       projectRepository,
+                'Bundle-Description':  projectDescription,
+                'Bundle-Name':         projectFullName,
+                'Bundle-SymbolicName': projectKey.replace('th-e-ems-', 'org.the.ems.').replaceAll('-', '.'))
+
+            archivesBaseName = projectKey
+        }
+    }
 
     artifacts {
         archives javadocJar

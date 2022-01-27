@@ -1,4 +1,4 @@
-package org.the.cmpt.chp.ice;
+package org.the.ems.cmpt.chp.ice;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;

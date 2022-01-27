@@ -1,4 +1,4 @@
-package org.the.cmpt.hp.weider;
+package org.the.ems.cmpt.hp.weider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

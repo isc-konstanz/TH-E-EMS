@@ -1,4 +1,4 @@
-package org.the.cmpt.inv.kaco;
+package org.the.ems.cmpt.inv.kaco;
 
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.core.config.Configuration;

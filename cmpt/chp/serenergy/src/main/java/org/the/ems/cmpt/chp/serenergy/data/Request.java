@@ -17,40 +17,29 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.cmpt.chp.ice;
+package org.the.ems.cmpt.chp.serenergy.data;
 
-import org.the.ems.core.data.BooleanValue;
+import org.the.ems.core.data.IntValue;
 import org.the.ems.core.data.Value;
 
-public enum EngineMode {
+public enum Request {
+	ERROR(0),
+	ENABLE(1),
+	DISABLE(2),
+	START(3),
+	STOP(3),;
 
-	STAR(false),
-	DELTA(true);
+	private final int code;
 
-	private final boolean mode;
-
-	private EngineMode(boolean mode) {
-		this.mode = mode;
+	private Request(int code) {
+		this.code = code;
 	}
 
-	public boolean getMode() {
-		return mode;
+	public Value encode() {
+		return new IntValue(code);
 	}
 
-	public Value getValue(long time) {
-		return new BooleanValue(getMode(), time);
-	}
-
-	public Value getValue() {
-		return new BooleanValue(getMode(), System.currentTimeMillis());
-	}
-
-	public static EngineMode valueOf(boolean mode) {
-		if (mode) {
-			return DELTA;
-		}
-		else {
-			return STAR;
-		}
+	public Value encode(long timestamp) {
+		return new IntValue(code, timestamp);
 	}
 }

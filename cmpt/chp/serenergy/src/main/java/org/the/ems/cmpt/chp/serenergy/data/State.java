@@ -17,21 +17,32 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.cmpt.chp.serenergy.data;
+package org.the.ems.cmpt.chp.serenergy.data;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.the.ems.core.data.IntValue;
 import org.the.ems.core.data.Value;
 
-public enum Request {
-	ERROR(0),
-	ENABLE(1),
-	DISABLE(2),
-	START(3),
-	STOP(3),;
+public enum State {
+	UNKNOWN(0),
+	PASSIVE(1),
+	STANDBY(2),
+	PREHEAT(3),
+	STARTING(4),
+	OPERATION_LIMITED(5),
+	OPERATION(6),
+	SHUTDOWN(7),
+	SHUTDOWN_EMERGENCY(8),
+	ERROR(9),
+	ZERO_LOAD_MODE(10);
+
+	private static final Map<Integer, State> codes = new HashMap<>();
 
 	private final int code;
 
-	private Request(int code) {
+	private State(int code) {
 		this.code = code;
 	}
 
@@ -41,5 +52,24 @@ public enum Request {
 
 	public Value encode(long timestamp) {
 		return new IntValue(code, timestamp);
+	}
+
+	public static State decode(Value value) {
+		if (value == null) {
+			return UNKNOWN;
+		}
+		State enumInstance = codes.get(value.intValue());
+		if (enumInstance == null) {
+			throw new IllegalArgumentException("Unknown state code: " + value.intValue());
+		}
+		return enumInstance;
+	}
+
+	static {
+		for (State s : State.values()) {
+			if (codes.put(s.code, s) != null) {
+				throw new IllegalArgumentException("Duplicate code: " + s.code);
+			}
+		}
 	}
 }

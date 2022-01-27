@@ -1,13 +1,13 @@
-package org.the.cmpt.chp.serenergy;
+package org.the.ems.cmpt.chp.serenergy;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.cmpt.chp.serenergy.data.Request;
-import org.the.cmpt.chp.serenergy.data.State;
 import org.the.ems.cmpt.chp.Cogenerator;
+import org.the.ems.cmpt.chp.serenergy.data.Request;
+import org.the.ems.cmpt.chp.serenergy.data.State;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;

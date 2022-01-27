@@ -1,4 +1,4 @@
-package org.the.cmpt.inv.kaco;
+package org.the.ems.cmpt.inv.kaco;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;

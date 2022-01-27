@@ -43,17 +43,7 @@ jar {
     into('lib') {
         from configurations.embed
     }
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Bundle-ClassPath':   '.,lib/ini4j-'+ini4jVersion+'.jar',
-        'Import-Package':     '!org.ini4j.*,*',
-        'Export-Package':      '')
+    bnd('Bundle-ClassPath': '.,lib/ini4j-'+ini4jVersion+'.jar',
+        'Import-Package':   '!org.ini4j.*,*',
+        'Export-Package':   '')
 }
-
-eclipse {
-    project {
-        name = projectName
-    }
-}
-
-archivesBaseName = projectKey

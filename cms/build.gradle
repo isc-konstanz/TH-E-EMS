@@ -30,16 +30,6 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Import-Package':     'org.openmuc.framework.*;version=0,*',
-        'Export-Package':     'org.openmuc.framework.app.the.ems.*')
+    bnd('Import-Package': 'org.openmuc.framework.*;version=0,*',
+        'Export-Package': 'org.openmuc.framework.app.the.ems.*')
 }
-
-eclipse {
-    project {
-        name = projectName
-    }
-}
-
-archivesBaseName = projectKey

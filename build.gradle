@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016-21 ISC Konstanz
+ * Copyright 2016-2021 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
  * For more information visit https://github.com/isc-konstanz/th-e-ems
@@ -55,13 +55,6 @@ configure(javaProjects()) {
         implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.10'
     }
 
-    jar {
-        bnd('Bundle-SymbolicName': project.group+'.'+project.name,
-            'Bundle-Name':         project.name,
-            'Bundle-Vendor':       projectVendor,
-            'Bundle-DocURL':       projectSite)
-    }
-
     if (!project.properties.containsKey('javaVersion')) {
         project.ext {
             javaVersion = '1.8'
@@ -71,9 +64,11 @@ configure(javaProjects()) {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
+    javadoc {
+	    options.encoding = 'utf-8'
+        exclude '**/internal/**'
+        exclude '**/java-gen/**'
+        exclude '**/app/**'
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -81,11 +76,16 @@ configure(javaProjects()) {
         from javadoc.destinationDir
     }
 
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
     task jarAll(type: Copy) {
         // Include the jar file created, as well as all artifacts:
         from jar
-        from sourcesJar
         from javadocJar
+        from sourcesJar
 
         if (copyDependencies) {
             // Includes all the dependencies:
@@ -99,15 +99,26 @@ configure(javaProjects()) {
     eclipse.pathVariables([GRADLE_USER_HOME:file(gradle.gradleUserHomeDir)])
     tasks.eclipse.dependsOn(cleanEclipse)
 
-    artifacts {
-        archives sourcesJar
-        archives javadocJar
+    afterEvaluate {
+        eclipse {
+            project {
+                name = projectName
+            }
+        }
+        jar {
+            bnd('Bundle-Vendor':       projectVendor,
+                'Bundle-DocURL':       projectRepository,
+                'Bundle-Description':  projectDescription,
+                'Bundle-Name':         projectFullName,
+                'Bundle-SymbolicName': projectKey.replace('th-e-ems-', 'org.the.ems.').replaceAll('-', '.'))
+
+            archivesBaseName = projectKey
+        }
     }
 
-    javadoc {
-        exclude '**/internal/**'
-        exclude '**/java-gen/**'
-        exclude '**/app/**'
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
     }
 }
 
@@ -138,6 +149,11 @@ task javadocAll(type: Javadoc) {
 
     classpath += files(javadocProjects.collect { project ->
         project.sourceSets.main.output })
+}
+
+task packages {
+    apply from: rootDir.getPath() + "/packages/build.gradle"
+    dependsOn debianPackages
 }
 
 task distribute(type: Tar) {

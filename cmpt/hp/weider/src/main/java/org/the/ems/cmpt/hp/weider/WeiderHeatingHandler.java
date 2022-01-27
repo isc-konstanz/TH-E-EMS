@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
 import org.the.ems.core.HeatingType;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
@@ -21,6 +22,13 @@ public class WeiderHeatingHandler extends Component {
 
 
 	@Configuration
+	private double waterTempMax;
+
+	@Configuration
+	private double waterTempMin;
+
+
+	@Configuration
 	private Channel waterTemp;
 
 	@Configuration
@@ -29,11 +37,8 @@ public class WeiderHeatingHandler extends Component {
 	@Configuration
 	private Channel waterTempHysteresis;
 
-	@Configuration
-	private double waterTempMax;
-
-	@Configuration
-	private double waterTempMin;
+	@Configuration(mandatory = false)
+	private Double waterTempHysteresisFallback = Double.NaN;
 
 
 	final HeatingType type;
@@ -41,6 +46,25 @@ public class WeiderHeatingHandler extends Component {
 	public WeiderHeatingHandler(HeatingType type) {
 		super(type.getFullName());
 		this.type = type;
+	}
+
+	@Override
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		super.onConfigure(configs);
+
+		if (waterTempHysteresisFallback.isNaN()) {
+			switch (type) {
+			case DOMESTIC_WATER:
+				waterTempHysteresisFallback = 4.0;
+				break;
+			case HEATING_WATER:
+			default:
+				waterTempHysteresisFallback = 2.0;
+				break;
+			}
+			logger.debug("Configured hysteresis fallback value for {} handler: {}", 
+					type.getFullName(), waterTempHysteresisFallback);
+		}
 	}
 
 	public void onStart(WriteContainer container, long time) {
@@ -90,15 +114,17 @@ public class WeiderHeatingHandler extends Component {
 	}
 
 	private double getStopSetpoint() {
-		double setpointValue = waterTempMin;
+		double waterTempHysteresisValue;
 		try {
-			setpointValue += waterTempHysteresis.getLatestValue().doubleValue();
+			waterTempHysteresisValue= waterTempHysteresis.getLatestValue().doubleValue();
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature hysteresis: {}", type.toString().toLowerCase(),  
 					e.getMessage());
+			
+			waterTempHysteresisValue = waterTempHysteresisFallback;
 		}
-		return setpointValue;
+		return waterTempMin + waterTempHysteresisValue;
 	}
 
 	public boolean isStopped() {

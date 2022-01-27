@@ -30,15 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.cmpt.chp.*')
+    bnd('Export-Package': 'org.the.ems.cmpt.chp.*')
 }
-
-eclipse {
-    project {
-        name = projectName
-    }
-}
-
-archivesBaseName = projectKey

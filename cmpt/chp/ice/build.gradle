@@ -30,15 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     '')
+    bnd('Export-Package': '')
 }
-
-eclipse {
-    project {
-        name = projectName
-    }
-}
-
-archivesBaseName = projectKey

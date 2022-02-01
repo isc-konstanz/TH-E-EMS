@@ -108,21 +108,26 @@ public class WeiTrona extends HeatPump {
 	public boolean isRunning(HeatingType type) throws ComponentException {
 		if (isRunning()) {
 			// The heating water pump will always be shown as true, even if domestic water is beeing prepared
-			boolean running = heatings.get(HeatingType.DOMESTIC_WATER).isRunning();
-			switch (type) {
-			case DOMESTIC_WATER:
-				return running;
-			case HEATING_WATER:
-			default:
-				return !running;
-			}
+            boolean domesticWater = heatings.get(HeatingType.DOMESTIC_WATER).isRunning();
+            switch (type) {
+            case DOMESTIC_WATER:
+                return domesticWater;
+            case HEATING_WATER:
+            default:
+                return !domesticWater;
+            }
 		}
 		return false;
 	}
 
 	@Override
 	public boolean isRunning() throws ComponentException {
-		return heatings.values().stream().anyMatch(c -> c.isRunning());
+		try {
+			return state.getLatestValue().booleanValue();
+			
+		} catch (InvalidValueException e) {
+			throw new ComponentException(e);
+		}
 	}
 
 	@Override
@@ -156,7 +161,7 @@ public class WeiTrona extends HeatPump {
 
 	@Override
 	public boolean isStandby() throws ComponentException {
-		return heatings.values().stream().anyMatch(c -> c.isStandby());
+		return !isRunning();
 	}
 
 	@Override

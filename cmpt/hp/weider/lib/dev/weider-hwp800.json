@@ -62,15 +62,13 @@
         {
             "name": "Temperature",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*temp",
             "unit": "°C"
         },
         {
-            "name": "Power",
+            "name": "Power thermal",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*power",
             "unit": "W"

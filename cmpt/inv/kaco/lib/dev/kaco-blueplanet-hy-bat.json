@@ -1,7 +1,7 @@
 {
     "name": "blueplanet hy-bat",
-    "category": "Inverter",
     "group": "KACO",
+    "category": "Inverter",
     "description": "KACO blueplanet hybrid 10.0 TL3 battery",
 
     "devices": [],
@@ -81,7 +81,6 @@
         {
             "name": "State of Charge",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_state",
             "unit": "%"
@@ -89,7 +88,6 @@
         {
             "name": "Voltage",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_voltage",
             "unit": "V"
@@ -97,7 +95,6 @@
         {
             "name": "Power",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_power",
             "unit": "W"

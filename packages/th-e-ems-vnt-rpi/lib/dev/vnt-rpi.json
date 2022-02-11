@@ -61,7 +61,6 @@
         {
             "name": "<name>",
             "tag": "State",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*state"
         }

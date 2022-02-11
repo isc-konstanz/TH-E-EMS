@@ -210,14 +210,12 @@
         {
             "name": "State",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*state"
         },
         {
             "name": "Power",
             "tag": "<name> stack",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*stack*power",
             "unit": "W"
@@ -225,7 +223,6 @@
         {
             "name": "Voltage",
             "tag": "<name> stack",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*stack*voltage",
             "unit": "V"
@@ -233,7 +230,6 @@
         {
             "name": "Current",
             "tag": "<name> stack",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*stack*current",
             "unit": "A"
@@ -241,7 +237,6 @@
         {
             "name": "Current limit",
             "tag": "<name> stack",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*stack*current*limit",
             "unit": "A"
@@ -249,7 +244,6 @@
         {
             "name": "Temperature",
             "tag": "<name> stack",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*stack*temp",
             "unit": "°C"

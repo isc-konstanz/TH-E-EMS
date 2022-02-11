@@ -338,7 +338,6 @@
         {
             "name": "External temperature",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*ext*temp",
             "unit": "°C"
@@ -346,7 +345,6 @@
         {
             "name": "Flow inlet temperature",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*flow*temp*in",
             "unit": "°C"
@@ -354,15 +352,13 @@
         {
             "name": "Flow outlet temperature",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*flow*temp*out",
             "unit": "°C"
         },
         {
-            "name": "Power",
+            "name": "Power thermal",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*flow*power",
             "unit": "W"
@@ -370,21 +366,18 @@
         {
             "name": "Compressor state",
             "tag": "<name>",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*state"
         },
         {
             "name": "Circulator pump state",
             "tag": "<name> domestic water",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*water*dom*pump*state"
         },
         {
             "name": "Buffer temperature",
             "tag": "<name> domestic water",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*water*dom*temp",
             "unit": "°C"
@@ -392,7 +385,6 @@
         {
             "name": "Setpoint temperature",
             "tag": "<name> domestic water",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*water*dom*temp*setpoint",
             "unit": "°C"
@@ -400,14 +392,12 @@
         {
             "name": "Circulator pump state",
             "tag": "<name> heating water",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*water*ht*pump*state"
         },
         {
             "name": "Buffer temperature",
             "tag": "<name> heating water",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*water*ht*temp",
             "unit": "°C"
@@ -415,7 +405,6 @@
         {
             "name": "Setpoint temperature",
             "tag": "<name> heating water",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*water*ht*temp*setpoint",
             "unit": "°C"

@@ -1,7 +1,7 @@
 {
     "name": "blueplanet hybrid",
-    "category": "Inverter",
     "group": "KACO",
+    "category": "Inverter",
     "description": "KACO blueplanet hybrid 10.0 TL3 inverter",
 
     "devices": [
@@ -163,7 +163,6 @@
         {
             "name": "Power DC",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc_power",
             "unit": "W"
@@ -171,7 +170,6 @@
         {
             "name": "Energy DC",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc_energy",
             "unit": "kWh"
@@ -179,7 +177,6 @@
         {
             "name": "Voltage DC1",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc1_voltage",
             "unit": "V"
@@ -187,7 +184,6 @@
         {
             "name": "Voltage DC2",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc2_voltage",
             "unit": "V"
@@ -195,7 +191,6 @@
         {
             "name": "Power active",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_active",
             "unit": "W"
@@ -203,7 +198,6 @@
         {
             "name": "Power reactive",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_reactive",
             "unit": "Var"
@@ -211,7 +205,6 @@
         {
             "name": "Power setpoint",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_setpoint",
             "unit": "W"
@@ -219,7 +212,6 @@
         {
             "name": "Voltage",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_voltage",
             "unit": "V"
@@ -227,7 +219,6 @@
         {
             "name": "Frequency",
             "tag": "Inverter",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_frequency",
             "unit": "Hz"

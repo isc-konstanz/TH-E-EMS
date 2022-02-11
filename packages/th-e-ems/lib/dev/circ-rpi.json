@@ -73,14 +73,12 @@
         {
             "name": "State",
             "tag": "<name> flow",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*pump*state"
         },
         {
             "name": "Power",
             "tag": "<name> flow",
-            "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
             "table": "<node>*pump*power"
         }

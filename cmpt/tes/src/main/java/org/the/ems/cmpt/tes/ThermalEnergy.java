@@ -10,7 +10,7 @@ public class ThermalEnergy {
 
 	private final HeatingService component;
 
-	private Double energy = Double.NaN;
+	private Double energyLatest = Double.NaN;
 
 	public ThermalEnergy(HeatingService component) {
 		this.component = component;
@@ -25,14 +25,14 @@ public class ThermalEnergy {
 	}
 
 	public Value getValue() throws ComponentException, InvalidValueException {
-		Value value = component.getThermalEnergy();
+		Value energy = component.getThermalEnergy();
 		double energyDelta = 0;
-		if (!energy.isNaN()) {
-			energyDelta = value.doubleValue() - energy;
+		if (!energyLatest.isNaN()) {
+			energyDelta = Math.max(energy.doubleValue() - energyLatest, 0);
 		}
-		energy = value.doubleValue();
+		energyLatest = energy.doubleValue();
 		
-		return new DoubleValue(energyDelta, value.getEpochMillis());
+		return new DoubleValue(energyDelta, energy.getEpochMillis());
 	}
 
 }

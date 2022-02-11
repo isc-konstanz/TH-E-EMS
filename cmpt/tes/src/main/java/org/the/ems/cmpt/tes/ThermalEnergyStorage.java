@@ -221,7 +221,7 @@ public class ThermalEnergyStorage extends Component
 				
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
 				double energyDelta = specificHeat*mass*tempDelta;
-				energyDelta = Math.max(energyDelta + energyInput, 0);
+				energyDelta = Math.max(energyDelta - energyInput, 0);
 				
 				energyLast += energyDelta/3600;
 				energy.setLatestValue(new DoubleValue(energyLast, time));

@@ -12,6 +12,10 @@ if [ -d /var/opt/emonmuc/device ]; then
         sudo -u $emonuser ln -s /var/opt/ems/dev /var/opt/emonmuc/device/ems
     fi
     chown $emonuser:$emonuser -R /var/opt/ems/dev
+
+    if [ -f "/var/www/emoncms/scripts/admin/device_update.php" ]; then
+        php -f "/var/www/emoncms/scripts/admin/device_update.php"
+    fi
 fi
 
 #DEBHELPER#

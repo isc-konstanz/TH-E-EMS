@@ -107,7 +107,7 @@ configure(javaProjects()) {
         }
         jar {
             bnd('Bundle-Vendor':       projectVendor,
-                'Bundle-DocURL':       projectRepository,
+                'Bundle-DocURL':       projectSite,
                 'Bundle-Description':  projectDescription,
                 'Bundle-Name':         projectFullName,
                 'Bundle-SymbolicName': projectKey.replace('th-e-ems-', 'org.the.ems.').replaceAll('-', '.'))
@@ -149,11 +149,6 @@ task javadocAll(type: Javadoc) {
 
     classpath += files(javadocProjects.collect { project ->
         project.sourceSets.main.output })
-}
-
-task packages {
-    apply from: rootDir.getPath() + "/packages/build.gradle"
-    dependsOn debianPackages
 }
 
 task distribute(type: Tar) {

@@ -183,38 +183,37 @@ public class WeiTrona extends HeatPump {
 		}
 	}
 
-	@Override
-	protected void onInterrupt() throws ComponentException {
-		super.onInterrupt();
-		
-		long timestamp = System.currentTimeMillis();
-		for (WeiderHeatingHandler heating : heatings.values()) {
-			try {
-    	        switch (getState()) {
-    	        case STARTING:
-        			if (!heating.isStarted() && isRunning(heating.type)) {
-        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
-        				heatingSettings.setEnforced(true);
-        				start(heatingSettings);
-
-        			}
-    				break;
-    	        case STOPPING:
-    	        case STANDBY:
-        			if (!heating.isStopped()) {
-        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
-        				heatingSettings.setEnforced(true);
-        				stop(heatingSettings);
-        			}
-    	            break;
-    	        default:
-    	            break;
-    	        }
-			} catch (EnergyManagementException e) {
-				logger.warn("Error verifying heating {} temperature setpoint value: {}",
-						heating.type.toString().toLowerCase(), e.getMessage());
-			}
-		}
-	}
+//	@Override
+//	protected void onInterrupt() throws ComponentException {
+//		super.onInterrupt();
+//		
+//		long timestamp = System.currentTimeMillis();
+//		for (WeiderHeatingHandler heating : heatings.values()) {
+//			try {
+//    	        switch (getState()) {
+//    	        case STARTING:
+//        			if (!heating.isStarted()) {
+//        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
+//        				heatingSettings.setEnforced(true);
+//        				start(heatingSettings);
+//        			}
+//    				break;
+//    	        case STOPPING:
+//    	        case STANDBY:
+//        			if (!heating.isStopped() ) {
+//        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
+//        				heatingSettings.setEnforced(true);
+//        				stop(heatingSettings);
+//        			}
+//    	            break;
+//    	        default:
+//    	            break;
+//    	        }
+//			} catch (EnergyManagementException e) {
+//				logger.warn("Error verifying heating {} temperature setpoint value: {}",
+//						heating.type.toString().toLowerCase(), e.getMessage());
+//			}
+//		}
+//	}
 
 }

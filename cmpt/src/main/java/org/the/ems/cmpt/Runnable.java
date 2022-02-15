@@ -208,7 +208,7 @@ public abstract class Runnable extends Component implements RunnableService {
 			break;
 		case STARTING:
 			if (isRunning()) {
-				doRun();
+				doRunning();
 			}
 			break;
 		default:
@@ -324,10 +324,12 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (stateIsWritable && state != null) {
 			writeContainer.add(state, new BooleanValue(true, settings.getEpochMillis()));
 		}
-		setState(RunState.STARTING);
 		doStart(writeContainer, settings);
 		write(writeContainer);
+
+		// Set latest start time and state when writing was successful
 		startTimeLast = settings.getEpochMillis();
+		setState(RunState.STARTING);
 	}
 
 	void doStart(WriteContainer container, StartSettings settings) throws EnergyManagementException {
@@ -369,9 +371,9 @@ public abstract class Runnable extends Component implements RunnableService {
 		return false;
 	}
 
-	void doRun() throws ComponentException {
-		setState(RunState.RUNNING);
+	void doRunning() throws ComponentException {
 		onRunning();
+		setState(RunState.RUNNING);
 	}
 
 	protected void onRunning() throws ComponentException {
@@ -410,10 +412,12 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (stateIsWritable && state != null) {
 			writeContainer.add(state, new BooleanValue(false, settings.getEpochMillis()));
 		}
-		setState(RunState.STOPPING);
 		doStop(writeContainer, settings);
 		write(writeContainer);
+
+		// Set latest start time and state when writing was successful
 		startTimeLast = settings.getEpochMillis();
+		setState(RunState.STOPPING);
 	}
 
 	void doStop(WriteContainer container, StopSettings settings) throws EnergyManagementException {
@@ -456,8 +460,8 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	void doStandby() throws ComponentException {
-		setState(RunState.STANDBY);
 		onStandby();
+		setState(RunState.STANDBY);
 	}
 
 	protected void onStandby() throws ComponentException {
@@ -497,8 +501,8 @@ public abstract class Runnable extends Component implements RunnableService {
 								doStart(getStartSettings(System.currentTimeMillis()));
 							}
 							else {
-								setState(RunState.RUNNING);
 								onRunning();
+								setState(RunState.RUNNING);
 							}
 						}
 						break;
@@ -509,8 +513,8 @@ public abstract class Runnable extends Component implements RunnableService {
 								doStop(getStopSettings(System.currentTimeMillis()));
 							}
 							else {
-								setState(RunState.STANDBY);
 								onStandby();
+								setState(RunState.STANDBY);
 							}
 						}
 						break;

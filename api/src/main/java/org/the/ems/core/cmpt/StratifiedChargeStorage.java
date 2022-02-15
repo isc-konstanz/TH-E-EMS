@@ -28,7 +28,7 @@ import org.the.ems.core.data.ValueListener;
 public interface StratifiedChargeStorage extends ThermalEnergyStorageService {
 
 	/*
-	 * Get the temperature of a certain layer in degree celsius [°C].
+	 * Get the temperature of a certain layer in degree celsius [Â°C].
 	 * 
 	 * @return the average temperature {@link Value}
 	 * 
@@ -38,7 +38,7 @@ public interface StratifiedChargeStorage extends ThermalEnergyStorageService {
 	public Value getTemperature(HeatingType type) throws ComponentException, InvalidValueException;
 
 	/*
-	 * Get the temperature of a certain layer in degree celsius [°C].
+	 * Get the temperature of a certain layer in degree celsius [Â°C].
 	 * Additionally, register a {@link ValueListener}, to be notified of new temperature values.
 	 * 
 	 * @return the average temperature {@link Value}

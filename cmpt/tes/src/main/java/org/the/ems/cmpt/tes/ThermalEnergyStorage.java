@@ -32,6 +32,7 @@ import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.cmpt.StratifiedChargeStorage;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationCollection.DoubleCollection;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
@@ -76,6 +77,9 @@ public class ThermalEnergyStorage extends Component
 
 	@Configuration(value="heating*")
 	protected List<String> heatingIds;
+
+	@Configuration(value="weight_*")
+	protected DoubleCollection weights;
 
 	@Configuration(value="temp_*")
 	protected ChannelCollection temperatures;
@@ -189,6 +193,17 @@ public class ThermalEnergyStorage extends Component
 	}
 
 	@Override
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		super.onConfigure(configs);
+		for (String temperatureKey : temperatures.keySet()) {
+			String weightKey = temperatureKey.replace("temp_", "weight_");
+			if (!weights.contains(weightKey)) {
+				weights.add(weightKey, (double) temperatures.size());
+			}
+		}
+	}
+
+	@Override
 	protected void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		executor.shutdown();
@@ -200,7 +215,7 @@ public class ThermalEnergyStorage extends Component
 			long time = System.currentTimeMillis();
 			double temperature;
 			if (temperatures.size() > 0) {
-				temperature = getAverageWaterTemperature();
+				temperature = getWeightedWaterTemperature();
 			}
 			else {
 				Value temp = getTemperature();
@@ -337,26 +352,21 @@ public class ThermalEnergyStorage extends Component
 		}
 	}
 
-	protected double getAverageWaterTemperature() {
-		int tempCount = 0;
-		double tempSum = 0;
-		for (Channel channel : temperatures.values()) {
-			try {
-				tempSum += channel.getLatestValue().doubleValue();
-				tempCount++;
-				
-			} catch (InvalidValueException e) {
-				// Do nothing
-			}
+	protected double getWeightedWaterTemperature() throws InvalidValueException {
+		double temperature = 0;
+		for (String temperatureKey : temperatures.keySet()) {
+			String weightKey = temperatureKey.replace("temp_", "weight_");
+			temperature += (temperatures.get(temperatureKey).getLatestValue().doubleValue()
+					/ weights.get(weightKey));
 		}
-		return tempSum/tempCount;
+		return temperature;
 	}
 
 	@Override
 	public void onValueReceived(Value value) {
 		long timeMax = -1;
-		for (Channel channel : temperatures.values()) {
-			try {
+		try {
+			for (Channel channel : temperatures.values()) {
 				Value temperatureValue = channel.getLatestValue();
 				if (temperatureValue.getEpochMillis() <= timestampLast) {
 					return;
@@ -364,12 +374,13 @@ public class ThermalEnergyStorage extends Component
 				if (temperatureValue.getEpochMillis() > timeMax) {
 					timeMax = temperatureValue.getEpochMillis();
 				}
-			} catch (InvalidValueException e) {
-				return;
 			}
+			timestampLast = timeMax;
+			temperature.setLatestValue(new DoubleValue(getWeightedWaterTemperature(), timestampLast));
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Unable to calculate weighted storage temperature: {}", e.getMessage());
 		}
-		timestampLast = timeMax;
-		temperature.setLatestValue(new DoubleValue(getAverageWaterTemperature(), timestampLast));
 	}
 
 	private TemporalAdjuster next(int interval) {

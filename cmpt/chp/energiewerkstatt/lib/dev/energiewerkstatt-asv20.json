@@ -252,7 +252,7 @@
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
                 "feed": {"name": "Energy active", "tag": "<name>"}
             }
-        }
+        },
         {
             "name": "<node>*power*thermal",
             "description": "Thermal power",

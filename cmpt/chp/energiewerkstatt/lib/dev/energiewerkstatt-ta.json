@@ -144,26 +144,26 @@
         },
         {
             "name": "<node>*temp",
-            "description": "Tank temperature",
-            "device": "<node>",
+            "description": "Weighted temperature",
+            "device": "_<node>",
             "configs": {"valueType":"DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true, "engine":"SQL",
-                "feed": {"name": "Tank Temperature", "tag": "<name>"}
+                "feed": {"name": "Weighted temperature", "tag": "<name>"}
             }
         },
         {
             "name": "<node>*power",
             "description": "Tank power",
-            "device": "<node>",
+            "device": "_<node>",
             "configs": {"valueType":"DOUBLE", "unit": "W"},
             "logging": {"loggingInterval": 60000, "loggingMaxInterval": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Weighted power", "tag": "<name>"}
+                "feed": {"name": "Power thermal", "tag": "<name>"}
             }
         },
         {
             "name": "<node>*energy",
             "description": "Tank energy",
-            "device": "<node>",
+            "device": "_<node>",
             "configs": {"valueType":"DOUBLE", "unit": "kWh"}
         }
     ],

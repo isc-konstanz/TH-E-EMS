@@ -52,6 +52,7 @@ public class PowerListener implements ValueListener {
 
 	protected void onPowerReceived(Value powerValue) {
 		if (energyLast == null) {
+			energyLast = new DoubleValue(0, powerValue.getEpochMillis());
 			return;
 		}
 		long deltaSeconds = (powerValue.getEpochMillis() - energyLast.getEpochMillis())/1000;

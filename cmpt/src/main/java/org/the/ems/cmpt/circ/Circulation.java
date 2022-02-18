@@ -25,6 +25,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.FlowTemperatureListener.CirculationTemperatureCallbacks;
+import org.the.ems.cmpt.util.PowerListener;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
@@ -33,7 +34,6 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
 
 public class Circulation extends Component implements CirculationTemperatureCallbacks {
 
@@ -101,10 +101,10 @@ public class Circulation extends Component implements CirculationTemperatureCall
 			return;
 		}
 		if (flowVolume != null) {
-			flowVolume.registerValueListener(new FlowVolumeListener());
+			flowVolume.registerValueListener(new FlowVolumeListener(flowEnergy));
 		}
 		else if (flowCounter != null) {
-			flowCounter.registerValueListener(new FlowCountListener());
+			flowCounter.registerValueListener(new FlowCountListener(flowEnergy));
 		}
 		else {
 			throw new ConfigurationException("Missing configured flow volume or counter");
@@ -152,9 +152,11 @@ public class Circulation extends Component implements CirculationTemperatureCall
 		}
 	}
 
-	private class FlowListener implements ValueListener {
+	private class FlowListener extends PowerListener {
 
-		private Value flowEnergyLast = null;
+		public FlowListener(Channel energy) {
+			super(energy);
+		}
 
 		protected void onLitersReceived(double flow, long timestamp) {
 			logger.debug("Received {}l water flowing in circulation", flow);
@@ -191,12 +193,9 @@ public class Circulation extends Component implements CirculationTemperatureCall
 						String.format("%.2f", flowTempDeltaValue), 
 						String.format("%.2f", flowEnergyValue));
 			}
-			if (flowEnergyLast == null) {
-				flowEnergyLast = DoubleValue.emptyValue();
-			}
-			else {
+			if (energyLast != null) {
 				// Calculate average power since last counter tick
-				long timeDelta = (timestamp - flowEnergyLast.getEpochMillis())/1000;
+				long timeDelta = (timestamp - energyLast.getEpochMillis())/1000;
 				double flowPowerValue = flowEnergyValue/timeDelta;
 				flowPower.setLatestValue(new DoubleValue(flowPowerValue*1000, timestamp));
 
@@ -205,15 +204,17 @@ public class Circulation extends Component implements CirculationTemperatureCall
 							String.format("%.2f", flowPowerValue*1000));
 				}
 			}
-			double energyTotal = flowEnergyLast.doubleValue() + flowEnergyValue/3600;
-			flowEnergyLast = new DoubleValue(energyTotal, timestamp);
-			flowEnergy.setLatestValue(flowEnergyLast);
+			onEnergyReceived(new DoubleValue(flowEnergyValue/3600, timestamp));
 		}
 	}
 
 	private class FlowVolumeListener extends FlowListener {
 
 		private long flowTimeLast = -1;
+
+		public FlowVolumeListener(Channel energy) {
+			super(energy);
+		}
 
 		@Override
 		public void onValueReceived(Value volume) {
@@ -231,6 +232,10 @@ public class Circulation extends Component implements CirculationTemperatureCall
 	private class FlowCountListener extends FlowListener {
 
 		private Double flowCounterLast = Double.NaN;
+
+		public FlowCountListener(Channel energy) {
+			super(energy);
+		}
 
 		@Override
 		public void onValueReceived(Value counter) {

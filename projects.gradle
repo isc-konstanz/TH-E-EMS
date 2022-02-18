@@ -39,6 +39,7 @@ project.ext {
         it.getPath() == ':cmpt:ev' ||
         it.getPath() == ':cmpt:ev:chargebig' ||
         it.getPath() == ':cmpt:chp' ||
+        it.getPath() == ':cmpt:chp:energiewerkstatt' ||
         it.getPath() == ':cmpt:chp:ice' ||
         it.getPath() == ':cmpt:chp:serenergy' ||
         it.getPath() == ':cmpt:hp' ||

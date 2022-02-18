@@ -18,17 +18,17 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-EMS'
+project.ext {
+    projectKey = 'th-e-ems-chp-energiewerkstatt'
+    projectName = 'TH-E-EMS-Cogenerator-Energiewerkstatt'
+    projectFullName = 'TH-E EMS Components - Energiewerkstatt Cogernerator'
+    projectDescription = 'Energiewerkstatt cogernerator component for TH-E EMS framework.'
+}
 
-include 'api',
-        'main',
-        'cmpt',
-        'cmpt:ev', 'cmpt:ev:chargebig',
-        'cmpt:chp', 'cmpt:chp:energiewerkstatt', 'cmpt:chp:ice', 'cmpt:chp:serenergy',
-        'cmpt:hp', 'cmpt:hp:weider',
-        'cmpt:hr',
-        'cmpt:vnt',
-        'cmpt:tes',
-        'cmpt:inv', 'cmpt:inv:kaco', 'cmpt:inv:effekta',
-        'ctrl', 'ctrl:tp', 'ctrl:ps', 'ctrl:mpc',
-        'cms', 'cms:mockup'
+dependencies {
+    implementation project(':cmpt:chp')
+}
+
+jar {
+    bnd('Export-Package': '')
+}

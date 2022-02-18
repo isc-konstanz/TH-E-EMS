@@ -25,6 +25,8 @@ public interface RunStateListener {
 
 	public void onStateChanged(RunState state) throws EnergyManagementException;
 
-	public void onStateChanged(Value state) throws EnergyManagementException;
+	public default void onStateChanged(Value state) throws EnergyManagementException {
+		// Default implementation to be overridden
+	}
 
 }

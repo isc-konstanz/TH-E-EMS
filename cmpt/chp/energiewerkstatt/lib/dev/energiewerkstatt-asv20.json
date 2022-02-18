@@ -11,6 +11,11 @@
             "description": "Energiewerkstatt Modbus RTU connection",
             "address": "<address>",
             "settings": "RTU:SERIAL_ENCODING_RTU:<baudRate>:DATABITS_8:PARITY_NONE:STOPBITS_1:ECHO_FALSE:FLOWCONTROL_NONE:FLOWCONTROL_NONE"
+        },
+        {
+            "name": "_<node>",
+            "description": "Energiewerkstatt",
+            "driver": "virtual"
         }
     ],
 
@@ -133,13 +138,6 @@
             "input": "<node>*state"
         },
         {
-            "id": "temp",
-            "type": "Text",
-            "label": "Buffer temperature",
-            "format": "%.1f °C",
-            "input": "<node>*flow*temp*in"
-        },
-        {
             "id": "power",
             "type": "Text",
             "label": "Generation power",
@@ -247,13 +245,25 @@
             }
         },
         {
-            "name": "<node>*energy",
-            "description": "Energy",
+            "name": "<node>*energy*active",
+            "description": "Energy active",
             "address": "<unitId>:HOLDING_REGISTERS:43595:UINT32",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "LONG", "unit": "kWh"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
-                "feed": {"name": "Energy", "tag": "<name>"}
+                "feed": {"name": "Energy active", "tag": "<name>"}
             }
+        }
+        {
+            "name": "<node>*power*thermal",
+            "description": "Thermal power",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"}
+        },
+        {
+            "name": "<node>*energy*thermal",
+            "description": "Thermal energy",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
         }
     ],
 
@@ -294,10 +304,10 @@
             "unit": "W"
         },
         {
-            "name": "Energy",
+            "name": "Energy active",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>*energy",
+            "table": "<node>*energy*active",
             "unit": "kWh"
         }
     ]

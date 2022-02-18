@@ -7,9 +7,14 @@
     "driver": "modbus",
     "devices": [
         {
-            "description": "Modbus TCP connection",
+            "description": "Energiewerkstatt TA Modbus TCP connection",
             "address": "<address>:<port>",
             "settings": "TCP"
+        },
+        {
+            "name": "_<node>",
+            "description": "Energiewerkstatt TA",
+            "driver": "virtual"
         }
     ],
 
@@ -63,14 +68,33 @@
         }
     ],
 
+    "items": [
+        {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Temperature",
+            "header": true,
+            "format": "%.1f °C",
+            "input": "<node>*temp"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*power"
+        }
+    ],
+
     "channels": [
         {
-            "name": "<node>*1*temp*in",
-            "description": "Tank 1 inlet temperature",
+            "name": "<node>*1*temp*top",
+            "description": "Tank 1 temperature top",
             "address": "1:INPUT_REGISTERS:10:FLOAT",
             "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
-                "feed": {"name": "Tank 1 inlet temperature", "tag": "<name>"}
+                "feed": {"name": "Tank 1 temperature top", "tag": "<name>"}
             }
         },
         {
@@ -92,21 +116,21 @@
             }
         },
         {
-            "name": "<node>*3*temp",
-            "description": "Tank 3 temperature",
+            "name": "<node>*3*temp*top",
+            "description": "Tank 3 temperature top",
             "address": "1:INPUT_REGISTERS:16:FLOAT",
             "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
-                "feed": {"name": "Tank 3 inlet temperature", "tag": "<name>"}
+                "feed": {"name": "Tank 3 temperature top", "tag": "<name>"}
             }
         },
         {
-            "name": "<node>*3*temp*out",
-            "description": "Tank 3 outlet temperature",
+            "name": "<node>*3*temp*bot",
+            "description": "Tank 3 temperature bottom",
             "address": "1:INPUT_REGISTERS:18:FLOAT",
             "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
-                "feed": {"name": "Tank 3 outlet temperature", "tag": "<name>"}
+                "feed": {"name": "Tank 3 temperature bottom", "tag": "<name>"}
             }
         },
         {
@@ -117,6 +141,30 @@
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
                 "feed": {"name": "Flow temperature", "tag": "<name>"}
             }
+        },
+        {
+            "name": "<node>*temp",
+            "description": "Tank temperature",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true, "engine":"SQL",
+                "feed": {"name": "Tank Temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*power",
+            "description": "Tank power",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Weighted power", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*energy",
+            "description": "Tank energy",
+            "device": "<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
         }
     ],
 
@@ -129,10 +177,10 @@
             "unit": "°C"
         },
         {
-            "name": "Tank 1 inlet temperature",
+            "name": "Tank 1 temperature top",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>*1*temp*in",
+            "table": "<node>*1*temp*top",
             "unit": "°C"
         },
         {
@@ -150,18 +198,32 @@
             "unit": "°C"
         },
         {
-            "name": "Tank 3 inlet temperature",
+            "name": "Tank 3 temperature top",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>*3*temp",
+            "table": "<node>*3*temp*top",
             "unit": "°C"
         },
         {
-            "name": "Tank 3 outlet temperature",
+            "name": "Tank 3 temperature bottom",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>*3*temp*out",
+            "table": "<node>*3*temp*bot",
             "unit": "°C"
+        },
+        {
+            "name": "Weighted temperature",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Power thermal",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*power",
+            "unit": "W"
         }
     ]
 }

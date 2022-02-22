@@ -68,7 +68,7 @@ public class ASV extends Cogenerator {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		electricalPower.registerValueListener(new ElectricalPowerListener(electricalEnergy));
+		electricalPower.registerValueListener(new ElectricalPowerListener());
 		electricalPower.registerValueListener(new ThermalPowerListener(thermalEnergy));
 	}
 
@@ -115,10 +115,6 @@ public class ASV extends Cogenerator {
 	private class ElectricalPowerListener extends PowerListener {
 
 		private Double powerLast = null;
-
-		public ElectricalPowerListener(Channel energy) {
-			super(energy);
-		}
 
 		@Override
 		public void onValueChanged(Value power) {

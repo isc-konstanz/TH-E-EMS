@@ -32,6 +32,7 @@ import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -66,7 +67,7 @@ public final class ConfigurationService extends Thread {
 	ContentManagementService content; // make sure the CMS is active before registering bundles
 
 	@Activate
-	protected void activate() {
+	protected void activate(BundleContext context) {
 		try {
 			watcher = FileSystems.getDefault().newWatchService();
 			load(EnergyManager.PID, ConfigurationReader.read(
@@ -87,6 +88,8 @@ public final class ConfigurationService extends Thread {
 			if (files == null || files.length <= 1) {
 				return;
 			}
+			wait(1);
+			
 			// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
 			// and only continue if all bundles are active, instead of waiting a second
 			

@@ -29,6 +29,9 @@ public class PowerListener implements ValueListener {
 	protected Channel energy;
 	protected Value energyLast = null;
 
+	public PowerListener() {
+	}
+
 	public PowerListener(Channel energy) {
 		this.energy = energy;
 	}
@@ -57,7 +60,7 @@ public class PowerListener implements ValueListener {
 		}
 		long deltaSeconds = (powerValue.getEpochMillis() - energyLast.getEpochMillis())/1000;
 		double deltaHours = (double) deltaSeconds/3600;
-		Value deltaEnergy = new DoubleValue(powerValue.doubleValue()/1000/deltaHours);
+		Value deltaEnergy = new DoubleValue(powerValue.doubleValue()/1000*deltaHours);
 		this.onEnergyReceived(deltaEnergy);
 	}
 

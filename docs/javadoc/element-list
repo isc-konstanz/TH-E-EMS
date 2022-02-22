@@ -1,5 +1,6 @@
 org.the.ems.cmpt
 org.the.ems.cmpt.circ
+org.the.ems.cmpt.util
 org.the.ems.core
 org.the.ems.core.cmpt
 org.the.ems.core.config

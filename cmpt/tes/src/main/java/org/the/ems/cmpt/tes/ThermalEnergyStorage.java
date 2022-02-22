@@ -54,6 +54,9 @@ public class ThermalEnergyStorage extends Component
 
 	private static final Logger logger = LoggerFactory.getLogger(ThermalEnergyStorage.class);
 
+	private static final int SECONDS_IN_HOUR = 3600;
+	private static final int MILLIS_IN_HOUR = 3600000;
+
 	protected static final String TEMP_WATER_DOM_VALUE = "temp_dom";
 	protected static final String TEMP_WATER_HT_VALUE = "temp_ht";
 
@@ -231,16 +234,33 @@ public class ThermalEnergyStorage extends Component
 				}
 			}
 			if (temperatureLast != null) {
-				long timeDelta = (time - temperatureLast.getEpochMillis())/1000;
-				double tempDelta = temperatureLast.doubleValue() - temperature;
+				double hoursDelta = ((double) time - temperatureLast.getEpochMillis())/MILLIS_IN_HOUR;
+				double tempDelta = temperature - temperatureLast.doubleValue();
 				
 				// Calculate energy in Q[kJ] = cp*m[kg]*dT[°C]
-				double energyDelta = specificHeat*mass*tempDelta;
-				energyDelta = Math.max(energyDelta - energyInput, 0);
+				double jouleDelta = specificHeat*mass*tempDelta;
 				
-				energyLast += energyDelta/3600;
+				double energyValue;
+				double energyDelta = jouleDelta/SECONDS_IN_HOUR;
+				
+				// When the tank temperature is dropping, the input energy is insufficient.
+				// The real energy consumption is the sum of measured and input energy
+				if (energyDelta < 0) {
+					energyValue = energyInput + Math.abs(energyDelta);
+				}
+				// When the tank temperature is rising, energy consumption is what's left of 
+				// the input energy
+				else if (energyDelta > 0) {
+					energyValue = energyInput - energyDelta;
+				}
+				else {
+					energyValue = energyInput;
+				}
+				energyValue = Math.max(energyValue, 0);
+				
+				energyLast += energyValue;
 				energy.setLatestValue(new DoubleValue(energyLast, time));
-				power.setLatestValue(new DoubleValue(energyDelta*1000/timeDelta, time));
+				power.setLatestValue(new DoubleValue(energyValue*1000/hoursDelta, time));
 			}
 			temperatureLast = new DoubleValue(temperature, time);
 			

@@ -34,8 +34,8 @@ public class BooleanValue extends Value {
 		return Boolean.toString(booleanValue());
 	}
 
-	public static BooleanValue emptyValue() {
-		return new BooleanValue(false);
+	public static BooleanValue copy(Value value) {
+		return new BooleanValue(value.booleanValue(), value.getEpochMillis());
 	}
 
 }

@@ -87,8 +87,8 @@ public class Circulation extends Component implements CirculationTemperatureCall
 
 	private List<Value> flowTempDeltaValues = new ArrayList<Value>();
 
-	private Value flowTempInLast = DoubleValue.emptyValue();
-	private Value flowTempOutLast = DoubleValue.emptyValue();
+	private Value flowTempInLast = DoubleValue.zeroValue();
+	private Value flowTempOutLast = DoubleValue.zeroValue();
 
 	public Circulation() {
 		super(SECTION);

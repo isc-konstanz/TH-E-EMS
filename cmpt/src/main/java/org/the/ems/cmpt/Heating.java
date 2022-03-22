@@ -327,7 +327,9 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	@Override
 	void doSet(Value value) throws EnergyManagementException {
-		if (value.doubleValue() != 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
+		if (value.doubleValue() <= 0 ||
+				(value.doubleValue() > getMaxPower() || 
+				value.doubleValue() < getMinPower())) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
 		WriteContainer container = new WriteContainer();
@@ -362,7 +364,9 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	void doStart(WriteContainer container, ValueSettings settings) throws EnergyManagementException {
 		Value value = settings.getValue();
-		if (value.doubleValue() <= 0 && value.doubleValue() > getMaxPower() || value.doubleValue() < getMinPower()) {
+		if (value.doubleValue() <= 0 ||
+				value.doubleValue() > getMaxPower() || 
+				value.doubleValue() < getMinPower()) {
 			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
 		}
 		onStart(container, settings);

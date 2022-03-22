@@ -29,8 +29,12 @@ public class ShortValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
-	public static ShortValue emptyValue() {
+	public static ShortValue zeroValue() {
 		return new ShortValue((short) 0);
+	}
+
+	public static ShortValue copy(Value value) {
+		return new ShortValue(value.shortValue(), value.getEpochMillis());
 	}
 
 }

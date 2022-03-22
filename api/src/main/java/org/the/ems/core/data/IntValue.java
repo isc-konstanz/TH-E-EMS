@@ -29,8 +29,12 @@ public class IntValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
-	public static IntValue emptyValue() {
+	public static IntValue zeroValue() {
 		return new IntValue(0);
+	}
+
+	public static IntValue copy(Value value) {
+		return new IntValue(value.intValue(), value.getEpochMillis());
 	}
 
 }

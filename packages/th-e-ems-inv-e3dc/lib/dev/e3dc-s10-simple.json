@@ -1,0 +1,139 @@
+{
+    "name": "S10-Simple",
+    "group": "E3DC",
+    "category": "Inverter",
+    "description": "E3DC S10 Home power station",
+
+    "driver": "modbus",
+    "devices": [
+        {
+            "name": "<node>",
+            "description": "E3DC Modbus TCP connection",
+            "address": "<address>:<port>",
+            "settings": "TCP"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "address",
+            "name": "Server address",
+            "description": "The address to the Modbus TCP/IP server, e.g. 192.168.178.52",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "port",
+            "name": "Server port",
+            "description": "The port of the Modbus TCP/IP server, e.g. 502",
+            "type": "text",
+            "default": 502,
+            "mandatory": false
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the values of the meter device will be read.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 5000,
+            "mandatory": false
+        }
+    ],
+
+    "items": [
+        {
+            "id": "dc",
+            "type": "Text",
+            "label": "Generated power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*pv*power"
+        },
+        {
+            "id": "cons",
+            "type": "Text",
+            "label": "Consumed power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*cons*power"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*pv*power",
+            "description": "Inverter generated power",
+            "address": "1:HOLDING_REGISTERS:40067:INT32:SWAP",
+            "configs": {"samplingInterval": "<refresh>", "samplingGroup":"POWER", "valueType":"INTEGER", "unit":"W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power generation", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*cons*power",
+            "description": "Inverter consumed power",
+            "address": "1:HOLDING_REGISTERS:40071:INT32:SWAP",
+            "configs": {"samplingInterval": "<refresh>", "samplingGroup":"POWER", "valueType":"INTEGER", "unit":"W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power consumption", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*grid*power",
+            "description": "Inverter grid power",
+            "address": "1:HOLDING_REGISTERS:40073:INT32:SWAP",
+            "configs": {"samplingInterval": "<refresh>", "samplingGroup":"POWER", "valueType":"INTEGER", "unit":"W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power active", "tag": "<name>"}
+            }
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Power generation",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_pv_power",
+            "unit": "W"
+        },
+        {
+            "name": "Power consumption",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_cons_power",
+            "unit": "W"
+        },
+        {
+            "name": "Power active",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_grid_power",
+            "unit": "W"
+        }
+    ]
+}

@@ -95,7 +95,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 	@Configuration
 	protected Channel setpoint;
-	protected volatile Value setpointValue = DoubleValue.emptyValue();
+	protected volatile Value setpointValue = DoubleValue.zeroValue();
 
 	protected final ExternalPower external;
 	protected final ConsumptionPower conssumption;

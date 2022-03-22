@@ -52,7 +52,7 @@ public class HeatPump extends Heating implements HeatPumpService {
 
 	@Configuration("temp_in")
 	protected Channel temperatureInput;
-	protected Value temperatureInputValue = DoubleValue.emptyValue();
+	protected Value temperatureInputValue = DoubleValue.zeroValue();
 
 	@Configuration
 	protected double cop;

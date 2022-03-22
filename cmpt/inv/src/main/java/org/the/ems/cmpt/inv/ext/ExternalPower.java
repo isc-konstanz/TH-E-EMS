@@ -100,7 +100,7 @@ public class ExternalPower extends Component implements ValueListener {
 			value = solarPower.getLatestValue();
 			
 		} catch (InvalidValueException e) {
-			value = DoubleValue.emptyValue();
+			value = DoubleValue.zeroValue();
 		}
 		return value;
 	}

@@ -71,7 +71,7 @@ public class PeakShavingControl extends TwoPointControl {
 
 	protected double powerAverage = 0;
 
-	protected Value powerValue = DoubleValue.emptyValue();
+	protected Value powerValue = DoubleValue.zeroValue();
 	protected double powerLimitValue = Double.NaN;
 
 	protected double soc = 0;

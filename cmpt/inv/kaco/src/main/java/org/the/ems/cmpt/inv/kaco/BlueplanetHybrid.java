@@ -39,7 +39,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	@Configuration
 	private Channel setpointPower;
-	private Value setpointControl = DoubleValue.emptyValue();
+	private Value setpointControl = DoubleValue.zeroValue();
 
 	private ValueListener socListener;
 

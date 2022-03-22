@@ -2,7 +2,10 @@
 
   * Add PowerListener utility class
   * Add Energiewerkstatt CHP component
+  * Fix Heating onSet() and onStart() value validation
+  * Fix Runnable to redundantly call onSet() after starting or stopping component
   * Introduce weighted TES temperature instead of average
+  * Rename Value.emptyValue to .zeroValue and add validity methods
   * Make RunStateListener Value notification optional
   * Wait for EnergyManager activation
 

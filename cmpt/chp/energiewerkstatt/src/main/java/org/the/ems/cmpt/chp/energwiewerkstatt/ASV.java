@@ -1,5 +1,7 @@
 package org.the.ems.cmpt.chp.energwiewerkstatt;
 
+import java.text.MessageFormat;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
@@ -18,6 +20,7 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
+import org.the.ems.core.settings.StartSettings;
 import org.the.ems.core.settings.StopSettings;
 import org.the.ems.core.settings.ValueSettings;
 
@@ -30,6 +33,12 @@ import org.the.ems.core.settings.ValueSettings;
 public class ASV extends Cogenerator {
 	private static final Logger logger = LoggerFactory.getLogger(ASV.class);
 
+	private static final double SETPOINT_POWER_TOLERANCE = 100d;
+	private static final int SETPOINT_MONITORING_INTERVAL = 5;
+
+	@Configuration()
+	private Channel enable;
+
 	@Configuration(value=THERMAL_ENERGY_VALUE, mandatory=false)
 	private Channel thermalEnergy;
 
@@ -41,9 +50,32 @@ public class ASV extends Cogenerator {
 
 	@Configuration(value=ELECTRICAL_POWER_VALUE)
 	private Channel electricalPower;
+	private Double electricalPowerValue = Double.NaN;
 
 	@Configuration
 	private Channel setpointPower;
+	private DoubleValue setpointPowerValue = DoubleValue.emptyValue();
+
+	protected void setSetpointPowerValue(Value value) throws ComponentException {
+		if (value.doubleValue() > getMaxPower() || 
+				(value.doubleValue() < getMinPower() && value.doubleValue() != 0)) {
+			throw new ComponentException(MessageFormat.format("Invalid power value: {0}", value));
+		}
+		if (value instanceof DoubleValue) {
+			setpointPowerValue = (DoubleValue) value;
+		}
+		else {
+			setpointPowerValue = DoubleValue.copy(value);
+		}
+	}
+
+	protected void setSetpointPowerValue(double value, long timestamp) throws ComponentException {
+		this.setSetpointPowerValue(new DoubleValue(value, timestamp));
+	}
+
+	protected int getEnabledState() throws InvalidValueException {
+		return enable.getLatestValue().intValue();
+	}
 
 	@Override
 	public Value getElectricalEnergy() throws ComponentException, InvalidValueException {
@@ -74,23 +106,46 @@ public class ASV extends Cogenerator {
 
 	@Override
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
-		container.add(setpointPower, value);
+		synchronized (setpointPowerValue) {
+			if (value.getEpochMillis() - System.currentTimeMillis() > 100 ||
+					(setpointPowerValue.isNaN() || 
+					setpointPowerValue.doubleValue() != value.doubleValue())) {
+				setSetpointPowerValue(value);
+				if (logger.isDebugEnabled()) {
+					logger.debug("Updating Energiewerkstatt ASV power setpoint to {} kW",
+							Math.round(value.intValue()/1000));
+				}
+				container.add(setpointPower, value);
+			}
+		}
 	}
 
 	@Override
 	protected void onStart(WriteContainer container, ValueSettings settings) throws ComponentException {
-		container.add(setpointPower, settings.getValue());
+		if (logger.isDebugEnabled()) {
+			logger.debug("Starting Energiewerkstatt ASV with power setpoint of {} kW",
+					Math.round(settings.getValue().intValue()/1000));
+		}
+		synchronized (setpointPowerValue) {
+			setSetpointPowerValue(settings.getValue());
+			container.addInteger(enable, 1, settings.getEpochMillis());
+			container.add(setpointPower, setpointPowerValue);
+		}
 	}
 
 	@Override
 	public boolean isRunning() throws ComponentException {
 		double minimum = getMinPower();
 		if (minimum > 0) {
+			Double power = electricalPowerValue;
 			try {
-				return Math.abs(getElectricalPower().doubleValue()) >= minimum;
+				power = getElectricalPower().doubleValue();
 				
 			} catch(ComponentException | InvalidValueException e) {
 				logger.debug("Error while checking run state: {}", e.getMessage());
+			}
+			if (!power.isNaN()) {
+				return Math.abs(power) >= minimum;
 			}
 		}
 		return super.isRunning();
@@ -98,53 +153,90 @@ public class ASV extends Cogenerator {
 
 	@Override
 	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
-		container.add(setpointPower, new DoubleValue(0, settings.getEpochMillis()));
+		logger.debug("Stopping Energiewerkstatt ASV");
+
+		synchronized (setpointPowerValue) {
+			setSetpointPowerValue(0, settings.getEpochMillis());
+			container.addInteger(enable, 0, settings.getEpochMillis());
+			container.add(setpointPower, setpointPowerValue);
+		}
 	}
 
 	@Override
 	public boolean isStandby() throws ComponentException {
+		Double power = electricalPowerValue;
 		try {
-			return getElectricalPower().doubleValue() == 0.0;
+			power = getElectricalPower().doubleValue();
 			
 		} catch(ComponentException | InvalidValueException e) {
 			logger.debug("Error while checking standby state: {}", e.getMessage());
 		}
+		if (!power.isNaN()) {
+			return power == 0.0;
+		}
 		return super.isStandby();
+	}
+
+	@Override
+	protected void onInterrupt() {
+		try {
+			synchronized (setpointPowerValue) {
+				Value powerValue = getElectricalPower();
+				long interval = (System.currentTimeMillis() - setpointPowerValue.getEpochMillis())/1000;
+				if (interval % SETPOINT_MONITORING_INTERVAL == 0 && !setpointPowerValue.isNaN() &&
+						Math.abs(powerValue.doubleValue() - setpointPowerValue.doubleValue()) > SETPOINT_POWER_TOLERANCE) {
+					try {
+						if (setpointPowerValue.doubleValue() == 0) {
+							stop();
+						}
+						else if (powerValue.doubleValue() == 0) {
+							StartSettings settings = new ValueSettings(setpointPowerValue);
+							start(settings);
+						}
+						else {
+							set(setpointPowerValue);
+						}
+					} catch (EnergyManagementException e) {
+						logger.warn("Error updating setpoint power value: {}", e.getMessage());
+					}
+				}
+			}
+		} catch (ComponentException | InvalidValueException e) {
+			logger.debug("Error while checking setpoint power value: {}", e.getMessage());
+			
+		}
 	}
 
 	private class ElectricalPowerListener extends PowerListener {
 
-		private Double powerLast = null;
-
 		@Override
-		public void onValueChanged(Value power) {
+		public void onValueReceived(Value power) {
+			super.onValueReceived(power);
+			double powerValue = power.doubleValue();
 			try {
-				double powerValue = power.doubleValue();
-				if (powerLast != null) {
-					switch (getState()) {
-					case STARTING:
-					case RUNNING:
-						if (powerValue == 0 && powerLast >= getMinPower()) {
-							stop();
-						}
-						break;
-					case STANDBY:
-					case STOPPING:
-						if (powerLast == 0 && powerValue >= getMinPower()) {
-							onRunning();
-							setState(RunState.RUNNING);
-						}
-						break;
-					default:
-						break;
-					
+				switch (getState()) {
+				case STARTING:
+				case RUNNING:
+					if (powerValue == 0) { //&& (electricalPowerValue.isNaN() || electricalPowerValue >= getMinPower())) {
+						ValueSettings stopSettings = ValueSettings.ofBoolean(false, System.currentTimeMillis());
+                        stopSettings.setEnforced(true);
+						stop();
 					}
+					break;
+				case STANDBY:
+				case STOPPING:
+					if (powerValue >= getMinPower()) { //&& (electricalPowerValue.isNaN() || electricalPowerValue == 0)) {
+						onRunning();
+						setState(RunState.RUNNING);
+					}
+					break;
+				default:
+					break;
 				}
-				powerLast = powerValue;
-				
 			} catch (EnergyManagementException e) {
 				logger.warn("Error synchronizing run state change: {}", e.getMessage());
 			}
+			electricalPowerValue = powerValue;
 		}
 	}
 

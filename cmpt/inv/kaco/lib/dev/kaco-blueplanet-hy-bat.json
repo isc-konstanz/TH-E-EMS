@@ -4,6 +4,7 @@
     "category": "Inverter",
     "description": "KACO blueplanet hybrid 10.0 TL3 battery",
 
+    "driver": "edcom",
     "devices": [],
 
     "options": [
@@ -52,7 +53,7 @@
             "address": "BAT_SOC",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"%"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "engine":"SQL",
-                "feed": {"name": "State of Charge", "tag": "Battery"}
+                "feed": {"name": "State of Charge", "tag": "<name>"}
             }
         },
         {
@@ -62,7 +63,7 @@
             "address": "BAT_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
-                "feed": {"name": "Voltage", "tag": "Battery"}
+                "feed": {"name": "Voltage", "tag": "<name>"}
             }
         },
         {
@@ -71,8 +72,8 @@
             "device": "<inverter>",
             "address": "BAT_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Power", "tag": "Battery"}
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
             }
         }
     ],
@@ -82,7 +83,7 @@
             "name": "State of Charge",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>_state",
+            "table": "<node>_soc",
             "unit": "%"
         },
         {

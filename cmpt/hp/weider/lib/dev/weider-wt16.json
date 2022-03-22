@@ -172,7 +172,7 @@
         {
             "id": "water-ht-setpoint",
             "type": "Slider",
-            "label": "Heating stpoint temperature",
+            "label": "Heating setpoint temperature",
             "format": "%.1f °C",
             "max": 55,
             "min": 21,

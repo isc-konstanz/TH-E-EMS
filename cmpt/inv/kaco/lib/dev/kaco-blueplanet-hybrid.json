@@ -7,14 +7,14 @@
     "devices": [
         {
             "name": "<node>",
-            "description": "Inverter",
+            "description": "KACO inverter",
             "driver": "edcom",
 			"address": "ip:<ip>",
             "settings": "user:<user>,cert:<cert>"
         },
         {
             "name": "<node>*ctrl",
-            "description": "Inverter control",
+            "description": "KACO inverter control",
             "driver": "virtual"
         }
     ],
@@ -78,7 +78,7 @@
             "address": "DC_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Power DC", "tag": "Inverter"}
+                "feed": {"name": "Power DC", "tag": "<name>"}
             }
         },
         {
@@ -88,7 +88,7 @@
             "address": "DC_1_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
-                "feed": {"name": "Voltage DC1", "tag": "Inverter"}
+                "feed": {"name": "Voltage DC1", "tag": "<name>"}
             }
         },
         {
@@ -98,7 +98,7 @@
             "address": "DC_2_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
-                "feed": {"name": "Voltage DC2", "tag": "Inverter"}
+                "feed": {"name": "Voltage DC2", "tag": "<name>"}
             }
         },
         {
@@ -108,7 +108,7 @@
             "address": "GRID_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
-                "feed": {"name": "Voltage", "tag": "Inverter"}
+                "feed": {"name": "Voltage", "tag": "<name>"}
             }
         },
         {
@@ -118,7 +118,7 @@
             "address": "GRID_FREQUENCY",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Hz"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
-                "feed": {"name": "Frequency", "tag": "Inverter"}
+                "feed": {"name": "Frequency", "tag": "<name>"}
             }
         },
         {
@@ -128,7 +128,7 @@
             "address": "GRID_ACTIVE_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Power active", "tag": "Inverter"}
+                "feed": {"name": "Power active", "tag": "<name>"}
             }
         },
         {
@@ -138,7 +138,7 @@
             "address": "GRID_REACTIVE_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Var"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Power reactive", "tag": "Inverter"}
+                "feed": {"name": "Power reactive", "tag": "<name>"}
             }
         },
         {
@@ -154,7 +154,7 @@
             "device": "<node>*ctrl",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Power setpoint", "tag": "Inverter"}
+                "feed": {"name": "Power setpoint", "tag": "<name>"}
             }
         }
     ],
@@ -162,63 +162,63 @@
     "feeds": [
         {
             "name": "Power DC",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc_power",
             "unit": "W"
         },
         {
             "name": "Energy DC",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc_energy",
             "unit": "kWh"
         },
         {
             "name": "Voltage DC1",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc1_voltage",
             "unit": "V"
         },
         {
             "name": "Voltage DC2",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc2_voltage",
             "unit": "V"
         },
         {
             "name": "Power active",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_active",
             "unit": "W"
         },
         {
             "name": "Power reactive",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_reactive",
             "unit": "Var"
         },
         {
             "name": "Power setpoint",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_setpoint",
             "unit": "W"
         },
         {
             "name": "Voltage",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_voltage",
             "unit": "V"
         },
         {
             "name": "Frequency",
-            "tag": "Inverter",
+            "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_frequency",
             "unit": "Hz"

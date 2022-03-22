@@ -29,8 +29,28 @@ public class DoubleValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
+	public boolean isNaN() {
+		return Double.isNaN(doubleValue());
+	}
+
+	public boolean isFinite() {
+		return Double.isFinite(doubleValue());
+	}
+
+	public boolean isInfinite() {
+		return Double.isInfinite(doubleValue());
+	}
+
 	public static DoubleValue emptyValue() {
+		return new DoubleValue(Double.NaN);
+	}
+
+	public static DoubleValue zeroValue() {
 		return new DoubleValue(0);
+	}
+
+	public static DoubleValue copy(Value value) {
+		return new DoubleValue(value.doubleValue(), value.getEpochMillis());
 	}
 
 }

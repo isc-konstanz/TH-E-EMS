@@ -273,6 +273,7 @@ public abstract class Runnable extends Component implements RunnableService {
 							idletimeMin/60000));
 				}
 				doStart(new ValueSettings(value));
+				return;
 			}
 			break;
 		case STARTING:
@@ -283,6 +284,7 @@ public abstract class Runnable extends Component implements RunnableService {
 							runtimeMin/60000));
 				}
 				doStop(new ValueSettings(value));
+				return;
 			}
 			break;
 		default:

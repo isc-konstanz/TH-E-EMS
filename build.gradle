@@ -64,6 +64,12 @@ configure(javaProjects()) {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
 
+	compileTestJava {
+        options.encoding = 'utf-8'
+    }
+	compileJava {
+        options.encoding = 'utf-8'
+    }
     javadoc {
 	    options.encoding = 'utf-8'
         exclude '**/internal/**'

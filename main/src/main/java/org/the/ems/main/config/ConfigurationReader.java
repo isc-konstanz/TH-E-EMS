@@ -52,7 +52,7 @@ public class ConfigurationReader extends Configurations {
 				
 				for (Entry<String, Section> section : ini.entrySet()) {
 					for (Entry<String, String> value : section.getValue().entrySet()) {
-						if (logger.isDebugEnabled() && contains(section.getKey(), value.getKey())) {
+						if (logger.isDebugEnabled() && containsKey(section.getKey(), value.getKey())) {
 							logger.debug("Overriding settings \"{}\": {}", section.getKey(), value.getValue());
 						}
 						if (!section.getKey().toLowerCase().equals("general")) {

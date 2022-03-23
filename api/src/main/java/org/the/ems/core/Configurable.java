@@ -125,7 +125,7 @@ public abstract class Configurable {
 		}
 		
 		String key = parseKey(keys, method);
-		if (configs.contains(section, key)) {
+		if (configs.containsKey(section, key)) {
 			configureChannel(section, key);
 			
 			return true;
@@ -152,7 +152,7 @@ public abstract class Configurable {
 				if (key.isEmpty() || key.equals(Configuration.VALUE_DEFAULT)) {
 					key = parseKey(field.getName());
 				}
-				if (configs.contains(section, key)) {
+				if (configs.containsKey(section, key)) {
 					value = configureField(type, section, key);
 					break;
 				}
@@ -227,7 +227,7 @@ public abstract class Configurable {
 						collection.add(configs.get(section, k, String.class));
 					}
 				}
-				else if (configs.contains(section, key)) {
+				else if (configs.containsKey(section, key)) {
 					collection.add(configs.get(section, key, String.class));
 				}
 			} catch (ConfigurationException | IllegalArgumentException | 
@@ -253,7 +253,7 @@ public abstract class Configurable {
     						collection.add(k, configs.get(section, k, String.class));
     					}
     				}
-    				else if (configs.contains(section, key)) {
+    				else if (configs.containsKey(section, key)) {
     					collection.add(key, configs.get(section, key, String.class));
     				}
     			} catch (ConfigurationException | IllegalArgumentException | 
@@ -282,7 +282,7 @@ public abstract class Configurable {
 					channels.put(k, channel);
 				}
 			}
-			else if (configs.contains(section, key)) {
+			else if (configs.containsKey(section, key)) {
 				Channel channel = configureChannel(section, key);
 				channels.put(key, channel);
 			}

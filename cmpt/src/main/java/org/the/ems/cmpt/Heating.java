@@ -113,31 +113,19 @@ public abstract class Heating extends Runnable implements HeatingService {
 		storage = null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)
 	public Value getElectricalEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Value getElectricalEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE, listener);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void registerElectricalEnergyListener(ValueListener listener) throws ComponentException {
 		registerConfiguredValueListener(ELECTRICAL_ENERGY_VALUE, listener);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void deregisterElectricalEnergyListener(ValueListener listener) throws ComponentException {
 		deregisterConfiguredValueListener(ELECTRICAL_ENERGY_VALUE, listener);
 	}
@@ -175,31 +163,19 @@ public abstract class Heating extends Runnable implements HeatingService {
 		deregisterConfiguredValueListener(THERMAL_ENERGY_VALUE, listener);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Configuration(value=ELECTRICAL_POWER_VALUE, mandatory=false)
 	public Value getElectricalPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ELECTRICAL_POWER_VALUE);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Value getElectricalPower(ValueListener listener) throws ComponentException, InvalidValueException {
 		return getConfiguredValue(ELECTRICAL_POWER_VALUE, listener);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void registerElectricalPowerListener(ValueListener listener) throws ComponentException {
 		registerConfiguredValueListener(ELECTRICAL_POWER_VALUE, listener);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public void deregisterElectricalPowerListener(ValueListener listener) throws ComponentException {
 		deregisterConfiguredValueListener(ELECTRICAL_POWER_VALUE, listener);
 	}

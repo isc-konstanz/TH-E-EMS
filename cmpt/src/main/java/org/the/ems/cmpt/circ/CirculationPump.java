@@ -92,7 +92,7 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 
 	@Override
 	public boolean isEnabled() {
-		if (!getConfigurations().contains(SECTION, STATE)) {
+		if (!getConfigurations().containsKey(SECTION, STATE)) {
 			return false;
 		}
 		return super.isEnabled();

@@ -67,11 +67,11 @@ public class Configurations extends Hashtable<String, Object> {
 		return put(parseSectionKey(section, key), value);
 	}
 
-	public boolean contains(String section, String key) {
+	public boolean containsKey(String section, String key) {
 		return containsKey(parseSectionKey(section, key));
 	}
 
-	protected boolean contains(String section) {
+	public boolean containsSection(String section) {
 		String parsedSection = parseSection(section);
 		return keySet().stream().anyMatch(s -> s.startsWith(parsedSection));
 	}
@@ -183,13 +183,13 @@ public class Configurations extends Hashtable<String, Object> {
 	}
 
 	public Boolean isEnabled(String section) {
-		if (!contains(section)) {
+		if (!containsSection(section)) {
 			return false;
 		}
-		else if (contains(section, DISABLED)) {
+		else if (containsKey(section, DISABLED)) {
 			return !getBoolean(section, DISABLED);
 		}
-		else if (contains(section, ENABLED)) {
+		else if (containsKey(section, ENABLED)) {
 			return getBoolean(section, ENABLED);
 		}
 		return true;

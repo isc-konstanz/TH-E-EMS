@@ -229,7 +229,7 @@ public final class ConfigurationService extends Thread {
 		}
 		if (id.startsWith(type.getKey())) {
 			String pid = type.getId();
-			if (configs.contains(ConfigurationReader.GENERAL, "type")) {
+			if (configs.containsKey(ConfigurationReader.GENERAL, "type")) {
 				pid = pid.concat(".")
 						.concat(configs.get(ConfigurationReader.GENERAL, "type").toLowerCase());
 			}
@@ -241,7 +241,7 @@ public final class ConfigurationService extends Thread {
 			load(pid, alias, configs);
 			return;
 		}
-		if (configs.contains(ConfigurationReader.GENERAL, "pid")) {
+		if (configs.containsKey(ConfigurationReader.GENERAL, "pid")) {
 			String pid = configs.get(ConfigurationReader.GENERAL, "pid");
 			load(pid, configs);
 			return;

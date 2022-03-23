@@ -23,13 +23,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.cmpt.Heating;
-import org.the.ems.core.ComponentException;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.WriteContainer;
-import org.the.ems.core.settings.StartSettings;
-import org.the.ems.core.settings.StopSettings;
 
 @Component(
 	scope = ServiceScope.BUNDLE,
@@ -53,16 +48,6 @@ public class Cogenerator extends Heating implements CogeneratorService {
 	@Override
 	public double getThermalEfficiency() {
 		return thermalEfficiency;
-	}
-
-	@Override
-	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
-		container.add(state, new BooleanValue(true, settings.getEpochMillis()));
-	}
-
-	@Override
-	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
-		container.add(state, new BooleanValue(false, settings.getEpochMillis()));
 	}
 
 }

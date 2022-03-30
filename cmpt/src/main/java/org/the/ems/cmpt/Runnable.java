@@ -363,14 +363,14 @@ public abstract class Runnable extends Component implements RunnableService {
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-            if (time - stopTimeLast >= idletimeMin) {
+            if (time - stopTimeLast <= idletimeMin) {
             	logger.debug("Component is not startable after interval shorter than {}mins", idletimeMin/60000);
-    			return true;
+    			return false;
             }
 		default:
 			break;
 		}
-		return false;
+		return true;
 	}
 
 	void doRunning() throws ComponentException {
@@ -449,16 +449,16 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Override
 	public boolean isStoppable(long time) {
 		switch(getState()) {
-		case STANDBY:
-		case STOPPING:
-            if (time - startTimeLast >= runtimeMin) {
+		case STARTING:
+		case RUNNING:
+            if (time - startTimeLast <= runtimeMin) {
             	logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
-    			return true;
+    			return false;
             }
 		default:
 			break;
 		}
-		return false;
+		return true;
 	}
 
 	void doStandby() throws ComponentException {

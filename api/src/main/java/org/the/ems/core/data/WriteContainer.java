@@ -29,6 +29,9 @@ public class WriteContainer extends LinkedHashMap<Channel, ValueList> {
 	}
 
 	public boolean add(Channel channel, Value value) {
+		if (value == null || channel == null) {
+			throw new NullPointerException();
+		}
 		if (!containsKey(channel)) {
 			put(channel, new ValueList());
 		}

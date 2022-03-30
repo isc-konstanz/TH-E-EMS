@@ -73,6 +73,9 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 
 	@Override
 	public Channel getChannel(String id) throws UnknownChannelException {
+		if (id == null) {
+			throw new NullPointerException();
+		}
 		if (!channels.containsKey(id)) {
 			if (!access.getAllIds().contains(id)) {
 				throw new UnknownChannelException("Unknown channel for id: " + id);

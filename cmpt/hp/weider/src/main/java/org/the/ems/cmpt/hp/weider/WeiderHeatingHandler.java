@@ -3,19 +3,22 @@ package org.the.ems.cmpt.hp.weider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
+import org.the.ems.core.ComponentException;
 import org.the.ems.core.HeatingType;
+import org.the.ems.core.RunState;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
+import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
 public class WeiderHeatingHandler extends Component {
 	private static final Logger logger = LoggerFactory.getLogger(WeiderHeatingHandler.class);
 
-	@Configuration(value = "state", section = Configurations.GENERAL)
-	private Channel compressorState;
+	private final WeiTrona heatPump;
 
 	@Configuration(value = "state_pump")
 	private Channel pumpState;
@@ -43,9 +46,10 @@ public class WeiderHeatingHandler extends Component {
 
 	final HeatingType type;
 
-	public WeiderHeatingHandler(HeatingType type) {
+	public WeiderHeatingHandler(WeiTrona heatPump, HeatingType type) {
 		super(type.getFullName());
 		this.type = type;
+		this.heatPump = heatPump;
 	}
 
 	@Override
@@ -65,6 +69,46 @@ public class WeiderHeatingHandler extends Component {
 			logger.debug("Configured hysteresis fallback value for {} handler: {}", 
 					type.getFullName(), waterTempHysteresisFallback);
 		}
+	}
+
+	@Override
+	public void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		this.waterTempSetpoint.registerValueListener(new ValueListener() {
+
+			@Override
+			public void onValueChanged(Value waterTempSetpoint) {
+				try {
+					double waterTempValue = waterTemp.getLatestValue().doubleValue();
+					
+					switch (heatPump.getState()) {
+					case STANDBY:
+					case STOPPING:
+						if (waterTempValue < waterTempSetpoint.doubleValue() - getHysteresisTemperature()) {
+							heatPump.setState(RunState.STARTING);
+						}
+						break;
+					case STARTING:
+					case RUNNING:
+						if (waterTempValue >= waterTempSetpoint.doubleValue() + getHysteresisTemperature()) {
+							heatPump.setState(RunState.STOPPING);
+						}
+						break;
+					default:
+						break;
+					}
+				} catch (InvalidValueException e) {
+					logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
+							e.getMessage());
+				}
+			}
+		});
+	}
+
+	@Override
+	public void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		this.waterTempSetpoint.deregisterValueListeners();
 	}
 
 	public void onStart(WriteContainer container, long time) {
@@ -99,10 +143,10 @@ public class WeiderHeatingHandler extends Component {
 
 	public boolean isRunning() {
 		try {
-			return compressorState.getLatestValue().booleanValue() && 
+			return heatPump.getStateValue().booleanValue() && 
 					pumpState.getLatestValue().booleanValue();
 			
-		} catch (InvalidValueException e) {
+		} catch (InvalidValueException | ComponentException e) {
 			logger.debug("Error retrieving {} state: {}", type.toString().toLowerCase(),  
 					e.getMessage());
 		}
@@ -114,17 +158,7 @@ public class WeiderHeatingHandler extends Component {
 	}
 
 	private double getStopSetpoint() {
-		double waterTempHysteresisValue;
-		try {
-			waterTempHysteresisValue= waterTempHysteresis.getLatestValue().doubleValue();
-			
-		} catch (InvalidValueException e) {
-			logger.debug("Error retrieving {} temperature hysteresis: {}", type.toString().toLowerCase(),  
-					e.getMessage());
-			
-			waterTempHysteresisValue = waterTempHysteresisFallback;
-		}
-		return waterTempMin + waterTempHysteresisValue;
+		return waterTempMin + getHysteresisTemperature();
 	}
 
 	public boolean isStopped() {
@@ -151,6 +185,18 @@ public class WeiderHeatingHandler extends Component {
 
 	public boolean isStandby() {
 		return !isRunning();
+	}
+
+	private double getHysteresisTemperature() {
+		try {
+			return waterTempHysteresis.getLatestValue().doubleValue();
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving {} temperature hysteresis: {}", type.toString().toLowerCase(),  
+					e.getMessage());
+			
+			return waterTempHysteresisFallback;
+		}
 	}
 
 }

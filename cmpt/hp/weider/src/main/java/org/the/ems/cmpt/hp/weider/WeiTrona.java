@@ -15,6 +15,7 @@ import org.the.ems.core.HeatingType;
 import org.the.ems.core.Season;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
@@ -38,11 +39,7 @@ public class WeiTrona extends HeatPump {
 	@Configuration
 	private Channel season;
 
-	@SuppressWarnings("serial")
-	private final Map<HeatingType, WeiderHeatingHandler> heatings = new HashMap<HeatingType, WeiderHeatingHandler>() {{
-		put(HeatingType.HEATING_WATER, new WeiderHeatingHandler(HeatingType.HEATING_WATER));
-		put(HeatingType.DOMESTIC_WATER, new WeiderHeatingHandler(HeatingType.DOMESTIC_WATER));
-	}};
+	private final Map<HeatingType, WeiderHeatingHandler> heatings = new HashMap<HeatingType, WeiderHeatingHandler>();
 
 	@Override
 	public Season getSeason() throws ComponentException, InvalidValueException {
@@ -61,8 +58,14 @@ public class WeiTrona extends HeatPump {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		registerService(getId().concat("_").concat("hot_water"), configs, heatings.get(HeatingType.HEATING_WATER));
-		registerService(getId().concat("_").concat("warm_water"), configs, heatings.get(HeatingType.DOMESTIC_WATER));
+		this.onActivate(configs, HeatingType.HEATING_WATER);
+		this.onActivate(configs, HeatingType.DOMESTIC_WATER);
+	}
+
+	protected void onActivate(Configurations configs, HeatingType type) throws ComponentException {
+		WeiderHeatingHandler handler = new WeiderHeatingHandler(this, type);
+		registerService(getId().concat("_").concat(type.name().toLowerCase()), configs, handler);
+		heatings.put(type, handler);
 	}
 
 	@Override

@@ -55,7 +55,7 @@ public abstract class Runnable extends Component implements RunnableService {
 	private int idletimeMin = 60000;
 
 	@Configuration(mandatory=false, value="state_writable")
-	private boolean stateIsWritable = true;
+	protected boolean stateIsWritable = true;
 
 	@Configuration(mandatory=false)
 	protected Channel state;

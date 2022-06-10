@@ -20,7 +20,7 @@
  */
 project.ext {
 
-    projectVersion = '1.3.5'
+    projectVersion = '1.3.6'
 
     projectGroup = 'org.the.ems'
 

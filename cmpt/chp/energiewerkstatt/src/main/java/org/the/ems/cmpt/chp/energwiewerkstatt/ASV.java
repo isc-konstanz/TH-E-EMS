@@ -45,12 +45,9 @@ public class ASV extends Cogenerator {
 	@Configuration(value=THERMAL_POWER_VALUE, mandatory=false)
 	private Channel thermalPower;
 
-	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)
-	private Channel electricalEnergy;
-
 	@Configuration(value=ELECTRICAL_POWER_VALUE)
 	private Channel electricalPower;
-	private Double electricalPowerValue = Double.NaN;
+	private Value electricalPowerValue = DoubleValue.emptyValue();
 
 	@Configuration
 	private Channel setpointPower;
@@ -78,13 +75,8 @@ public class ASV extends Cogenerator {
 	}
 
 	@Override
-	public Value getElectricalEnergy() throws ComponentException, InvalidValueException {
-		return electricalEnergy.getLatestValue();
-	}
-
-	@Override
 	public Value getElectricalPower() throws ComponentException, InvalidValueException {
-		return electricalPower.getLatestValue();
+		return electricalPowerValue;
 	}
 
 	@Override
@@ -137,14 +129,14 @@ public class ASV extends Cogenerator {
 	public boolean isRunning() throws ComponentException {
 		double minimum = getMinPower();
 		if (minimum > 0) {
-			Double power = electricalPowerValue;
+			double power = electricalPowerValue.doubleValue();
 			try {
 				power = getElectricalPower().doubleValue();
 				
 			} catch(ComponentException | InvalidValueException e) {
 				logger.debug("Error while checking run state: {}", e.getMessage());
 			}
-			if (!power.isNaN()) {
+			if (!Double.isNaN(power)) {
 				return Math.abs(power) >= minimum;
 			}
 		}
@@ -164,14 +156,14 @@ public class ASV extends Cogenerator {
 
 	@Override
 	public boolean isStandby() throws ComponentException {
-		Double power = electricalPowerValue;
+		double power = electricalPowerValue.doubleValue();
 		try {
 			power = getElectricalPower().doubleValue();
 			
 		} catch(ComponentException | InvalidValueException e) {
 			logger.debug("Error while checking standby state: {}", e.getMessage());
 		}
-		if (!power.isNaN()) {
+		if (!Double.isNaN(power)) {
 			return power == 0.0;
 		}
 		return super.isStandby();
@@ -236,7 +228,7 @@ public class ASV extends Cogenerator {
 			} catch (EnergyManagementException e) {
 				logger.warn("Error synchronizing run state change: {}", e.getMessage());
 			}
-			electricalPowerValue = powerValue;
+			electricalPowerValue = power;
 		}
 	}
 

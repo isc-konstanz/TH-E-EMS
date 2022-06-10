@@ -294,12 +294,6 @@
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
         },
         {
-            "name": "<node>*water*dom*lock",
-            "description": "Lock",
-            "address": "<unitId>:HOLDING_REGISTERS:4082:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN"}
-        },
-        {
             "name": "<node>*water*ht*pump*state",
             "description": "Circulator pump state",
             "address": "<unitId>:HOLDING_REGISTERS:680:INT16",

@@ -496,25 +496,25 @@ public abstract class Runnable extends Component implements RunnableService {
 			if (stateValue == null || !stateValue.equals(value)) {
 				try {
 					switch(getState()) {
+					case STARTING:
 					case STANDBY:
-					case STOPPING:
 						if (value.booleanValue()) {
 							if (stateIsWritable) {
 								doStart(getStartSettings(System.currentTimeMillis()));
 							}
-							else {
+							else if (isRunning()) {
 								onRunning();
 								setState(RunState.RUNNING);
 							}
 						}
 						break;
-					case STARTING:
+					case STOPPING:
 					case RUNNING:
 						if (!value.booleanValue()) {
 							if (stateIsWritable) {
 								doStop(getStopSettings(System.currentTimeMillis()));
 							}
-							else {
+							else if (isStandby()) {
 								onStandby();
 								setState(RunState.STANDBY);
 							}

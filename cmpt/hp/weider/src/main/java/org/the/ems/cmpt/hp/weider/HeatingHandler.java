@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.HeatingType;
-import org.the.ems.core.RunState;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -15,8 +14,8 @@ import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-public class WeiderHeatingHandler extends Component {
-	private static final Logger logger = LoggerFactory.getLogger(WeiderHeatingHandler.class);
+public class HeatingHandler extends Component implements ValueListener {
+	private static final Logger logger = LoggerFactory.getLogger(HeatingHandler.class);
 
 	private final WeiTrona heatPump;
 
@@ -46,7 +45,7 @@ public class WeiderHeatingHandler extends Component {
 
 	final HeatingType type;
 
-	public WeiderHeatingHandler(WeiTrona heatPump, HeatingType type) {
+	public HeatingHandler(WeiTrona heatPump, HeatingType type) {
 		super(type.getFullName());
 		this.type = type;
 		this.heatPump = heatPump;
@@ -74,40 +73,14 @@ public class WeiderHeatingHandler extends Component {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		this.waterTempSetpoint.registerValueListener(new ValueListener() {
-
-			@Override
-			public void onValueChanged(Value waterTempSetpoint) {
-				try {
-					double waterTempValue = waterTemp.getLatestValue().doubleValue();
-					
-					switch (heatPump.getState()) {
-					case STANDBY:
-					case STOPPING:
-						if (waterTempValue < waterTempSetpoint.doubleValue() - getHysteresisTemperature()) {
-							heatPump.setState(RunState.STARTING);
-						}
-						break;
-					case STARTING:
-					case RUNNING:
-						if (waterTempValue >= waterTempSetpoint.doubleValue() + getHysteresisTemperature()) {
-							heatPump.setState(RunState.STOPPING);
-						}
-						break;
-					default:
-						break;
-					}
-				} catch (InvalidValueException e) {
-					logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
-							e.getMessage());
-				}
-			}
-		});
+		this.waterTemp.registerValueListener(this);
+		this.waterTempSetpoint.registerValueListener(this);
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
+		this.waterTemp.deregisterValueListeners();
 		this.waterTempSetpoint.deregisterValueListeners();
 	}
 
@@ -158,7 +131,7 @@ public class WeiderHeatingHandler extends Component {
 	}
 
 	private double getStopSetpoint() {
-		return waterTempMin + getHysteresisTemperature();
+		return waterTempMin + getTemperatureHysteresis();
 	}
 
 	public boolean isStopped() {
@@ -187,7 +160,7 @@ public class WeiderHeatingHandler extends Component {
 		return !isRunning();
 	}
 
-	private double getHysteresisTemperature() {
+	double getTemperatureHysteresis() {
 		try {
 			return waterTempHysteresis.getLatestValue().doubleValue();
 			
@@ -196,6 +169,17 @@ public class WeiderHeatingHandler extends Component {
 					e.getMessage());
 			
 			return waterTempHysteresisFallback;
+		}
+	}
+
+	@Override
+	public void onValueChanged(Value value) {
+		try {
+			heatPump.onTemperatureChanged(this, waterTemp.getLatestValue(), waterTempSetpoint.getLatestValue());
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving {} temperature setpoint: {}", type.toString().toLowerCase(),  
+					e.getMessage());
 		}
 	}
 

@@ -12,6 +12,7 @@ import org.the.ems.cmpt.hp.HeatPump;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingType;
+import org.the.ems.core.RunState;
 import org.the.ems.core.Season;
 import org.the.ems.core.cmpt.HeatPumpService;
 import org.the.ems.core.config.Configuration;
@@ -19,6 +20,7 @@ import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
+import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.settings.HeatingSettings;
 import org.the.ems.core.settings.StopSettings;
@@ -39,7 +41,7 @@ public class WeiTrona extends HeatPump {
 	@Configuration
 	private Channel season;
 
-	private final Map<HeatingType, WeiderHeatingHandler> heatings = new HashMap<HeatingType, WeiderHeatingHandler>();
+	private final Map<HeatingType, HeatingHandler> heatings = new HashMap<HeatingType, HeatingHandler>();
 
 	@Override
 	public Season getSeason() throws ComponentException, InvalidValueException {
@@ -56,6 +58,12 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
+	protected void onConfigure(Configurations configs) throws ConfigurationException {
+		// WeiTrone compressor state is not writable
+		this.stateIsWritable = false;
+	}
+
+	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		this.onActivate(configs, HeatingType.HEATING_WATER);
@@ -63,14 +71,14 @@ public class WeiTrona extends HeatPump {
 	}
 
 	protected void onActivate(Configurations configs, HeatingType type) throws ComponentException {
-		WeiderHeatingHandler handler = new WeiderHeatingHandler(this, type);
+		HeatingHandler handler = new HeatingHandler(this, type);
 		registerService(getId().concat("_").concat(type.name().toLowerCase()), configs, handler);
 		heatings.put(type, handler);
 	}
 
 	@Override
 	protected void onStart(WriteContainer container, HeatingSettings settings) throws ComponentException {
-		WeiderHeatingHandler heating = heatings.get(settings.getType());
+		HeatingHandler heating = heatings.get(settings.getType());
 		if (!heating.isStartable() && !settings.isEnforced()) {
 			throw new ComponentException("Unable to start component");
 		}
@@ -86,7 +94,7 @@ public class WeiTrona extends HeatPump {
 			if (getSeason() == Season.SUMMER) {
 				type = HeatingType.HEATING_WATER;
 			}
-		} catch (InvalidValueException e) {
+		} catch (InvalidValueException | ComponentException e) {
 			// Do nothing
 		}
 		if (settings.getValue().doubleValue() == getMaxPower()) {
@@ -96,6 +104,14 @@ public class WeiTrona extends HeatPump {
 	}
 
 	public boolean isStartable(HeatingType type) {
+		try {
+			if (type == HeatingType.HEATING_WATER && 
+					getSeason() == Season.SUMMER) {
+				return false;
+			}
+		} catch (InvalidValueException | ComponentException e) {
+			// Do nothing
+		}
 		return heatings.get(type).isStartable();
 	}
 
@@ -110,6 +126,17 @@ public class WeiTrona extends HeatPump {
 	@Override
 	public boolean isRunning(HeatingType type) throws ComponentException {
 		if (isRunning()) {
+			try {
+				if (type == HeatingType.HEATING_WATER && 
+						getSeason() == Season.SUMMER) {
+					return false;
+				}
+				else {
+					return true;
+				}
+			} catch (InvalidValueException | ComponentException e) {
+				// Do nothing
+			}
 			// The heating water pump will always be shown as true, even if domestic water is beeing prepared
             boolean domesticWater = heatings.get(HeatingType.DOMESTIC_WATER).isRunning();
             switch (type) {
@@ -136,7 +163,7 @@ public class WeiTrona extends HeatPump {
 	@Override
 	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
 		long time = settings.getEpochMillis();
-		for (WeiderHeatingHandler heating : heatings.values()) {
+		for (HeatingHandler heating : heatings.values()) {
 			if (!heating.isStoppable() && !settings.isEnforced()) {
 				logger.warn("Unable to stop component");
 				continue;
@@ -146,6 +173,14 @@ public class WeiTrona extends HeatPump {
 	}
 
 	public boolean isStoppable(HeatingType type) {
+		try {
+			if (type == HeatingType.HEATING_WATER && 
+					getSeason() == Season.SUMMER) {
+				return false;
+			}
+		} catch (InvalidValueException | ComponentException e) {
+			// Do nothing
+		}
 		return heatings.get(type).isStoppable();
 	}
 
@@ -172,7 +207,7 @@ public class WeiTrona extends HeatPump {
 		super.onStandby();
 
 		long timestamp = System.currentTimeMillis();
-		for (WeiderHeatingHandler heating : heatings.values()) {
+		for (HeatingHandler heating : heatings.values()) {
 			try {
     			if (!heating.isStopped()) {
     				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
@@ -186,37 +221,25 @@ public class WeiTrona extends HeatPump {
 		}
 	}
 
-//	@Override
-//	protected void onInterrupt() throws ComponentException {
-//		super.onInterrupt();
-//		
-//		long timestamp = System.currentTimeMillis();
-//		for (WeiderHeatingHandler heating : heatings.values()) {
-//			try {
-//    	        switch (getState()) {
-//    	        case STARTING:
-//        			if (!heating.isStarted()) {
-//        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
-//        				heatingSettings.setEnforced(true);
-//        				start(heatingSettings);
-//        			}
-//    				break;
-//    	        case STOPPING:
-//    	        case STANDBY:
-//        			if (!heating.isStopped() ) {
-//        				HeatingSettings heatingSettings = new HeatingSettings(heating.type, timestamp);
-//        				heatingSettings.setEnforced(true);
-//        				stop(heatingSettings);
-//        			}
-//    	            break;
-//    	        default:
-//    	            break;
-//    	        }
-//			} catch (EnergyManagementException e) {
-//				logger.warn("Error verifying heating {} temperature setpoint value: {}",
-//						heating.type.toString().toLowerCase(), e.getMessage());
-//			}
-//		}
-//	}
+	protected void onTemperatureChanged(HeatingHandler handler, Value temperature, Value temperatureSetpoint) {
+		switch (getState()) {
+		case STOPPING:
+		case STANDBY:
+			if (temperature.doubleValue() < temperatureSetpoint.doubleValue() - handler.getTemperatureHysteresis() &&
+					isStartable(handler.type)) {
+				setState(RunState.STARTING);
+			}
+			break;
+		case STARTING:
+		case RUNNING:
+			if (temperature.doubleValue() >= temperatureSetpoint.doubleValue() &&
+					isStoppable(handler.type)) {
+				setState(RunState.STOPPING);
+			}
+			break;
+		default:
+			break;
+		}
+	}
 
 }

@@ -1,9 +1,18 @@
 <package> (<version>) stable; urgency=medium
 
+  * Fix Component RunState observer
+  * Fix WeiTrona summer heating mode
+  * Add WeiTrona temperature setpoint run state observer
+  * Add WeiTrona vacation mode
+
+ -- <maintainer>  <date>
+
+<package> (1.3.6) stable; urgency=medium
+
   * Make last received Energiewerkstatt ASV electrical power retrievable
   * Remove deprecated Weider WT16 lock channel in template
 
- -- <maintainer>  <date>
+ -- Adrian Minde <adrian.minde@isc-konstanz.de>  Fri, 10 Jun 2022 11:45:32 +0200
 
 <package> (1.3.5) stable; urgency=medium
 

@@ -41,7 +41,17 @@ public class WeiTrona extends HeatPump {
 	@Configuration
 	private Channel season;
 
+	@Configuration(mandatory = false)
+	private Channel vacation;
+
 	private final Map<HeatingType, HeatingHandler> heatings = new HashMap<HeatingType, HeatingHandler>();
+
+	public boolean isVacation() throws ComponentException, InvalidValueException {
+		if (vacation == null) {
+			return false;
+		}
+		return vacation.getLatestValue().booleanValue();
+	}
 
 	@Override
 	public Season getSeason() throws ComponentException, InvalidValueException {
@@ -77,15 +87,6 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
-	protected void onStart(WriteContainer container, HeatingSettings settings) throws ComponentException {
-		HeatingHandler heating = heatings.get(settings.getType());
-		if (!heating.isStartable() && !settings.isEnforced()) {
-			throw new ComponentException("Unable to start component");
-		}
-		heating.onStart(container, settings.getEpochMillis());
-	}
-
-	@Override
 	protected void onStart(WriteContainer container, ValueSettings settings) throws ComponentException {
 		long time = settings.getEpochMillis();
 		
@@ -95,12 +96,31 @@ public class WeiTrona extends HeatPump {
 				type = HeatingType.HEATING_WATER;
 			}
 		} catch (InvalidValueException | ComponentException e) {
-			// Do nothing
+			logger.debug("Error retrieving season mode: {}", e.getMessage());
+			// Do nothing and continue
 		}
 		if (settings.getValue().doubleValue() == getMaxPower()) {
 			type = HeatingType.HEATING_WATER;
 		}
 		onStart(container, new HeatingSettings(type, time));
+	}
+
+	@Override
+	protected void onStart(WriteContainer container, HeatingSettings settings) throws ComponentException {
+		HeatingHandler heating = heatings.get(settings.getType());
+		if (!heating.isStartable() && !settings.isEnforced()) {
+			throw new ComponentException("Unable to start component");
+		}
+		try {
+			if (isVacation()) {
+				throw new ComponentException("Unable to start component during vacation");
+			}
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving vacation mode: {}", e.getMessage());
+			// Do nothing and continue
+			// TODO: verify necessity or if start should be avoided in doubt
+		}
+		heating.onStart(container, settings.getEpochMillis());
 	}
 
 	public boolean isStartable(HeatingType type) {
@@ -110,7 +130,8 @@ public class WeiTrona extends HeatPump {
 				return false;
 			}
 		} catch (InvalidValueException | ComponentException e) {
-			// Do nothing
+			logger.debug("Error retrieving season mode: {}", e.getMessage());
+			// Do nothing and continue
 		}
 		return heatings.get(type).isStartable();
 	}
@@ -135,7 +156,8 @@ public class WeiTrona extends HeatPump {
 					return true;
 				}
 			} catch (InvalidValueException | ComponentException e) {
-				// Do nothing
+				logger.debug("Error retrieving season mode: {}", e.getMessage());
+				// Do nothing and continue
 			}
 			// The heating water pump will always be shown as true, even if domestic water is beeing prepared
             boolean domesticWater = heatings.get(HeatingType.DOMESTIC_WATER).isRunning();
@@ -179,7 +201,8 @@ public class WeiTrona extends HeatPump {
 				return false;
 			}
 		} catch (InvalidValueException | ComponentException e) {
-			// Do nothing
+			logger.debug("Error retrieving season mode: {}", e.getMessage());
+			// Do nothing and continue
 		}
 		return heatings.get(type).isStoppable();
 	}

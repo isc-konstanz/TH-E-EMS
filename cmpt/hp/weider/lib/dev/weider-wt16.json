@@ -186,6 +186,12 @@
 
     "channels": [
         {
+            "name": "<node>*mode*vacation",
+            "description": "Vacation mode",
+            "address": "<unitId>:HOLDING_REGISTERS:448:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN"}
+        },
+        {
             "name": "<node>*mode*season",
             "description": "Season mode",
             "address": "<unitId>:HOLDING_REGISTERS:454:INT16",

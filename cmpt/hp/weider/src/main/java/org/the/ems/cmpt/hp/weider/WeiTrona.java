@@ -54,7 +54,7 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
-	public Season getSeason() throws ComponentException, InvalidValueException {
+	public Season getSeason() throws InvalidValueException {
 		int code = season.getLatestValue().intValue();
 		switch (code) {
 		case 0:
@@ -65,6 +65,10 @@ public class WeiTrona extends HeatPump {
 			break;
 		}
         throw new IllegalArgumentException("Unknown Season code: " + code);
+	}
+
+	public boolean isSeason(Season season) throws InvalidValueException {
+		return getSeason() == season;
 	}
 
 	@Override
@@ -92,14 +96,14 @@ public class WeiTrona extends HeatPump {
 		
 		HeatingType type = HeatingType.DOMESTIC_WATER;
 		try {
-			if (getSeason() == Season.SUMMER) {
+			if (isSeason(Season.SUMMER)) {
 				type = HeatingType.HEATING_WATER;
 			}
-		} catch (InvalidValueException | ComponentException e) {
+		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving season mode: {}", e.getMessage());
 			// Do nothing and continue
 		}
-		if (settings.getValue().doubleValue() == getMaxPower()) {
+		if (settings.getValue().doubleValue() == getMinPower()) {
 			type = HeatingType.HEATING_WATER;
 		}
 		onStart(container, new HeatingSettings(type, time));
@@ -129,7 +133,7 @@ public class WeiTrona extends HeatPump {
 					getSeason() == Season.SUMMER) {
 				return false;
 			}
-		} catch (InvalidValueException | ComponentException e) {
+		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving season mode: {}", e.getMessage());
 			// Do nothing and continue
 		}
@@ -148,14 +152,13 @@ public class WeiTrona extends HeatPump {
 	public boolean isRunning(HeatingType type) throws ComponentException {
 		if (isRunning()) {
 			try {
-				if (type == HeatingType.HEATING_WATER && 
-						getSeason() == Season.SUMMER) {
+				if (type == HeatingType.HEATING_WATER && isSeason(Season.SUMMER)) {
 					return false;
 				}
 				else {
 					return true;
 				}
-			} catch (InvalidValueException | ComponentException e) {
+			} catch (InvalidValueException e) {
 				logger.debug("Error retrieving season mode: {}", e.getMessage());
 				// Do nothing and continue
 			}
@@ -196,11 +199,10 @@ public class WeiTrona extends HeatPump {
 
 	public boolean isStoppable(HeatingType type) {
 		try {
-			if (type == HeatingType.HEATING_WATER && 
-					getSeason() == Season.SUMMER) {
+			if (type == HeatingType.HEATING_WATER && isSeason(Season.SUMMER)) {
 				return false;
 			}
-		} catch (InvalidValueException | ComponentException e) {
+		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving season mode: {}", e.getMessage());
 			// Do nothing and continue
 		}

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.HeatingType;
+import org.the.ems.core.Season;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -68,6 +69,7 @@ public class HeatingHandler extends Component implements ValueListener {
 			logger.debug("Configured hysteresis fallback value for {} handler: {}", 
 					type.getFullName(), waterTempHysteresisFallback);
 		}
+		logger.info("Starting WeiTrona {} handler with min temperature: {}", type.getFullName(), getStopSetpoint());
 	}
 
 	@Override
@@ -175,8 +177,9 @@ public class HeatingHandler extends Component implements ValueListener {
 	@Override
 	public void onValueChanged(Value value) {
 		try {
-			heatPump.onTemperatureChanged(this, waterTemp.getLatestValue(), waterTempSetpoint.getLatestValue());
-			
+			if (heatPump.isSeason(Season.WINTER) || type == HeatingType.DOMESTIC_WATER) {
+				heatPump.onTemperatureChanged(this, waterTemp.getLatestValue(), waterTempSetpoint.getLatestValue());
+			}
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature setpoint: {}", type.toString().toLowerCase(),  
 					e.getMessage());

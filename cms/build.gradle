@@ -18,26 +18,18 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cms'
 project.ext {
-    projectName = 'TH-E-CMS'
+    projectKey = 'th-e-ems-cms'
+    projectName = 'TH-E-EMS-CMS'
     projectFullName = 'TH-E EMS Content Managment System - OpenMUC'
     projectDescription = 'The OpenMUC Content Management System of TH-E EMS framework'
 }
 dependencies {
-    api fileTree(dir: 'libs/openmuc', include: ['*.jar'])
+    api fileTree(dir: 'lib/openmuc', include: ['*.jar'])
     api project(':api')
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Import-Package':     'org.openmuc.framework.*;version=0,*',
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Import-Package': 'org.openmuc.framework.*;version=0,*',
+        'Export-Package': 'org.openmuc.framework.app.the.ems.*')
 }

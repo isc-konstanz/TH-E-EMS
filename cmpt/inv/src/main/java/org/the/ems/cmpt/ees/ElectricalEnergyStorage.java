@@ -19,9 +19,6 @@
  */
 package org.the.ems.cmpt.ees;
 
-import java.util.Map;
-
-import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.the.ems.core.Component;
@@ -33,6 +30,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
@@ -48,6 +46,14 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	protected static final String STATE_VALUE = "soc";
 	protected static final String POWER_VALUE = "power";
 	protected static final String VOLTAGE_VALUE = "voltage";
+
+	protected ElectricalEnergyStorage(String section) {
+		super(section);
+	}
+
+	protected ElectricalEnergyStorage() {
+		super();
+	}
 
 	@Configuration(mandatory=false)
 	private double socMax = 100;
@@ -72,16 +78,36 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	public double getMinStateOfCharge() {
 		return socMin;
 	}
-	
-	@Override
-	public boolean hasMinStateOfCharge() throws ComponentException, InvalidValueException {
-		return getStateOfCharge().doubleValue() >= getMinStateOfCharge();
-	}
 
 	@Override
 	@Configuration(value=STATE_VALUE)
 	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(STATE_VALUE);
+	}
+
+	@Override
+	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(STATE_VALUE, listener);
+	}
+
+	@Override
+	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(STATE_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(STATE_VALUE, listener);
+	}
+
+	@Override
+	public boolean isChargable() throws ComponentException, InvalidValueException {
+		return getStateOfCharge().doubleValue() >= getMinStateOfCharge();
+	}
+
+	@Override
+	public boolean isDischargable() throws ComponentException, InvalidValueException {
+		return getStateOfCharge().doubleValue() < getMaxStateOfCharge();
 	}
 
 	@Override
@@ -91,17 +117,39 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	}
 
 	@Override
+	public Value getPower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(POWER_VALUE, listener);
+	}
+
+	@Override
+	public void registerPowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(POWER_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterPowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(POWER_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=VOLTAGE_VALUE, mandatory=false)
 	public Value getVoltage() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(VOLTAGE_VALUE);
 	}
 
-	public void activate(BundleContext context, Map<String, ?> properties) throws ComponentException {
-		super.doActivate(context, properties);
+	@Override
+	public Value getVoltage(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(VOLTAGE_VALUE, listener);
 	}
 
-	public void deactivate() throws ComponentException {
-		super.doDeactivate();
+	@Override
+	public void registerVoltageListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(VOLTAGE_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(VOLTAGE_VALUE, listener);
 	}
 
     @Override

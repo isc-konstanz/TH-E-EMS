@@ -31,6 +31,8 @@ public interface Channel {
 
 	public void deregisterValueListener(ValueListener listener);
 
+	public void deregisterValueListeners();
+
 	public void setLatestValue(Value value);
 
 	public void write(ValueList value);

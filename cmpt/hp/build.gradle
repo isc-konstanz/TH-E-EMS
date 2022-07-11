@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-hp'
 project.ext {
-    projectName = 'TH-E-Component-HeatPump'
+    projectKey = 'th-e-ems-hp'
+    projectName = 'TH-E-EMS-HeatPump'
     projectFullName = 'TH-E EMS Component - Heat Pump'
     projectDescription = 'Heat pump component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.cmpt.hp.*')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': 'org.the.ems.cmpt.hp.*')
 }

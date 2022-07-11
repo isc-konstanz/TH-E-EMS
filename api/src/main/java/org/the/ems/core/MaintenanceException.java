@@ -20,7 +20,7 @@
 package org.the.ems.core;
 
 public class MaintenanceException extends ComponentException {
-	private static final long serialVersionUID = -2105004841715436769L;
+	private static final long serialVersionUID = 3948670495398309064L;
 
 	public MaintenanceException() {
 		super();

@@ -18,28 +18,19 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-api'
 project.ext {
-    projectName = 'TH-E-API'
+    projectKey = 'th-e-ems-api'
+    projectName = 'TH-E-EMS-API'
     projectFullName = 'TH-E EMS Application Programming Interface'
     projectDescription = 'The Application Programming Interface of TH-E EMS framework'
 }
 
 dependencies {
-    api group: 'org.osgi', name: 'osgi.core', version: '7.0.0'
+    api group: 'org.osgi', name: 'osgi.core', version: '8.0.0'
     api group: 'org.osgi', name: 'org.osgi.service.component.annotations', version: '1.4.0'
-    api group: 'org.apache.felix', name: 'org.apache.felix.scr', version: '2.1.14'
-    api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    api group: 'org.apache.felix', name: 'org.apache.felix.scr', version: '2.1.30'
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.core.*')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': 'org.the.ems.core.*')
 }

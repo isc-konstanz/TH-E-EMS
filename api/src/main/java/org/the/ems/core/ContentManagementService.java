@@ -20,9 +20,9 @@
 package org.the.ems.core;
 
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 

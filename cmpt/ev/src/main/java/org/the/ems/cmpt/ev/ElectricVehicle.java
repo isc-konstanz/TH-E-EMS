@@ -27,6 +27,7 @@ import org.the.ems.core.cmpt.ElectricVehicleService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
 @org.osgi.service.component.annotations.Component(
 	scope = ServiceScope.BUNDLE,
@@ -49,17 +50,14 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
 	@Configuration(mandatory=false)
 	protected double capacity = Double.NaN;
 
-	@Override
-	public double getCapacity() throws ComponentException {
-		if (capacity == Double.NaN) {
-			throw new ComponentException("Unable to retrieve unconfigured capacity");
-		}
-		return capacity;
-	}
-
     @Override
     public double getStartPower() {
 		return getMinPower();
+	}
+
+	@Override
+    public double getStopPower() {
+		return 0.0;
 	}
 
     @Override
@@ -73,9 +71,53 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
     }
 
 	@Override
+	public double getCapacity() throws ComponentException {
+		if (capacity == Double.NaN) {
+			throw new ComponentException("Unable to retrieve unconfigured capacity");
+		}
+		return capacity;
+	}
+
+	@Override
+	@Configuration(value=CHARGE_STATE_VALUE, mandatory=false)
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_STATE_VALUE);
+	}
+
+	@Override
+	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_STATE_VALUE, listener);
+	}
+
+	@Override
+	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(CHARGE_STATE_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(CHARGE_STATE_VALUE, listener);
+	}
+
+	@Override
 	@Configuration(value=CHARGE_ENERGY_VALUE, mandatory=false)
 	public Value getChargedEnergy() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(CHARGE_ENERGY_VALUE);
+	}
+
+	@Override
+	public Value getChargedEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void registerChargedEnergyListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(CHARGE_ENERGY_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterChargedEnergyListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(CHARGE_ENERGY_VALUE, listener);
 	}
 
 	@Override
@@ -85,9 +127,18 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
 	}
 
 	@Override
-	@Configuration(value=CHARGE_STATE_VALUE, mandatory=false)
-	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_STATE_VALUE);
+	public Value getChargePower(ValueListener listener) throws ComponentException, InvalidValueException {
+		return getConfiguredValue(CHARGE_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void registerChargePowerListener(ValueListener listener) throws ComponentException {
+		registerConfiguredValueListener(CHARGE_POWER_VALUE, listener);
+	}
+
+	@Override
+	public void deregisterChargePowerListener(ValueListener listener) throws ComponentException {
+		deregisterConfiguredValueListener(CHARGE_POWER_VALUE, listener);
 	}
 
 }

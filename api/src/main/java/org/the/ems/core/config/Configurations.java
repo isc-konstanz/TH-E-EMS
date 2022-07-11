@@ -25,21 +25,18 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class Configurations extends Dictionary<String, Object> {
+public class Configurations extends Hashtable<String, Object> {
+	private static final long serialVersionUID = 7726428276708545480L;
 
 	public final static String GENERAL = "general";
 	public final static String ENABLED = "enabled";
 	public final static String DISABLED = "disabled";
-
-	protected final Hashtable<String, Object> configs = new Hashtable<String, Object>();
 
 	protected Configurations() {
 	}
@@ -52,45 +49,35 @@ public class Configurations extends Dictionary<String, Object> {
 		put(configs.entrySet());
 	}
 
-	protected void put(Set<Entry<String, Object>> configs) {
+	private void put(Set<Entry<String, Object>> configs) {
 		for (Entry<String, Object> entry : configs) {
 			put(entry);
 		}
 	}
 
-	protected void put(Entry<String, Object> entry) {
+	private void put(Entry<String, Object> entry) {
 		put(entry.getKey(), entry.getValue());
 	}
 
-	@Override
-	public Object put(String key, Object value) {
-		return configs.put(key, value);
+	public Object put(String section, String key, Object value) {
+		return put(parseSectionKey(section, key), value);
 	}
 
-	public Object add(String section, String key, Object value) {
-		return configs.put(parse(section, key), value);
+	public Object put(String section, String key, String value) {
+		return put(parseSectionKey(section, key), value);
 	}
 
-	public Object add(String section, String key, String value) {
-		return configs.put(parse(section, key), value);
+	public boolean containsKey(String section, String key) {
+		return containsKey(parseSectionKey(section, key));
 	}
 
-	public boolean contains(String section, String key) {
-		return configs.containsKey(parse(section, key));
-	}
-
-	protected boolean contains(String section) {
-		return configs.keySet().stream().anyMatch(
-		        (s) -> s.startsWith(section.toLowerCase()));
-	}
-
-	@Override
-	public Object get(Object key) {
-		return configs.get(key);
+	public boolean containsSection(String section) {
+		String parsedSection = parseSection(section);
+		return keySet().stream().anyMatch(s -> s.startsWith(parsedSection));
 	}
 
 	public String get(String section, String key) {
-		return String.valueOf(configs.get(parse(section, key)));
+		return String.valueOf(get(parseSectionKey(section, key)));
 	}
 
 	public Boolean getBoolean(String section, String key) {
@@ -187,47 +174,22 @@ public class Configurations extends Dictionary<String, Object> {
 
 	public List<String> search(String section, String pattern) {
 		List<String> result = new ArrayList<String>();
-		for (Entry<String, Object> entry : configs.entrySet()) {
-			if (entry.getKey().matches(parse(section, pattern).replace("?", ".?").replace("*", ".*?"))) {
-				result.add(entry.getKey().substring(section.length()+1));
+		for (Entry<String, Object> entry : entrySet()) {
+			if (entry.getKey().matches(parseSectionKey(section, pattern).replace("?", ".?").replace("*", ".*?"))) {
+				result.add(entry.getKey().substring(parseSection(section).length()+1));
 			}
 		}
 		return result;
 	}
 
-	@Override
-	public Enumeration<String> keys() {
-		return configs.keys();
-	}
-
-	@Override
-	public Enumeration<Object> elements() {
-		return configs.elements();
-	}
-
-	@Override
-	public Object remove(Object key) {
-		return configs.remove(key);
-	}
-
-	@Override
-	public int size() {
-		return configs.size();
-	}
-
-	@Override
-	public boolean isEmpty() {
-		return configs.isEmpty();
-	}
-
 	public Boolean isEnabled(String section) {
-		if (!contains(section)) {
+		if (!containsSection(section)) {
 			return false;
 		}
-		else if (contains(section, DISABLED)) {
+		else if (containsKey(section, DISABLED)) {
 			return !getBoolean(section, DISABLED);
 		}
-		else if (contains(section, ENABLED)) {
+		else if (containsKey(section, ENABLED)) {
 			return getBoolean(section, ENABLED);
 		}
 		return true;
@@ -236,7 +198,7 @@ public class Configurations extends Dictionary<String, Object> {
 	@Override
 	public String toString() {
 		StringBuilder str = new StringBuilder("Configurations:").append(System.lineSeparator());
-		for (Entry<String, Object> entry : configs.entrySet()) {
+		for (Entry<String, Object> entry : entrySet()) {
 			str.append(entry.getKey()).append("=");
 			str.append(entry.getValue()).append(System.lineSeparator());
 		}
@@ -248,13 +210,26 @@ public class Configurations extends Dictionary<String, Object> {
 				key, type));
 	}
 
-	private static String parse(String section, String key) {
+	private static String parseSection(String section) {
+		//String packageName = Configurations.class.getPackage().getName().replace(".core.config", "").toLowerCase();
 		StringBuilder result = new StringBuilder()
-//				.append(Configurations.class.getPackage().getName().toLowerCase()).append(".")
-				.append(section.toLowerCase()).append(".")
+				//.append(packageName).append(".")
+				.append(section.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_"));
+
+		return result.toString();
+	}
+
+	private static String parseSectionKey(String section, String key) {
+		StringBuilder result = new StringBuilder()
+				.append(parseSection(section)).append(".")
 				.append(key.toLowerCase());
 		
 		return result.toString();
+	}
+
+	@Override
+	public Configurations clone() {
+		return (Configurations) super.clone();
 	}
 
 	@SuppressWarnings("unchecked")

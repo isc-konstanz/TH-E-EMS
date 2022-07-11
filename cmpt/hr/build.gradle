@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-hr'
 project.ext {
-    projectName = 'TH-E-Component-HeatingRod'
+    projectKey = 'th-e-ems-hr'
+    projectName = 'TH-E-EMS-HeatingRod'
     projectFullName = 'TH-E EMS Component - Heating Rod'
     projectDescription = 'Heating rod component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.cmpt.hr.*')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': 'org.the.ems.cmpt.hr.*')
 }

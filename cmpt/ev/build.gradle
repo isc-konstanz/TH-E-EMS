@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-ev'
 project.ext {
-    projectName = 'TH-E-Component-ElectricVehicle'
+    projectKey = 'th-e-ems-ev'
+    projectName = 'TH-E-EMS-ElectricVehicle'
     projectFullName = 'TH-E EMS Component - Electric Vehicle'
     projectDescription = 'Electric vehicle component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.cmpt.ev.*')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': 'org.the.ems.cmpt.ev.*')
 }

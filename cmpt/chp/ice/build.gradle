@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-chp-ice'
 project.ext {
-    projectName = 'TH-E-Component-InternalCombustionEngine'
+    projectKey = 'th-e-ems-chp-ice'
+    projectName = 'TH-E-EMS-Cogenerator-InternalCombustionEngine'
     projectFullName = 'TH-E EMS Components - Internal Combustion Engine Cogernerator'
     projectDescription = 'Internal combustion engine cogernerator component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': '')
 }

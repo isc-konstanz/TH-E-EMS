@@ -21,12 +21,8 @@ package org.the.ems.ctrl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
 
 public class PidControl extends Configurable {
 	@SuppressWarnings("unused")
@@ -48,33 +44,24 @@ public class PidControl extends Configurable {
 
 	@Configuration(mandatory=false, value="maximum")
 	protected double controlMax = 10000;
-	
+
 	@Configuration(mandatory=false, value="minimum")
 	protected double controlMin = 0;
-	
+
 	protected double errorPrev = 0;
+
 	protected double proportional = 0;
 	protected double integral = 0;
 	protected double derivative = 0;
 	protected double pid = 0;
-	protected long  timeLast = 0;
-	
+
+	protected long  timeLast = System.currentTimeMillis();
+
 	public PidControl() {
-		super();
-		setConfiguredSection(SECTION);
+		super(SECTION);
 	}
-	
-	@Override
-	@SuppressWarnings("unchecked")
-	public PidControl configure(Configurations configs) throws ConfigurationException {
-		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
-			timeLast = System.currentTimeMillis();
-		}
-		return this;
-	}
-	
-	public double get(long time, double error) {
+
+	public double process(long time, double error) {
 		double dt = (time - timeLast)/1000;
 		if (error > controlMax ) {
 			error = controlMax;
@@ -95,5 +82,5 @@ public class PidControl extends Configurable {
 		
 		return pid;
 	}
-	
+
 }

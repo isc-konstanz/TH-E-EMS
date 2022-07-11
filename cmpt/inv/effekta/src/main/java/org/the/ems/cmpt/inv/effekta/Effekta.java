@@ -40,18 +40,25 @@ import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
-@Component(scope = ServiceScope.BUNDLE, service = InverterService.class, configurationPid = InverterService.PID
-		+ ".effekta", configurationPolicy = ConfigurationPolicy.REQUIRE)
+@Component(
+	scope = ServiceScope.BUNDLE, 
+	service = InverterService.class,
+	configurationPid = InverterService.PID+".effekta", 
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
 public class Effekta extends Inverter<EffektaBattery> {
 	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
-	protected Mode mode = Mode.DISABLED;
+
+	protected Mode mode = Mode.DEFAULT;
+
+	private String[] keys;
+
 //	private Value setpointPower = DoubleValue.emptyValue();
 	private double voltage = 0;
 	private double current = 0;
 	private boolean initialized = false;
 	private boolean dischargeProtection = false;
 	private boolean overchargeProtection = false;
-	private String[] keys;
 	private long modeChangedTime = 0;
 
 	@Configuration(mandatory = false)
@@ -84,21 +91,15 @@ public class Effekta extends Inverter<EffektaBattery> {
 		storage.registerVoltageListener(new VoltageListener());
 		currentInv.registerValueListener(new CurrentListener());
 
-		storage.initialize();
-		initialize();
-	}
-
-	public void initialize() {
 		WriteContainer container = new WriteContainer();
 		long time = System.currentTimeMillis();
 
-		container.addDouble(storage.getCurrentMax(), Math.min((int) getMaxPower() / storage.getVoltageMin(), 200),
-				time);
+		container.addDouble(storage.getCurrentMax(), Math.min((int) getMaxPower() / storage.getVoltageMin(), 200), time);
 		setpoint.setLatestValue(new DoubleValue(0, time));
 		modeChangedTime = time;
-
 		try {
 			doWrite(container);
+
 		} catch (EnergyManagementException e) {
 			logger.warn("Effekta activation error: {}", e.getMessage());
 		}
@@ -113,14 +114,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 	}
 
 	@Override
-	public void onDeactivate() throws ComponentException {
-		super.onDeactivate();
-		storage.deregister();
-	}
-
-	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
-		long time = value.getTime();
+		long time = value.getEpochMillis();
 //		if (System.currentTimeMillis() >= setpointPower.getTime() + 15000) {
 //			
 //		}
@@ -273,23 +268,23 @@ public class Effekta extends Inverter<EffektaBattery> {
 		this.mode = mode;
 	}
 
-	public void getDischargeProtection(Long time)
-			throws InvalidValueException, UnsupportedOperationException, EnergyManagementException {
+	public void getDischargeProtection(Long time) throws InvalidValueException, EnergyManagementException {
 		if (storage.getStateOfCharge().doubleValue() <= storage.getMinStateOfCharge() && !dischargeProtection) {
 			dischargeProtection = true;
 			set(new DoubleValue(0, time));
 			logger.warn("Low SOC! Feeding into the Grid stopped.");
-		} else if (storage.getStateOfCharge().doubleValue() > storage.getMinStateOfCharge() + 5
+		}
+		else if (storage.getStateOfCharge().doubleValue() > storage.getMinStateOfCharge() + 5
 				&& dischargeProtection) {
 			dischargeProtection = false;
 		}
 	}
 
-	public void getOverchargeProtection()
-			throws InvalidValueException, UnsupportedOperationException, EnergyManagementException {
+	public void getOverchargeProtection() throws InvalidValueException, EnergyManagementException {
 		if (storage.getStateOfCharge().doubleValue() >= storage.getMaxStateOfCharge() && !overchargeProtection) {
 			overchargeProtection = true;
-		} else if (storage.getStateOfCharge().doubleValue() < storage.getMaxStateOfCharge() - 2
+		}
+		else if (storage.getStateOfCharge().doubleValue() < storage.getMaxStateOfCharge() - 2
 				&& overchargeProtection) {
 			overchargeProtection = false;
 		}
@@ -316,7 +311,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 		@Override
 		public void onValueReceived(Value value) {
-			long time = value.getTime();
+			long time = value.getEpochMillis();
 			WriteContainer container = new WriteContainer();
 
 			if (!initialized) {
@@ -326,7 +321,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 			}
 
 			try {
-				if (voltage != value.doubleValue() || time - storage.getStateOfCharge().getTime() >= 60000) {
+				if (voltage != value.doubleValue() || time - storage.getStateOfCharge().getEpochMillis() >= 60000) {
 
 					switch (mode) {
 					case CHARGE_FROM_GRID:
@@ -337,7 +332,8 @@ public class Effekta extends Inverter<EffektaBattery> {
 						if (value.doubleValue() > storage.getVoltageMin() && !dischargeProtection) {
 							container.addDouble(setpointCurrentExport,
 									setpoint.getLatestValue().doubleValue() / value.doubleValue(), time);
-						} else if (value.doubleValue() <= storage.getVoltageMin() || dischargeProtection) {
+						}
+						else if (value.doubleValue() <= storage.getVoltageMin() || dischargeProtection) {
 							setpoint.setLatestValue(new DoubleValue(0, time));
 							container.addDouble(setpointCurrentExport,
 									setpoint.getLatestValue().doubleValue() / voltage, time);
@@ -349,7 +345,7 @@ public class Effekta extends Inverter<EffektaBattery> {
 					}
 
 					voltage = value.doubleValue();
-					storage.socEstimation(time);
+					storage.processStateOfCharge(time);
 					getDischargeProtection(time);
 					getOverchargeProtection();
 
@@ -372,11 +368,11 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 		@Override
 		public void onValueReceived(Value value) {
-			long time = value.getTime();
+			long time = value.getEpochMillis();
 			double storageCurrent = value.doubleValue();
 
 			try {
-				if (value.doubleValue() != current || time - storage.getStateOfCharge().getTime() >= 60000) {
+				if (value.doubleValue() != current || time - storage.getStateOfCharge().getEpochMillis() >= 60000) {
 					current = value.doubleValue();
 
 					for (String key : keys) {
@@ -392,13 +388,14 @@ public class Effekta extends Inverter<EffektaBattery> {
 
 					if (!Double.isNaN(storageCurrent)) {
 						storage.setCurrent(new DoubleValue(storageCurrent));
-					} else {
+					}
+					else {
 						storage.setCurrent(new DoubleValue(0));
 					}
 
 					if (initialized) {
-						storage.socEstimation(value.getTime());
-						getDischargeProtection(value.getTime());
+						storage.processStateOfCharge(value.getEpochMillis());
+						getDischargeProtection(value.getEpochMillis());
 						getOverchargeProtection();
 					}
 

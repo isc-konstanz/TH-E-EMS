@@ -44,7 +44,7 @@ public class ValueList extends LinkedList<Value> {
 	private class SortTime implements Comparator<Value> {
 		@Override
 		public int compare(Value v1, Value v2) {
-			return (int) (v1.getTime() - v2.getTime());
+			return (int) (v1.getEpochMillis() - v2.getEpochMillis());
 		}
 	}
 }

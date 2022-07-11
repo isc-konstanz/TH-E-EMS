@@ -20,6 +20,8 @@
 package org.the.ems.cmpt;
 
 import java.text.MessageFormat;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,42 +30,113 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.RunState;
+import org.the.ems.core.RunStateListener;
 import org.the.ems.core.RunnableService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
+import org.the.ems.core.settings.ValueSettings;
 
 public abstract class Runnable extends Component implements RunnableService {
 	private final static Logger logger = LoggerFactory.getLogger(Runnable.class);
 
 	@Configuration(mandatory=false, scale=60000) // Default runtime minimum of 10 minutes
-	protected int runtimeMin = 600000;
+	private int runtimeMin = 600000;
 
-	@Configuration(mandatory=false, scale=60000) // Default idletime minimum of 1 minute
-	protected int idletimeMin = 60000;
+	@Configuration(mandatory=false, scale=6000) // Default idletime minimum of 1 minute
+	private int idletimeMin = 60000;
+
+	@Configuration(mandatory=false, value="state_writable")
+	protected boolean stateIsWritable = true;
 
 	@Configuration(mandatory=false)
-	protected ChannelListener state;
+	protected Channel state;
 
-	protected volatile RunState runState = RunState.DEFAULT;
+	private volatile Value stateValue = null;
+	private volatile long startTimeLast = Long.MIN_VALUE;
+	private volatile long stopTimeLast = Long.MIN_VALUE;
 
-	protected volatile Value stateValueLast = null;
-	protected volatile long startTimeLast = System.currentTimeMillis();
-	protected volatile long stopTimeLast = System.currentTimeMillis();
+	private volatile RunState runState = RunState.DEFAULT;
+
+	private final List<RunStateListener> runStateListeners = new LinkedList<RunStateListener>();
 
 	@Override
 	public RunState getState() {
 		return runState;
 	}
 
+	@Override
+	public RunState getState(RunStateListener listener) throws ComponentException, InvalidValueException {
+		registerStateListener(listener);
+		return getState();
+	}
+
+	@Override
+	public void registerStateListener(RunStateListener listener) throws ComponentException {
+		synchronized (runStateListeners) {
+			if (!runStateListeners.contains(listener)) {
+				runStateListeners.add(listener);
+			}
+		}
+	}
+
+	@Override
+	public void deregisterStateListener(RunStateListener listener) throws ComponentException {
+		synchronized (runStateListeners) {
+			if (runStateListeners.contains(listener)) {
+				runStateListeners.remove(listener);
+			}
+		}
+	}
+
+	protected void deregisterStateListeners() {
+		synchronized (runStateListeners) {
+			runStateListeners.clear();
+		}
+	}
+
 	public void setState(RunState state) {
+		if (runState != state) {
+			synchronized (runStateListeners) {
+				for (RunStateListener stateListener : runStateListeners) {
+					try {
+						stateListener.onStateChanged(state);
+						
+					} catch (EnergyManagementException e) {
+						logger.warn("Error notifying of state change: {}", e.getMessage());
+					}
+				}
+			}
+		}
 		this.runState = state;
+	}
+
+	@Override
+	public Value getStateValue() throws ComponentException, InvalidValueException {
+		return state.getLatestValue();
+	}
+
+	@Override
+	public Value getStateValue(ValueListener listener) throws ComponentException, InvalidValueException {
+		return state.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerStateValueListener(ValueListener listener) throws ComponentException {
+		state.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterStateValueListener(ValueListener listener) throws ComponentException {
+		state.deregisterValueListener(listener);
 	}
 
 	@Override
@@ -93,6 +166,18 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
+	public StartSettings getStartSettings(long timestamp) throws ComponentException, InvalidValueException {
+		Value value = getStartValue(timestamp);
+		return new ValueSettings(value);
+	}
+
+	@Override
+	public StopSettings getStopSettings(long timestamp) throws ComponentException, InvalidValueException {
+		Value value = getStopValue(timestamp);
+		return new ValueSettings(value);
+	}
+
+	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		if (state != null) {
@@ -108,10 +193,7 @@ public abstract class Runnable extends Component implements RunnableService {
 			stop();
 			
 		} catch (EnergyManagementException e) {
-			logger.warn("Error while stopping {} during deactivation: {}", id, e.getMessage());
-		}
-		if (state != null) {
-			state.deregister();
+			logger.warn("Error while stopping {} during deactivation: {}", getId(), e.getMessage());
 		}
 	}
 
@@ -126,7 +208,7 @@ public abstract class Runnable extends Component implements RunnableService {
 			break;
 		case STARTING:
 			if (isRunning()) {
-				doRun();
+				doRunning();
 			}
 			break;
 		default:
@@ -145,22 +227,22 @@ public abstract class Runnable extends Component implements RunnableService {
 		for (Value value : schedule) {
 			onSet(container, value);
 		}
-		doWrite(container);
+		write(container);
 	}
 
-	protected void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException, InvalidValueException {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
-			if (value.doubleValue() == 0) {
-				if (value.getTime() - startTimeLast < runtimeMin) {
+			if (value.doubleValue() == getStopValue(value.getEpochMillis()).doubleValue()) {
+				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
 					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
 				}
-				onStop(container, value.getTime());
+				onStop(container, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() == 0) {
-				startTimeLast = value.getTime();
+				startTimeLast = value.getEpochMillis();
 				onStart(container, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() != value.doubleValue()) {
@@ -181,25 +263,28 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
+		Value stopValue = getStopValue(value.getEpochMillis());
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-			if (value.doubleValue() > 0) {
-				if (value.getTime() - stopTimeLast < idletimeMin) {
+			if (value.doubleValue() > stopValue.doubleValue()) {
+				if (value.getEpochMillis() - stopTimeLast < idletimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
 							idletimeMin/60000));
 				}
-				doStart(value);
+				doStart(new ValueSettings(value));
+				return;
 			}
 			break;
 		case STARTING:
 		case RUNNING:
-			if (value.doubleValue() == 0) {
-				if (value.getTime() - startTimeLast < runtimeMin) {
+			if (value.doubleValue() == stopValue.doubleValue()) {
+				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 							runtimeMin/60000));
 				}
-				doStop(value.getTime());
+				doStop(new ValueSettings(value));
+				return;
 			}
 			break;
 		default:
@@ -208,10 +293,10 @@ public abstract class Runnable extends Component implements RunnableService {
 		doSet(value);
 	}
 
-	protected void doSet(Value value) throws EnergyManagementException {
+	void doSet(Value value) throws EnergyManagementException {
 		WriteContainer container = new WriteContainer();
 		onSet(container, value);
-		doWrite(container);
+		write(container);
 	}
 
 	protected void onSet(WriteContainer container, Value value)
@@ -221,48 +306,83 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
-	public final void start(Value value) throws EnergyManagementException {
+	public final void start(long timestamp) throws EnergyManagementException {
+		start(getStartSettings(timestamp));
+	}
+
+	@Override
+	public final void start(StartSettings settings) throws EnergyManagementException {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		switch(getState()) {
-		case STANDBY:
-		case STOPPING:
-			if (value.getTime() - stopTimeLast < idletimeMin) {
-				throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
-						idletimeMin/60000));
-			}
-			doStart(value);
-			break;
-		default:
-			break;
+		if (!isStartable(settings.getEpochMillis()) && !settings.isEnforced()) {
+			throw new ComponentException("Unable to start component");
 		}
+		doStart(settings);
 	}
 
-	protected void doStart(Value value) throws EnergyManagementException {
+	void doStart(StartSettings settings) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(true, value.getTime()));
-		
+		if (stateIsWritable && state != null) {
+			writeContainer.add(state, new BooleanValue(true, settings.getEpochMillis()));
+		}
+		doStart(writeContainer, settings);
+		write(writeContainer);
+
+		// Set latest start time and state when writing was successful
+		startTimeLast = settings.getEpochMillis();
 		setState(RunState.STARTING);
-		onStart(writeContainer, value);
-		doWrite(writeContainer);
-		startTimeLast = value.getTime();
+	}
+
+	void doStart(WriteContainer container, StartSettings settings) throws EnergyManagementException {
+		if (settings instanceof ValueSettings) {
+			doStart(container, (ValueSettings) settings);
+		}
+		onStart(container, settings);
+	}
+
+	protected void onStart(WriteContainer container, StartSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	void doStart(WriteContainer container, ValueSettings settings) throws EnergyManagementException {
+		onStart(container, settings);
+		onStart(container, settings.getValue());
+	}
+
+	protected void onStart(WriteContainer container, ValueSettings settings) throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onStart(WriteContainer container, Value value) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected void doRun() throws ComponentException {
-		setState(RunState.RUNNING);
+	@Override
+	public boolean isStartable(long time) {
+		switch(getState()) {
+		case STANDBY:
+		case STOPPING:
+            if (time - stopTimeLast <= idletimeMin) {
+            	logger.debug("Component is not startable after interval shorter than {}mins", idletimeMin/60000);
+    			return false;
+            }
+		default:
+			break;
+		}
+		return true;
+	}
+
+	void doRunning() throws ComponentException {
 		onRunning();
+		setState(RunState.RUNNING);
 	}
 
 	protected void onRunning() throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected boolean isRunning() throws ComponentException {
+	public boolean isRunning() throws ComponentException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STARTING:
@@ -274,57 +394,83 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
-	public final void stop(long time) throws EnergyManagementException {
+	public final void stop(long timestamp) throws EnergyManagementException {
+		stop(getStopSettings(timestamp));
+	}
+
+	@Override
+	public final void stop(StopSettings settings) throws EnergyManagementException {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		switch(getState()) {
-		case STARTING:
-		case RUNNING:
-			if (time - startTimeLast < runtimeMin) {
-				throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
-						runtimeMin/60000));
-			}
-			doStop(time);
-			break;
-		default:
-			break;
+		if (!isStoppable(settings.getEpochMillis()) && !settings.isEnforced()) {
+			throw new ComponentException("Unable to stop component");
 		}
+		doStop(settings);
 	}
 
-	protected void doStop(long time) throws EnergyManagementException {
+	void doStop(StopSettings settings) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		writeContainer.add(state, new BooleanValue(false, time));
-		
+		if (stateIsWritable && state != null) {
+			writeContainer.add(state, new BooleanValue(false, settings.getEpochMillis()));
+		}
+		doStop(writeContainer, settings);
+		write(writeContainer);
+
+		// Set latest start time and state when writing was successful
+		startTimeLast = settings.getEpochMillis();
 		setState(RunState.STOPPING);
-		onStop(writeContainer, time);
-		doWrite(writeContainer);
-		stopTimeLast = time;
 	}
 
-	protected void doWrite(WriteContainer container) throws EnergyManagementException {
-		if (container.size() < 1) {
-			return;
+	void doStop(WriteContainer container, StopSettings settings) throws EnergyManagementException {
+		if (settings instanceof ValueSettings) {
+			doStop(container, (ValueSettings) settings);
 		}
-		for (Channel channel : container.keySet()) {
-			channel.write(container.get(channel));
-		}
+		onStop(container, settings);
 	}
 
-	protected void onStop(WriteContainer container, long time) throws ComponentException {
+	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected void doStandby() throws ComponentException {
-		setState(RunState.STANDBY);
+	void doStop(WriteContainer container, ValueSettings settings) throws EnergyManagementException {
+		onStop(container, settings);
+		onStop(container, settings.getValue());
+	}
+
+	protected void onStop(WriteContainer container, ValueSettings settings) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onStop(WriteContainer container, Value value) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	@Override
+	public boolean isStoppable(long time) {
+		switch(getState()) {
+		case STARTING:
+		case RUNNING:
+            if (time - startTimeLast <= runtimeMin) {
+            	logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
+    			return false;
+            }
+		default:
+			break;
+		}
+		return true;
+	}
+
+	void doStandby() throws ComponentException {
 		onStandby();
+		setState(RunState.STANDBY);
 	}
 
 	protected void onStandby() throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected boolean isStandby() throws ComponentException {
+	public boolean isStandby() throws ComponentException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STANDBY:
@@ -333,6 +479,10 @@ public abstract class Runnable extends Component implements RunnableService {
 		default:
 			return false;
 		}
+	}
+
+	protected void onStateChanged(RunState state) throws EnergyManagementException {
+		// Default implementation to be overridden
 	}
 
 	protected void onStateChanged(Value state) throws EnergyManagementException {
@@ -343,32 +493,55 @@ public abstract class Runnable extends Component implements RunnableService {
 
 		@Override
 		public synchronized void onValueReceived(Value value) {
-			if (stateValueLast == null || stateValueLast.booleanValue() != value.booleanValue()) {
+			if (stateValue == null || !stateValue.equals(value)) {
 				try {
 					switch(getState()) {
+					case STARTING:
 					case STANDBY:
-					case STOPPING:
 						if (value.booleanValue()) {
-							doStart(getStartValue());
+							if (stateIsWritable) {
+								doStart(getStartSettings(System.currentTimeMillis()));
+							}
+							else if (isRunning()) {
+								onRunning();
+								setState(RunState.RUNNING);
+							}
 						}
 						break;
-					case STARTING:
+					case STOPPING:
 					case RUNNING:
 						if (!value.booleanValue()) {
-							doStop(System.currentTimeMillis());
+							if (stateIsWritable) {
+								doStop(getStopSettings(System.currentTimeMillis()));
+							}
+							else if (isStandby()) {
+								onStandby();
+								setState(RunState.STANDBY);
+							}
 						}
 						break;
 					default:
 						break;
 					}
-					onStateChanged(value);
-					
 				} catch (EnergyManagementException e) {
-					state.setLatestValue(new BooleanValue(!value.booleanValue()));
+					if (stateIsWritable) {
+						state.setLatestValue(new BooleanValue(!value.booleanValue()));
+					}
 					logger.warn("Error handling state change: {}", e.getMessage());
 				}
+				try {
+					onStateChanged(value);
+					
+					synchronized (runStateListeners) {
+						for (RunStateListener stateListener : runStateListeners) {
+							stateListener.onStateChanged(value);
+						}
+					}
+				} catch (EnergyManagementException e) {
+					logger.warn("Error notifying of state change: {}", e.getMessage());
+				}
 			}
-			stateValueLast = value;
+			stateValue = value;
 		}
 	}
 

@@ -1,0 +1,252 @@
+{
+    "name": "H3 3000/5000",
+    "group": "Serenergy",
+    "category": "Cogenerator",
+    "description": "Serenergy Methanol fuel cell system",
+
+    "devices": [
+        {
+            "name": "_<node>",
+            "description": "<name>",
+            "driver": "virtual"
+        },
+        {
+            "name": "<node>",
+            "description": "<name> SNMP connection",
+            "driver": "snmp",
+            "address": "<ip>/<port>",
+            "settings": "SNMP_VERSION=V2c:AUTHENTICATIONPASSPHRASE=private"
+        }
+    ],
+
+    "scan": {
+        "settings": "mode:DIGITAL_OUTPUT"
+    },
+
+    "options": [
+        {
+            "id": "ip",
+            "name": "IP address",
+            "description": "The IP address of the SNMP agent device.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "port",
+            "name": "Port",
+            "description": "The address port of the target SNMP agent device.<br>By convention, SNMP agents use the UDP-Port 161, while sending traps to 162.",
+            "type": "text",
+            "default": "161",
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "state",
+            "type": "Text",
+            "label": "State",
+            "header": true,
+            "select": {
+                "1":"Passive",
+                "2":"Standby",
+                "3":"Preheat",
+                "4":"Starting",
+                "5":"Limited operation",
+                "6":"Operation",
+                "7":"Shutdown",
+                "8":"Emergency shutdown",
+                "9":"Error",
+                "10":"Zero load mode"
+            },
+            "default": "Loading",
+            "input": "<node>*state"
+        },
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*ctrl*state", "value": true },
+                "OFF": { "channel": "<node>*ctrl*state", "value": false }
+            },
+            "input": "<node>*ctrl*state"
+        },
+        {
+            "id": "circulation",
+            "type": "Switch",
+            "label": "Pump",
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*circ*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ"
+        },
+        {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Stack",
+            "format": "%.1f °C",
+            "input": "<node>*stack*temp"
+        },
+        {
+            "id": "voltage",
+            "type": "Text",
+            "format": "%.1f V",
+            "input": "<node>*stack*voltage"
+        },
+        {
+            "id": "current",
+            "type": "Slider",
+            "format": "%.1f A",
+            "max": 72,
+            "min": 18,
+            "step": 1,
+            "mapping": {
+                "SET": { "channel": "<node>*stack*current*limit" }
+            },
+            "input": "<node>*stack*current*limit"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*state",
+            "description": "<name> state",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.1.0",
+            "configs": {"samplingInterval": 5000, "valueType":"INTEGER"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000}
+        },
+        {
+            "name": "<node>*ctrl*state",
+            "description": "<name> control state",
+            "device": "_<node>",
+            "configs": {"valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*ctrl*enable",
+            "description": "<name> control enable",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.1.0",
+            "configs": {"valueType":"INTEGER"}
+        },
+        {
+            "name": "<node>*ctrl*start",
+            "description": "<name> control start",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.3.0",
+            "configs": {"valueType":"INTEGER"}
+        },
+        {
+            "name": "<node>*ctrl*stop",
+            "description": "<name> control stop",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.4.0",
+            "configs": {"valueType":"INTEGER"}
+        },
+        {
+            "name": "<node>*stack*current*limit",
+            "description": "<name> stack current limit",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.2.6.0",
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"INTEGER", "unit": "A"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "engine":"SQL",
+                "feed": {"name": "Current limit", "tag": "<name> stack"}
+            }
+        },
+        {
+            "name": "<node>*stack*power",
+            "description": "<name> stack power",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.1.0",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name> stack"}
+            }
+        },
+        {
+            "name": "<node>*stack*voltage",
+            "description": "<name> stack voltage",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.2.0",
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "V"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "<name> stack"}
+            }
+        },
+        {
+            "name": "<node>*stack*current",
+            "description": "<name> stack current",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.3.0",
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "A"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Current", "tag": "<name> stack"}
+            }
+        },
+        {
+            "name": "<node>*stack*temp",
+            "description": "<name> stack temperature",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.4.0",
+            "configs": {"samplingInterval": 5000, "scalingFactor":0.1, "valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Temperature", "tag": "<name> stack"}
+            }
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*state"
+        },
+        {
+            "name": "Power",
+            "tag": "<name> stack",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*stack*power",
+            "unit": "W"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name> stack",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*stack*voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Current",
+            "tag": "<name> stack",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*stack*current",
+            "unit": "A"
+        },
+        {
+            "name": "Current limit",
+            "tag": "<name> stack",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*stack*current*limit",
+            "unit": "A"
+        },
+        {
+            "name": "Temperature",
+            "tag": "<name> stack",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*stack*temp",
+            "unit": "°C"
+        }
+    ]
+}

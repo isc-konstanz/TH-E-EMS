@@ -31,6 +31,8 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ContentManagementService;
@@ -53,6 +55,8 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 
 	private ExecutorService executor = null;
 
+	private ChannelFactory factory;
+
 	@Reference
 	private DataAccessService access;
 
@@ -73,7 +77,13 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 
 	@Override
 	public Channel getChannel(String id) throws UnknownChannelException {
+		if (id == null) {
+			throw new NullPointerException();
+		}
 		if (!channels.containsKey(id)) {
+			if (!access.getAllIds().contains(id) && factory != null) {
+				factory.newChannel(id);
+			}
 			if (!access.getAllIds().contains(id)) {
 				throw new UnknownChannelException("Unknown channel for id: " + id);
 			}
@@ -83,6 +93,18 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 			return channel;
 		}
 		return channels.get(id);
+	}
+
+	@Reference(
+		cardinality = ReferenceCardinality.OPTIONAL,
+		policy = ReferencePolicy.DYNAMIC
+	)
+	protected void bindChannelFactory(ChannelFactory factory) {
+		this.factory = factory;
+	}
+
+	protected void unbindChannelFactory(ChannelFactory factory) {
+		this.factory = null;
 	}
 
 	@Override
@@ -124,7 +146,7 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 	}
 
 	@Override
-	public void doExecute(Runnable task) {
+	public void execute(Runnable task) {
 		executor.execute(task);
 	}
 

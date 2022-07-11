@@ -45,7 +45,7 @@ public class Schedule extends ValueList {
 	public long getStartTime() {
 		Value start = peekFirst();
 		if (start != null) {
-			return start.getTime();
+			return start.getEpochMillis();
 		}
 		return -1;
 	}
@@ -53,15 +53,15 @@ public class Schedule extends ValueList {
 	public long getEndTime() {
 		Value end = peekLast();
 		if (end != null) {
-			return end.getTime() + interval;
+			return end.getEpochMillis() + interval;
 		}
 		return -1;
 	}
 
 	@Override
 	public boolean add(Value value) {
-		if (value.getTime() <= getStartTime() || (value.getTime() - getStartTime()) % interval != 0 || 
-				value.getTime() >= getEndTime()) {
+		if (value.getEpochMillis() <= getStartTime() || (value.getEpochMillis() - getStartTime()) % interval != 0 || 
+				value.getEpochMillis() >= getEndTime()) {
 			return false;
 		}
 		return super.add(value);

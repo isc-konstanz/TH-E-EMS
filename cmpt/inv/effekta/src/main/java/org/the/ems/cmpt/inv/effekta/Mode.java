@@ -38,17 +38,17 @@ public enum Mode {
     public short getShort() {
         return mode;
     } 
-    
+
     public long getLong() {
-        return (long)mode;
-    } 
-    
+        return (long) mode;
+    }
+
     public String getBinary() {
     	return Integer.toBinaryString(mode);
     }
-    
+
     public String getByteArray() {
         return Integer.toBinaryString(mode);
-    } 
-	
+    }
+
 }

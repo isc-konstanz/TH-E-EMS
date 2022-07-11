@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-ctrl'
 project.ext {
-    projectName = 'TH-E-Control'
+    projectKey = 'th-e-ems-ctrl'
+    projectName = 'TH-E-EMS-Control'
     projectFullName = 'TH-E EMS Control - Core'
     projectDescription = 'The Control Core of TH-E EMS framework'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.ctrl.*')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': 'org.the.ems.ctrl.*')
 }

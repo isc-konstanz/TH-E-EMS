@@ -1,0 +1,229 @@
+{
+    "name": "TA",
+    "group": "Energiewerkstatt",
+    "category": "Storage",
+    "description": "Requires the <b>Modbus</b> (TCP/IP) server to be installed.",
+
+    "driver": "modbus",
+    "devices": [
+        {
+            "description": "Energiewerkstatt TA Modbus TCP connection",
+            "address": "<address>:<port>",
+            "settings": "TCP"
+        },
+        {
+            "name": "_<node>",
+            "description": "Energiewerkstatt TA",
+            "driver": "virtual"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "address",
+            "name": "Server address",
+            "description": "The address to the Modbus TCP/IP server, e.g. 192.168.178.52",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "port",
+            "name": "Server port",
+            "description": "The port of the Modbus TCP/IP server, e.g. 502",
+            "type": "text",
+            "default": 502,
+            "mandatory": false
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the values of the meter device will be read.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 5000,
+            "mandatory": false
+        }
+    ],
+
+    "items": [
+        {
+            "id": "temperature",
+            "type": "Text",
+            "label": "Temperature",
+            "header": true,
+            "format": "%.1f °C",
+            "input": "<node>*temp"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*power"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*1*temp*top",
+            "description": "Tank 1 temperature top",
+            "address": "1:INPUT_REGISTERS:10:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Tank 1 temperature top", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*1*temp",
+            "description": "Tank 1 temperature",
+            "address": "1:INPUT_REGISTERS:12:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Tank 1 temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*2*temp",
+            "description": "Tank 2 temperature",
+            "address": "1:INPUT_REGISTERS:14:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Tank 2 temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*3*temp*top",
+            "description": "Tank 3 temperature top",
+            "address": "1:INPUT_REGISTERS:16:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Tank 3 temperature top", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*3*temp*bot",
+            "description": "Tank 3 temperature bottom",
+            "address": "1:INPUT_REGISTERS:18:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Tank 3 temperature bottom", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*flow*temp",
+            "description": "Flow temperature",
+            "address": "1:INPUT_REGISTERS:20:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "valueType": "DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Flow temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*temp",
+            "description": "Weighted temperature",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 900000, "loggingTolerance": 0.25, "average": true, "engine":"SQL",
+                "feed": {"name": "Weighted temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*power",
+            "description": "Tank power",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 60000, "loggingMaxInterval": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power thermal", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*energy",
+            "description": "Tank energy",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Flow temperature",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*flow*temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Tank 1 temperature top",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*1*temp*top",
+            "unit": "°C"
+        },
+        {
+            "name": "Tank 1 temperature",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*1*temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Tank 2 temperature",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*2*temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Tank 3 temperature top",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*3*temp*top",
+            "unit": "°C"
+        },
+        {
+            "name": "Tank 3 temperature bottom",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*3*temp*bot",
+            "unit": "°C"
+        },
+        {
+            "name": "Weighted temperature",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Power thermal",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*power",
+            "unit": "W"
+        }
+    ]
+}

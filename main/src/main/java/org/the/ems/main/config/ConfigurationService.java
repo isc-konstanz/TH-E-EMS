@@ -32,6 +32,7 @@ import java.nio.file.WatchService;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -47,10 +48,12 @@ import org.the.ems.main.EnergyManager;
 public final class ConfigurationService extends Thread {
 	private final static Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
-	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "cmpt.d" + File.separator;
-	private final static String CONFIG_DIR = System.getProperty("org.the.ems.core.config", CONFIG_DIR_DEFAULT);
+	private final static String CONFIG_DIR_DEFAULT = "conf" + File.separator + "components" + File.separator;
+	private final static String CONFIG_DIR = System.getProperty("org.the.ems.config", CONFIG_DIR_DEFAULT);
 
 	private final Path dir = Paths.get(CONFIG_DIR);
+
+	private File[] files = dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 
 	private Map<WatchKey, Path> keys = new HashMap<WatchKey, Path>();
 	private Map<String, Long> times = new HashMap<String, Long>();
@@ -64,10 +67,10 @@ public final class ConfigurationService extends Thread {
 	ContentManagementService content; // make sure the CMS is active before registering bundles
 
 	@Activate
-	protected void activate() {
+	protected void activate(BundleContext context) {
 		try {
 			watcher = FileSystems.getDefault().newWatchService();
-			load(EnergyManager.PID, Configurations.create(
+			load(EnergyManager.PID, ConfigurationReader.read(
 					EnergyManager.ID, dir.resolve(EnergyManager.ID + ".cfg").toFile()));
 			
 			register(dir);
@@ -82,29 +85,38 @@ public final class ConfigurationService extends Thread {
 	public void run() {
 		logger.debug("Starting TH-E Configuration");
 		try {
-			File[] files = this.dir.toFile().listFiles((d, name) -> name.endsWith(".cfg"));
-			if (files == null || files.length < 1) {
+			if (files == null || files.length <= 1) {
 				return;
 			}
-			for (ComponentType type : ComponentType.values()) {
-				switch(type) {
-				//case GENERAL:
-				case CONTROL:
-					try {
-						// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
-						// and only continue if all bundles are active
-						Thread.sleep(1000);
-						
-					} catch (InterruptedException e) {
-					}
-				default:
-					break;
-				}
-				register(files, type);
-			}
+			wait(1);
+			
+			// FIXME: maybe use BundleListener to see if a bundle with the configured PID started
+			// and only continue if all bundles are active, instead of waiting a second
+			
+			register(ComponentType.GENERAL);
+			register(ComponentType.ELECTRIC_VEHICLE, ComponentType.VENTILATION);
+			register(ComponentType.ELECTRICAL_ENERGY_STORAGE, 
+					ComponentType.THERMAL_ENERGY_STORAGE);
+			
+			wait(1);
+			register(ComponentType.COMBINED_HEAT_POWER, 
+					ComponentType.HEAT_PUMP, 
+					ComponentType.HEATING_ROD);
+			register(ComponentType.INVERTER);
+			
+			wait(1);
+			register(ComponentType.CONTROL);
 			
 		} catch (Exception e) {
 			logger.error("Error while initializing configurations: {}", e.getMessage());
+		}
+	}
+
+	private void wait(int seconds) {
+		try {
+			Thread.sleep(seconds*1000);
+			
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -154,34 +166,36 @@ public final class ConfigurationService extends Thread {
 		keys.put(key, dir);
 	}
 
-	private void register(File[] files, ComponentType type) throws Exception {
-		files:
-		for (File file : files) {
-			String id = file.getName();
-			int pos = id.lastIndexOf(".");
-			if (pos > 0) {
-				id = id.substring(0, pos);
-			}
-			if (id.equals(EnergyManager.ID)) {
-				continue;
-			}
-			if (!id.startsWith(type.getKey())) {
-				if (type != ComponentType.GENERAL) {
+	private void register(ComponentType... types) throws Exception {
+		for (ComponentType type : types) {
+			files:
+			for (File file : files) {
+				String id = file.getName();
+				int pos = id.lastIndexOf(".");
+				if (pos > 0) {
+					id = id.substring(0, pos);
+				}
+				if (id.equals(EnergyManager.ID)) {
 					continue;
 				}
-				else {
-					for (ComponentType t : ComponentType.values()) {
-						if (id.startsWith(t.getKey())) {
-							continue files;
+				if (!id.startsWith(type.getKey())) {
+					if (type != ComponentType.GENERAL) {
+						continue;
+					}
+					else {
+						for (ComponentType t : ComponentType.values()) {
+							if (id.startsWith(t.getKey())) {
+								continue files;
+							}
 						}
 					}
 				}
+				Path dir = this.dir.resolve(id.concat(".d"));
+				if (dir.toFile().isDirectory()) {
+					register(dir);
+				}
+				load(file, id, type);
 			}
-			Path dir = this.dir.resolve(id.concat(".d"));
-			if (dir.toFile().isDirectory()) {
-				register(dir);
-			}
-			load(file, id, type);
 		}
 	}
 
@@ -205,7 +219,7 @@ public final class ConfigurationService extends Thread {
 	}
 
 	private void load(File file, String id, ComponentType type) throws ConfigurationException {
-		Configurations configs = Configurations.create(id, dir.resolve(id.concat(".cfg")).toFile());
+		ConfigurationReader configs = ConfigurationReader.read(id, dir.resolve(id.concat(".cfg")).toFile());
 
 		File[] dir = this.dir.resolve(id+".d").toFile().listFiles((d, name) -> name.endsWith(".cfg"));
 		if (dir != null && dir.length > 0) {
@@ -215,9 +229,9 @@ public final class ConfigurationService extends Thread {
 		}
 		if (id.startsWith(type.getKey())) {
 			String pid = type.getId();
-			if (configs.contains(Configurations.GENERAL, "type")) {
+			if (configs.containsKey(ConfigurationReader.GENERAL, "type")) {
 				pid = pid.concat(".")
-						.concat(configs.get(Configurations.GENERAL, "type").toLowerCase());
+						.concat(configs.get(ConfigurationReader.GENERAL, "type").toLowerCase());
 			}
 			
 			String alias = id.substring(type.getKey().length());
@@ -227,15 +241,15 @@ public final class ConfigurationService extends Thread {
 			load(pid, alias, configs);
 			return;
 		}
-		if (configs.contains(Configurations.GENERAL, "pid")) {
-			String pid = configs.get(Configurations.GENERAL, "pid");
+		if (configs.containsKey(ConfigurationReader.GENERAL, "pid")) {
+			String pid = configs.get(ConfigurationReader.GENERAL, "pid");
 			load(pid, configs);
 			return;
 		}
 		throw new ConfigurationException("Missing PID for component configuration: "+file.getName());
 	}
 
-	private void load(String pid, String alias, Configurations configs) throws ConfigurationException {
+	private void load(String pid, String alias, ConfigurationReader configs) throws ConfigurationException {
 		if (logger.isDebugEnabled()) {
 			logger.debug("Loading component {} {}", pid.concat("~").concat(alias), configs);
 		}
@@ -247,7 +261,7 @@ public final class ConfigurationService extends Thread {
 		}
 	}
 
-	private void load(String pid, Configurations configs) throws ConfigurationException {
+	private void load(String pid, ConfigurationReader configs) throws ConfigurationException {
 		logger.debug("Loading component {} {}", pid, configs);
 		try {
 			this.configs.getConfiguration(pid, "?").update(configs);

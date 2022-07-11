@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-inv-kaco'
 project.ext {
-    projectName = 'TH-E-Component-KACO'
+    projectKey = 'th-e-ems-inv-kaco'
+    projectName = 'TH-E-EMS-Inverter-KACO'
     projectFullName = 'TH-E EMS Components - KACO Inverter'
     projectDescription = 'KACO new energy GmbH inverter component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': '')
 }

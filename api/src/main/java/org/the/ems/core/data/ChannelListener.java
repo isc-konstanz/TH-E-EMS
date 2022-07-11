@@ -19,77 +19,78 @@
  */
 package org.the.ems.core.data;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ChannelListener implements Channel {
 
-	private final List<ValueListener> listeners = new ArrayList<ValueListener>();
+    private final List<ValueListener> listeners = new LinkedList<ValueListener>();
 
-	private final Channel channel;
+    private final Channel channel;
 
-	public ChannelListener(Channel channel) {
-		this.channel = channel;
-	}
+    public ChannelListener(Channel channel) {
+        this.channel = channel;
+    }
 
-	@Override
-	public String getId() {
-		return channel.getId();
-	}
+    @Override
+    public String getId() {
+        return channel.getId();
+    }
 
-	@Override
-	public Value getLatestValue() throws InvalidValueException {
-		return channel.getLatestValue();
-	}
+    @Override
+    public Value getLatestValue() throws InvalidValueException {
+        return channel.getLatestValue();
+    }
 
-	@Override
-	public Value getLatestValue(ValueListener listener) throws InvalidValueException {
-		this.registerValueListener(listener);
-		return channel.getLatestValue(listener);
-	}
+    @Override
+    public Value getLatestValue(ValueListener listener) throws InvalidValueException {
+        this.registerValueListener(listener);
+        return channel.getLatestValue(listener);
+    }
 
-	@Override
-	public void registerValueListener(ValueListener listener) {
-		synchronized(listeners) {
-			if (!listeners.contains(listener)) {
-				listeners.add(listener);
-				channel.registerValueListener(listener);
-			}
-		}
-	}
+    @Override
+    public void registerValueListener(ValueListener listener) {
+        synchronized(listeners) {
+            if (!listeners.contains(listener)) {
+                listeners.add(listener);
+                channel.registerValueListener(listener);
+            }
+        }
+    }
 
-	@Override
-	public void deregisterValueListener(ValueListener listener) {
-		synchronized(listeners) {
-			if (listeners.contains(listener)) {
-				listeners.remove(listener);
-				channel.deregisterValueListener(listener);
-			}
-		}
-	}
-
-	public void deregister() {
-		synchronized(listeners) {
-			for (ValueListener listener : listeners) {
-				channel.deregisterValueListener(listener);
-			}
-			listeners.clear();
-		}
-	}
+    @Override
+    public void deregisterValueListener(ValueListener listener) {
+        synchronized(listeners) {
+            if (listeners.contains(listener)) {
+                listeners.remove(listener);
+                channel.deregisterValueListener(listener);
+            }
+        }
+    }
 
 	@Override
-	public void setLatestValue(Value value) {
-		channel.setLatestValue(value);
-	}
+	public void deregisterValueListeners() {
+        synchronized(listeners) {
+            for (ValueListener listener : listeners) {
+                channel.deregisterValueListener(listener);
+            }
+            listeners.clear();
+        }
+    }
 
-	@Override
-	public void write(Value value) {
-		channel.write(value);
-	}
+    @Override
+    public void setLatestValue(Value value) {
+        channel.setLatestValue(value);
+    }
 
-	@Override
-	public void write(ValueList value) {
-		channel.write(value);
-	}
+    @Override
+    public void write(Value value) {
+        channel.write(value);
+    }
+
+    @Override
+    public void write(ValueList value) {
+        channel.write(value);
+    }
 
 }

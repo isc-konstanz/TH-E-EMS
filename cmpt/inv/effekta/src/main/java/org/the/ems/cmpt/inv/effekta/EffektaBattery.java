@@ -26,7 +26,6 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -35,17 +34,31 @@ import org.the.ems.core.data.ValueListener;
 public class EffektaBattery extends ElectricalEnergyStorage {
 	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
 
-	@Configuration
+	private final static String SECTION = "Storage";
+
+	@Configuration("voltage_charge_max")
 	private double chargeVoltageMax = 52;
 
-	@Configuration
+	@Configuration("voltage_discharge_min")
 	private double dischargeVoltageMin = 48;
+
+	@Configuration
+	private Channel voltageSetpoint;
+
+	@Configuration
+	private Channel voltage;
+
+	@Configuration
+	private Channel current;
 
 	@Configuration
 	private Channel currentMax;
 
-	@Configuration
-	private Channel voltageSetpoint;
+	@Configuration("current_charge")
+	private Channel chargeCurrent;
+
+	@Configuration("current_discharge")
+	private Channel dischargeCurrent;
 
 	@Configuration
 	private Channel power;
@@ -53,15 +66,78 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration
 	private Channel soc;
 
-	@Configuration
-	private Channel current;
+	protected EffektaBattery() {
+		super(SECTION);
+	}
 
-	@Configuration
-	protected ChannelListener voltage;
+	@Override
+	public void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+
+		power.setLatestValue(new DoubleValue(0));
+		soc.setLatestValue(new DoubleValue(50));
+	}
+
+	@Override
+	protected void onDeactivate() {
+		voltage.deregisterValueListeners();
+	}
 
 	@Override
 	public Value getVoltage() throws ComponentException, InvalidValueException {
 		return voltage.getLatestValue();
+	}
+
+	@Override
+	public void registerVoltageListener(ValueListener listener) {
+		voltage.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
+		voltage.deregisterValueListener(listener);
+	}
+
+	public Channel getVoltageSetpoint() {
+		return voltageSetpoint;
+	}
+
+	public double getVoltageMin() {
+		return dischargeVoltageMin;
+	}
+
+	public double getVoltageMax() {
+		return chargeVoltageMax;
+	}
+
+	public Channel getCurrentMax() {
+		return currentMax;
+	}
+
+	public void setCurrent(Value value) {
+		current.setLatestValue(value);
+	}
+
+	public Value getCurrent() throws InvalidValueException {
+		return current.getLatestValue();
+	}
+
+	public Value getChargeCurrent() throws InvalidValueException {
+		return chargeCurrent.getLatestValue();
+	}
+
+	public Value getDischargeCurrent() throws InvalidValueException {
+		return dischargeCurrent.getLatestValue();
+	}
+
+	public void setPower(Value value) {
+		power.setLatestValue(value);
+		try {
+			current.setLatestValue(new DoubleValue(value.doubleValue() / voltage.getLatestValue().doubleValue()));
+			
+		} catch (InvalidValueException e) {
+			logger.warn("Obligatory value missing: {}", e.getMessage());
+		}
 	}
 
 	@Override
@@ -73,88 +149,33 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	public Value getStateOfCharge() throws InvalidValueException {
 		return soc.getLatestValue();
 	}
-	
-	@Override
-	public void onActivate(Configurations configs) throws ComponentException {
-		super.onActivate(configs);
-		
-	}
 
-	public void initialize() {
-		power.setLatestValue(new DoubleValue(0));
-		soc.setLatestValue(new DoubleValue(50));
-		current.setLatestValue(new DoubleValue(0));
+	public Value processStateOfCharge(long time) throws InvalidValueException {
+		long timeLast = getStateOfCharge().getEpochMillis();
+		double current = getCurrent().doubleValue();
+		double value;
+		if (voltage.getLatestValue().doubleValue() >= getVoltageMax()) {
+			setStateOfCharge(new DoubleValue(100));
+		}
+		else if (voltage.getLatestValue().doubleValue() <= getVoltageMin()) {
+			setStateOfCharge(new DoubleValue(0));
+		}
+		else if (!Double.isNaN(current)) {
+			double energy = current * voltage.getLatestValue().doubleValue() * (time - timeLast) / (1000 * 3600);
+			value = getStateOfCharge().doubleValue() - energy / (getCapacity() * 1000) * 100;
+			if (value < 0) {
+				value = 0;
+			}
+			if (value > 100) {
+				value = 100;
+			}
+			setStateOfCharge(new DoubleValue(value, time));
+		}
+		return getStateOfCharge();
 	}
 
 	public void setStateOfCharge(Value value) {
 		soc.setLatestValue(value);
 	}
 
-	public Value socEstimation(Long time) throws InvalidValueException {
-		long socTime = getStateOfCharge().getTime();
-		double energy;
-		double socEstimation;
-		double current = getCurrent().doubleValue();
-
-		if (voltage.getLatestValue().doubleValue() >= getVoltageMax()) {
-			setStateOfCharge(new DoubleValue(100));
-		} else if (voltage.getLatestValue().doubleValue() <= getVoltageMin()) {
-			setStateOfCharge(new DoubleValue(0));
-		} else if (!Double.isNaN(current)) {
-			energy = current * voltage.getLatestValue().doubleValue() * (time - socTime) / (1000 * 3600);
-			socEstimation = getStateOfCharge().doubleValue() - energy / (getCapacity() * 1000) * 100;
-			socEstimation = Math.max(0, socEstimation);
-			socEstimation = Math.min(100, socEstimation);
-
-			setStateOfCharge(new DoubleValue(socEstimation, time));
-		}
-		
-		return getStateOfCharge();
-	}
-
-	void registerVoltageListener(ValueListener listener) {
-		voltage.registerValueListener(listener);
-	}
-
-	void deregister() {
-		voltage.deregister();
-	}
-
-	public Channel getCurrentMax() {
-		return currentMax;
-	}
-
-	public Value getCurrent() throws InvalidValueException {
-		return current.getLatestValue();
-	}
-
-	public double getVoltageMax() {
-		return chargeVoltageMax;
-	}
-
-	public double getVoltageMin() {
-		return dischargeVoltageMin;
-	}
-
-	public Channel getVoltageSetpoint() {
-		return voltageSetpoint;
-	}
-
-	public void setCurrent(Value value) {
-		current.setLatestValue(value);
-	}
-
-	public void setPower(Value value) {
-		power.setLatestValue(value);
-
-		try {
-			current.setLatestValue(new DoubleValue(value.doubleValue() / voltage.getLatestValue().doubleValue()));
-		} catch (InvalidValueException e) {
-			logger.warn("Obligatory value missing: {}", e.getMessage());
-		}
-	}
-
-	public double getChargeVoltageMax() {
-		return chargeVoltageMax;
-	}
 }

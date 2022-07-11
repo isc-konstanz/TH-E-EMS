@@ -19,27 +19,58 @@
  */
 package org.the.ems.core.data;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Objects;
 
-public abstract class Value {
+public abstract class Value implements TemporalValue {
+
+	// TODO: Make configurable
+	public final static ZoneId ZONE = ZoneId.systemDefault();
 
 	protected final ValueType type;
 
+	protected final Instant instant;
 	protected final Number value;
-	protected final long time;
 
 	public Value(ValueType type, Number value, long timestamp) {
-		this.value = value;
-		this.time = timestamp;
 		this.type = type;
+		this.value = value;
+		
+		// TODO: Add additional constructors and start refactoring to work with time library instead of timestamps
+		this.instant = Instant.ofEpochMilli(timestamp);
 	}
 
 	public ValueType getType() {
 		return type;
 	}
 
-	public long getTime() {
-		return time;
+	@Override
+	public LocalDateTime getDateTime() {
+		return LocalDateTime.ofInstant(instant, ZONE);
+	}
+
+	@Override
+	public LocalDate getDate() {
+		return LocalDate.ofInstant(instant, ZONE);
+	}
+
+	@Override
+	public LocalTime getTime() {
+		return LocalTime.ofInstant(instant, ZONE);
+	}
+
+	@Override
+	public long getEpochSeconds() {
+		return instant.getEpochSecond();
+	}
+
+	@Override
+	public long getEpochMillis() { //throws ArithmeticException {
+		return instant.toEpochMilli();
 	}
 
 	public double doubleValue() {
@@ -77,18 +108,19 @@ public abstract class Value {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, time, value);
+		return Objects.hash(type, instant, value);
 	}
 
 	@Override
 	public boolean equals(Object o) {
+		if (o == null) return false;
 		if (o == this) return true;
 		if (!(o instanceof Value)) {
 			return false;
 		}
 		Value eq = (Value) o;
 		return type == eq.type &&
-				Objects.equals(time, eq.time) &&
+				Objects.equals(instant, eq.instant) &&
 				Objects.equals(value, eq.value);
 	}
 

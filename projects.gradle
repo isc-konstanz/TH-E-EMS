@@ -20,12 +20,15 @@
  */
 project.ext {
 
-    projectVersion = '1.1.0'
+    projectVersion = '1.3.7'
 
     projectGroup = 'org.the.ems'
 
     projectVendor = 'ISC Konstanz e.V.'
-    projectSite = 'https://github.com/isc-konstanz/TH-E-EMS'
+    projectHomepage = 'https://isc-konstanz.de'
+    projectRepository = 'https://github.com/isc-konstanz/th-e-ems'
+    projectMaintainer = 'Adrian Minde <adrian.minde@isc-konstanz.de>'
+    projectTimeZone = 'Europe/Berlin'
 
     copyDependencies = false
 
@@ -33,13 +36,14 @@ project.ext {
         it.getPath() == ':main'
         it.getPath() == ':api' ||
         it.getPath() == ':cmpt' ||
-        it.getPath() == ':cmpt:apl' ||
         it.getPath() == ':cmpt:ev' ||
         it.getPath() == ':cmpt:ev:chargebig' ||
         it.getPath() == ':cmpt:chp' ||
+        it.getPath() == ':cmpt:chp:energiewerkstatt' ||
         it.getPath() == ':cmpt:chp:ice' ||
         it.getPath() == ':cmpt:chp:serenergy' ||
         it.getPath() == ':cmpt:hp' ||
+        it.getPath() == ':cmpt:hp:weider' ||
         it.getPath() == ':cmpt:hr' ||
         it.getPath() == ':cmpt:vnt' ||
         it.getPath() == ':cmpt:tes' ||
@@ -55,7 +59,6 @@ project.ext {
     javadocProjects = distributionProjects.findAll {
         it.getPath() == ':api' ||
         it.getPath() == ':cmpt' ||
-        it.getPath() == ':cmpt:apl' ||
         it.getPath() == ':cmpt:ev' ||
         it.getPath() == ':cmpt:chp' ||
         it.getPath() == ':cmpt:hp' ||

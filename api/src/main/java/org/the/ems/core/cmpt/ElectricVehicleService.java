@@ -25,23 +25,19 @@ import org.the.ems.core.RunnableService;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
 public interface ElectricVehicleService extends RunnableService {
 
-	static final String PID = "org.the.ems.cmpt.ev";
+	public static final String PID = "org.the.ems.cmpt.ev";
 
 	@Override
 	public default ComponentType getType() {
 		return ComponentType.ELECTRIC_VEHICLE;
 	};
 
-	/*
-	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
-	 */
-	public double getCapacity() throws ComponentException;
-
-	/*
-	 * Get the default value with which a component will be started with.
+	/**
+	 * {@inheritDoc}
 	 */
 	@Override
 	public default Value getStartValue(long time) {
@@ -49,33 +45,168 @@ public interface ElectricVehicleService extends RunnableService {
 	}
 
 	/*
-	 * Get the default power with which a component will be started with in watts [W].
+	 * Get the default power with which an electric vehicle will be started with in watts [W].
+	 * 
+	 * @return the default power with which an electric vehicle will be started with
 	 */
 	public double getStartPower();
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public default Value getStopValue(long time) {
+		return new DoubleValue(getStopPower(), time);
+	}
+
+	/*
+	 * Get the default power to which an electric vehicle will be stopped to in watts [W].
+	 * 
+	 * @return the default power to which an electric vehicle will be stopped to
+	 */
+	public double getStopPower();
+
 	/*
 	 * Get the minimum charging power in watts [W].
+	 * 
+	 * @return the minimum charging power of this electric vehicle
 	 */
 	public double getMinPower();
 
 	/*
 	 * Get the maximum charging power in watts [W].
+	 * 
+	 * @return the maximum charging power of this electric vehicle
 	 */
 	public double getMaxPower();
 
 	/*
+	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.
+	 * 
+	 * @return the capacity of the storage system
+	 */
+	public double getCapacity() throws ComponentException;
+	/*
+	 * Get the state of charge in percent [%] between 0 and 100%.
+	 * 
+	 * @return the state of charge {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getStateOfCharge() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the state of charge in percent [%] between 0 and 100%.
+	 * Additionally, register a {@link ValueListener}, to be notified of new state values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @return the state of charge {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new state values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new state values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException;
+
+	/*
 	 * Get the charged energy in kilowatt hours [kWh].
+	 * 
+	 * @return the charged energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getChargedEnergy() throws ComponentException, InvalidValueException;
 
 	/*
+	 * Get the charged energy in kilowatt hours [kWh].
+	 * Additionally, register a {@link ValueListener}, to be notified of new energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @return the charged energy {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getChargedEnergy(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new energy values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerChargedEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new energy values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterChargedEnergyListener(ValueListener listener) throws ComponentException;
+
+	/*
 	 * Get the charging power in watts [W].
+	 * 
+	 * @return the charging power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getChargePower() throws ComponentException, InvalidValueException;
 
 	/*
-	 * Get the state of charge in percent [%] between 0 and 100%.
+	 * Get the charging power in watts [W].
+	 * Additionally, register a {@link ValueListener}, to be notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @return the charging power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
-	public Value getStateOfCharge() throws ComponentException, InvalidValueException;
+	public Value getChargePower(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerChargePowerListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new power values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterChargePowerListener(ValueListener listener) throws ComponentException;
 
 }

@@ -29,8 +29,12 @@ public class LongValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
-	public static LongValue emptyValue() {
+	public static LongValue zeroValue() {
 		return new LongValue(0);
+	}
+
+	public static LongValue copy(Value value) {
+		return new LongValue(value.longValue(), value.getEpochMillis());
 	}
 
 }

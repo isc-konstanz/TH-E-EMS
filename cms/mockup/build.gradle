@@ -18,36 +18,18 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cms-mock'
 project.ext {
-    projectName = 'TH-E-CMS-Mockup'
+    projectKey = 'th-e-ems-cms-mock'
+    projectName = 'TH-E-EMS-CMS-Mockup'
     projectFullName = 'TH-E EMS Content Managment System - OpenMUC Mockup'
     projectDescription = 'The OpenMUC Content Management System Mockup of TH-E EMS framework'
 }
-configurations.create('embed')
-configurations.embed.transitive = false;
 
 dependencies {
-    api fileTree(dir: '../libs/openmuc', include: ['*.jar'])
-    api project(':api')
-
     implementation project(':cms')
-    embed          project(':cms')
 }
 
 jar {
-    into('lib') {
-        from configurations.embed
-    }
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Bundle-ClassPath':   '.,lib/th-e-cms-' + projectVersion + '.jar',
-        'Import-Package':     '!org.openmuc.framework.app.the.ems*,*',
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Import-Package': 'org.openmuc.framework.*;version=0,*',
+        'Export-Package': 'org.openmuc.framework.app.the.ems.mock.*')
 }

@@ -84,15 +84,6 @@ if  not "" == "%GRADLE_EXIT_CONSOLE%" exit 1
 exit /b 1
 
 :mainEnd
-if "%ERRORLEVEL%"=="0" goto copyBundles
 if "%OS%"=="Windows_NT" endlocal
 
 :omega
-
-:copyBundles
-@rem th-e-cmpt-inv-effekta-1.1.0.jar
-set BUNDLENAMES=(th-e-cmpt-inv-1.1.0.jar th-e-cmpt-inv-effekta-1.1.0.jar th-e-cmpt-chp-serenergy-1.1.0.jar th-e-ctrl-1.1.0.jar th-e-ctrl-ps-1.1.0.jar)
-for %%N in %BUNDLENAMES% do (
-	echo copy %%N to OpenMUC framework
-	copy %DIRNAME%build\libs\%%N ..\OpenMUC\framework\bundle
-)

@@ -20,20 +20,16 @@
 package org.the.ems.cmpt.inv.ext;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
-import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class ExternalPower extends Configurable implements ValueListener {
+public class ExternalPower extends Component implements ValueListener {
 
 	private final static String SECTION = "External";
 
@@ -43,43 +39,37 @@ public class ExternalPower extends Configurable implements ValueListener {
 	private Channel virtualPower;
 
 	@Configuration
-	private ChannelListener activePower;
+	private Channel activePower;
 
 	@Configuration
-	private ChannelListener solarPower;
+	private Channel solarPower;
 
 	@Configuration(mandatory=false)
-	private ChannelListener solarEnergy;
+	private Channel solarEnergy;
 	private Value solarEnergyLast = null;
 
 	private volatile boolean running = false;
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public ExternalPower activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
+	public ExternalPower() {
+		super(SECTION);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public ExternalPower configure(Configurations configs) throws ConfigurationException {
-		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
-			
-			activePower.registerValueListener(new ActivePowerListener());
-			solarPower.registerValueListener(this);
-			if (solarEnergy != null) {
-				solarEnergy.registerValueListener(new SolarEnergyListener());
-			}
-			running = true;
+	protected void onActivate() throws ComponentException {
+		super.onActivate();
+		if (!isEnabled()) {
+			return;
 		}
-		return this;
+		activePower.registerValueListener(new ActivePowerListener());
+		solarPower.registerValueListener(this);
+		if (solarEnergy != null) {
+			solarEnergy.registerValueListener(new SolarEnergyListener());
+		}
+		running = true;
 	}
 
-	public ExternalPower register(InverterCallbacks callbacks) {
+	public void register(InverterCallbacks callbacks) {
 		this.callbacks = callbacks;
-		return this;
 	}
 
 	public void resume() {
@@ -94,15 +84,10 @@ public class ExternalPower extends Configurable implements ValueListener {
 		this.callbacks = null;
 	}
 
-	public void deactivate() {
-		if (isEnabled()) {
-			activePower.deregister();
-			solarPower.deregister();
-			if (solarEnergy != null) {
-				solarEnergy.deregister();
-			}
-		}
-		running = false;
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		this.running = false;
 	}
 
 	public boolean isRunning() {
@@ -115,7 +100,7 @@ public class ExternalPower extends Configurable implements ValueListener {
 			value = solarPower.getLatestValue();
 			
 		} catch (InvalidValueException e) {
-			value = DoubleValue.emptyValue();
+			value = DoubleValue.zeroValue();
 		}
 		return value;
 	}
@@ -132,7 +117,7 @@ public class ExternalPower extends Configurable implements ValueListener {
 		@Override
 		public void onValueReceived(Value value) {
 			if (isRunning()) {
-				DoubleValue virtualValue = new DoubleValue(value.doubleValue() - getSolar().doubleValue(), value.getTime());
+				DoubleValue virtualValue = new DoubleValue(value.doubleValue() - getSolar().doubleValue(), value.getEpochMillis());
 				virtualPower.setLatestValue(virtualValue);
 			}
 		}
@@ -143,9 +128,9 @@ public class ExternalPower extends Configurable implements ValueListener {
 		@Override
 		public void onValueReceived(Value value) {
 			if (solarEnergyLast != null) {
-				double hours = ((double) value.getTime() - (double) solarEnergyLast.getTime())/3600000;
+				double hours = ((double) value.getEpochMillis() - (double) solarEnergyLast.getEpochMillis())/3600000;
 				if (hours > 0) {
-					Value power = new DoubleValue((value.doubleValue() - solarEnergyLast.doubleValue())*1000/hours, value.getTime());
+					Value power = new DoubleValue((value.doubleValue() - solarEnergyLast.doubleValue())*1000/hours, value.getEpochMillis());
 					solarPower.setLatestValue(power);
 				}
 			}

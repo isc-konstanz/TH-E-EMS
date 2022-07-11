@@ -1,6 +1,11 @@
-org.the.ems.cmpt.chp
-org.the.ems.cmpt.ees
-org.the.ems.cmpt.hp
-org.the.ems.cmpt.inv
-org.the.ems.cmpt.inv.ext
-org.the.ems.cmpt.tes
+org.the.ems.cmpt
+org.the.ems.cmpt.circ
+org.the.ems.cmpt.util
+org.the.ems.core
+org.the.ems.core.cmpt
+org.the.ems.core.config
+org.the.ems.core.data
+org.the.ems.core.data.event
+org.the.ems.core.schedule
+org.the.ems.core.settings
+org.the.ems.ctrl

@@ -8,12 +8,14 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.RunState;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.settings.StartSettings;
+import org.the.ems.core.settings.StopSettings;
 
 public class HeatingControl extends ComponentControl<HeatingService> {
 	private final static Logger logger = LoggerFactory.getLogger(HeatingControl.class);
 
 	public static class HeatingCollection extends ComponentCollection<HeatingControl> {
-		private static final long serialVersionUID = -1170124420619031062L;
+		private static final long serialVersionUID = -5930525969091397878L;
 
 		public void startAll(ComponentType... types) {
 			for (HeatingControl controlledHeating : getAll(types)) {
@@ -67,9 +69,9 @@ public class HeatingControl extends ComponentControl<HeatingService> {
 
 		void onSet(HeatingService component, Value value) throws EnergyManagementException;
 
-		void onStart(HeatingService component, Value value) throws EnergyManagementException;
+		void onStart(HeatingService component, StartSettings settings) throws EnergyManagementException;
 
-		void onStop(HeatingService component) throws EnergyManagementException;
+		void onStop(HeatingService component, StopSettings settings) throws EnergyManagementException;
 	}
 
 	protected HeatingControl(HeatingCallbacks callbacks, HeatingService heating) throws ComponentException {
@@ -85,31 +87,34 @@ public class HeatingControl extends ComponentControl<HeatingService> {
         }
 	}
 
-	protected final void doStart() {
-		Value value = component.getStartValue();
+	void doStart() {
 		try {
-			this.onStart(value);
-			((HeatingCallbacks) callbacks).onStart(component, value);
+			StartSettings settings = component.getStartSettings();
+			onStart(settings);
+			
+			((HeatingCallbacks) callbacks).onStart(component, settings);
 			
 		} catch (EnergyManagementException e) {
 			logger.warn("Unable to start heating \"{}\": {}", component.getId(), e.getMessage());
 		}
 	}
 
-	protected void onStart(Value value) throws EnergyManagementException {
-		component.start(value);
+	protected void onStart(StartSettings settings) {
+		try {
+			component.start(settings);
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Unable to start heating \"{}\": {}", component.getId(), e.getMessage());
+		}
 	}
 
 	public boolean isStartable() {
-		RunState state = component.getState();
-		switch(state) {
-		case STANDBY:
-		case STOPPING:
-            if (component.getIdletime() >= component.getMinIdletime()) {
-    			return true;
-            }
-		default:
-			break;
+		try {
+			return component.isStartable();
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Unable to retrieve startable status of heating \"{}\": {}", 
+					component.getId(), e.getMessage());
 		}
 		return false;
 	}
@@ -129,7 +134,7 @@ public class HeatingControl extends ComponentControl<HeatingService> {
 		}
 	}
 
-	protected final void doSet(Value value) {
+	void doSet(Value value) {
 		try {
 			this.onSet(value);
 			((HeatingCallbacks) callbacks).onSet(component, value);
@@ -152,32 +157,31 @@ public class HeatingControl extends ComponentControl<HeatingService> {
         }
 	}
 
-	protected final void doStop() {
+	void doStop() {
 		try {
-			this.onStop();
-			((HeatingCallbacks) callbacks).onStop(component);
+			StopSettings settings = component.getStopSettings();
+			onStop(settings);
+			
+			((HeatingCallbacks) callbacks).onStop(component, settings);
 			
 		} catch (EnergyManagementException e) {
 			logger.warn("Unable to stop heating \"{}\": {}", component.getId(), e.getMessage());
 		}
 	}
 
-	protected void onStop() throws EnergyManagementException {
-		component.stop();
+	protected void onStop(StopSettings settings) throws EnergyManagementException {
+		component.stop(settings);
 	}
 
 	public boolean isStoppable() {
-		RunState state = component.getState();
-		switch(state) {
-		case RUNNING:
-		case STARTING:
-            if (component.getRuntime() >= component.getMinRuntime()) {
-            	return true;
-            }
-		default:
-			break;
+		try {
+			return component.isStoppable();
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Unable to retrieve stoppable status of heating \"{}\": {}", 
+					component.getId(), e.getMessage());
 		}
-		return false;
+		return true;
 	}
 
 }

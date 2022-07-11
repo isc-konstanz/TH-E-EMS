@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-chp'
 project.ext {
-    projectName = 'TH-E-Component-Cogenerator'
+    projectKey = 'th-e-ems-chp'
+    projectName = 'TH-E-EMS-Cogenerator'
     projectFullName = 'TH-E EMS Component - Cogenerator'
     projectDescription = 'Cogenerator component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     'org.the.ems.cmpt.chp.*')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': 'org.the.ems.cmpt.chp.*')
 }

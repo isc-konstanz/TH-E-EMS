@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-mpc'
 project.ext {
-    projectName = 'TH-E-MPC'
+    projectKey = 'th-e-ems-mpc'
+    projectName = 'TH-E-EMS-MPC'
     projectFullName = 'TH-E Model Predictive Control'
     projectDescription = 'The Model Predictive Control of TH-E EMS framework'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': '')
 }

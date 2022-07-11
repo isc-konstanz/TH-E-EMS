@@ -1,0 +1,104 @@
+{
+    "name": "blueplanet hy-bat",
+    "group": "KACO",
+    "category": "Inverter",
+    "description": "KACO blueplanet hybrid 10.0 TL3 battery",
+
+    "driver": "edcom",
+    "devices": [],
+
+    "options": [
+        {
+            "id": "inverter",
+            "name": "Inverter key",
+            "description": "The device key of the inverter, managing this battery.",
+            "type": "text",
+            "mandatory": true
+        }
+    ],
+
+    "items": [
+        {
+            "id": "soc",
+            "type": "Text",
+            "label": "State of Charge",
+            "header": true,
+            "format": "%i %",
+            "max": 100,
+            "min": 0,
+            "input": "<node>*soc"
+        },
+        {
+            "id": "voltage",
+            "type": "Text",
+            "label": "Voltage",
+            "format": "%.1f V",
+            "input": "<node>*voltage"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*power"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*soc",
+            "description": "Battery state of charge",
+            "device": "<inverter>",
+            "address": "BAT_SOC",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"%"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "engine":"SQL",
+                "feed": {"name": "State of Charge", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*voltage",
+            "description": "Battery voltage",
+            "device": "<inverter>",
+            "address": "BAT_VOLTAGE",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*power",
+            "description": "Battery charge power",
+            "device": "<inverter>",
+            "address": "BAT_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
+            }
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State of Charge",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_soc",
+            "unit": "%"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Power",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power",
+            "unit": "W"
+        }
+    ]
+}

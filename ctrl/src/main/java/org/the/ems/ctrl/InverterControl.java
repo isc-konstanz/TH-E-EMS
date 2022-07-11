@@ -12,7 +12,15 @@ public class InverterControl extends ComponentControl<InverterService> {
 	private final static Logger logger = LoggerFactory.getLogger(InverterControl.class);
 
 	public static class InverterCollection extends ComponentCollection<InverterControl> {
-		private static final long serialVersionUID = -3866430817469938810L;
+		private static final long serialVersionUID = 4407719774138591764L;
+
+		public boolean hasChargableStorage() {
+			return values().stream().anyMatch(c -> c.hasChargableStorage());
+		}
+
+		public boolean hasDischargableStorage() {
+			return values().stream().anyMatch(c -> c.hasDischargableStorage());
+		}
 
 		public void set(Value value) {
 			for (InverterControl controlledInverter : values()) {
@@ -21,11 +29,7 @@ public class InverterControl extends ComponentControl<InverterService> {
 				controlledInverter.set(value);
 			}
 		}
-		
-		public boolean hasSufficientCapacity() {
-			return values().stream().anyMatch(c -> c.isAbleToExport());
-		}
-		
+
 	}
 
 	public interface InverterCallbacks extends ControlCallbacks {
@@ -36,12 +40,25 @@ public class InverterControl extends ComponentControl<InverterService> {
 	protected InverterControl(InverterCallbacks callbacks, InverterService inverter) throws ComponentException {
 		super(callbacks, inverter);
 	}
-	
-	public boolean isAbleToExport() {
+
+	public boolean hasChargableStorage() {
 		try {
-			return component.getStorage().hasMinStateOfCharge();
+			return component.getEnergyStorage().isChargable();
+			
 		} catch (ComponentException | InvalidValueException e) {
-			logger.warn("Unable to retrieve minimum SOC \"{}\": {}", component.getId(), e.getMessage());
+			logger.warn("Unable to retrieve chargable status of storage from inverter \"{}\": {}", 
+					component.getId(), e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean hasDischargableStorage() {
+		try {
+			return component.getEnergyStorage().isDischargable();
+			
+		} catch (ComponentException | InvalidValueException e) {
+			logger.warn("Unable to retrieve chargable status of storage from inverter \"{}\": {}", 
+					component.getId(), e.getMessage());
 			return false;
 		}
 	}
@@ -50,7 +67,7 @@ public class InverterControl extends ComponentControl<InverterService> {
 		doSet(value);
 	}
 
-	final void doSet(Value value) {
+	void doSet(Value value) {
 		try {
 			this.onSet(value);
 			((InverterCallbacks) callbacks).onSet(component, value);

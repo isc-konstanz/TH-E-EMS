@@ -24,10 +24,11 @@ import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueListener;
 
 public interface ThermalEnergyStorageService extends ComponentService {
 
-	static final String PID = "org.the.ems.cmpt.tes";
+	public static final String PID = "org.the.ems.cmpt.tes";
 
 	@Override
 	public default ComponentType getType() {
@@ -41,12 +42,80 @@ public interface ThermalEnergyStorageService extends ComponentService {
 
 	/*
 	 * Get the thermal power in watts [W].
+	 * 
+	 * @return the generated thermal power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getThermalPower() throws ComponentException, InvalidValueException;
 
 	/*
-	 * Get the average temperature in degree celsius [�C].
+	 * Get the thermal power in watts [W].
+	 * Additionally, register a {@link ValueListener}, to be notified of new thermal power values.
+	 * 
+	 * @return the generated thermal power {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getThermalPower(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new thermal power values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerThermalPowerListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new thermal power values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterThermalPowerListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Get the average temperature in degree celsius [°C].
+	 * 
+	 * @return the average temperature {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
 	 */
 	public Value getTemperature() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Get the average temperature in degree celsius [°C].
+	 * Additionally, register a {@link ValueListener}, to be notified of new temperature values.
+	 * 
+	 * @return the average temperature {@link Value}
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public Value getTemperature(ValueListener listener) throws ComponentException, InvalidValueException;
+
+	/*
+	 * Register a {@link ValueListener}, to be notified of new temperature values.
+	 * 
+	 * @param listener the {@link ValueListener} to be notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs registering the listener
+	 */
+	public void registerTemperaturereListener(ValueListener listener) throws ComponentException;
+
+	/*
+	 * Deregister a {@link ValueListener}, notified of new temperature values.
+	 * 
+	 * @param listener the {@link ValueListener} notified of values
+	 * 
+	 * @throws ComponentException if any kind of error occurs deregistering the listener
+	 */
+	public void deregisterTemperatureListener(ValueListener listener) throws ComponentException;
 
 }

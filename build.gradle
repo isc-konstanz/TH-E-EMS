@@ -19,146 +19,175 @@
  *
  */
 buildscript {
-  repositories {
-    maven {
-      url 'https://plugins.gradle.org/m2/'
+    repositories {
+        mavenCentral()
     }
-  }
-  dependencies {
-    classpath 'biz.aQute.bnd:biz.aQute.bnd.gradle:4.1.0'
-  }
+}
+
+plugins {
+    id 'java-library'
+    id 'biz.aQute.bnd.builder' version '5.1.2'
 }
 
 apply from: 'projects.gradle'
 
 def javaProjects() {
-  return allprojects.findAll { new File(it.projectDir, 'src').exists() }
+    return allprojects.findAll { new File(it.projectDir, 'src').exists() }
 }
 
 configure(javaProjects()) {
-  apply plugin: 'maven-publish'
-  apply plugin: 'java-library'
-  apply plugin: 'biz.aQute.bnd.builder'
-  apply plugin: 'eclipse'
+    apply plugin: 'java-library'
+    apply plugin: 'biz.aQute.bnd.builder'
+    apply plugin: 'eclipse'
 
-  group = projectGroup
+    group = projectGroup
 
-  version = projectVersion
+    version = projectVersion
 
-  repositories {
-    mavenCentral()
-    mavenLocal()
-  }
-
-  dependencies {
-    testImplementation group: 'junit', name: 'junit', version: '4.12'
-  }
-
-  jar {
-    manifest {
-      archiveVersion = project.version.replace('-','.');
-      attributes('Bundle-Vendor':      projectVendor,
-                 'Bundle-DocURL':      projectSite)
+    repositories {
+        mavenCentral()
     }
-  }
 
-  if (!project.properties.containsKey('javaVersion')) {
-    project.ext {
-      javaVersion = '1.8'
+    dependencies {
+        testImplementation group: 'junit', name: 'junit', version: '4.13.2'
+
+        implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.33'
+        implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.10'
     }
-  }
 
-  sourceCompatibility = javaVersion
-  targetCompatibility = javaVersion
-
-  task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-  }
-
-  task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-  }
-
-  task jarAll(type: Copy) {
-    // Include the jar file created, as well as all artifacts:
-    from jar
-    from sourcesJar
-    from javadocJar
-
-    if (copyDependencies) {
-      // Includes all the dependencies:
-      from configurations.default
+    if (!project.properties.containsKey('javaVersion')) {
+        project.ext {
+            javaVersion = '1.8'
+        }
     }
-    into rootDir.getPath() + '/build/libs'
-  }
 
-  build.dependsOn { jarAll }
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 
-  eclipse.pathVariables([GRADLE_USER_HOME:file(gradle.gradleUserHomeDir)])
-  tasks.eclipse.dependsOn(cleanEclipse)
+	compileTestJava {
+        options.encoding = 'utf-8'
+    }
+	compileJava {
+        options.encoding = 'utf-8'
+    }
+    javadoc {
+	    options.encoding = 'utf-8'
+        exclude '**/internal/**'
+        exclude '**/java-gen/**'
+        exclude '**/app/**'
+    }
 
-  artifacts {
-    archives sourcesJar
-    archives javadocJar
-  }
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
 
-  javadoc {
-    exclude '**/internal/**'
-    exclude '**/java-gen/**'
-    exclude '**/app/**'
-  }
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task jarAll(type: Copy) {
+        // Include the jar file created, as well as all artifacts:
+        from jar
+        from javadocJar
+        from sourcesJar
+
+        if (copyDependencies) {
+            // Includes all the dependencies:
+            from configurations.default
+        }
+        into rootDir.getPath() + '/build/libs'
+    }
+
+    build.dependsOn { jarAll }
+
+    eclipse.pathVariables([GRADLE_USER_HOME:file(gradle.gradleUserHomeDir)])
+    tasks.eclipse.dependsOn(cleanEclipse)
+
+    afterEvaluate {
+        eclipse {
+            project {
+                name = projectName
+            }
+        }
+        jar {
+            bnd('Bundle-Vendor':       projectVendor,
+                'Bundle-DocURL':       projectRepository,
+                'Bundle-Description':  projectDescription,
+                'Bundle-Name':         projectFullName,
+                'Bundle-SymbolicName': projectKey.replace('th-e-ems-', 'org.the.ems.').replaceAll('-', '.'))
+
+            archivesBaseName = projectKey
+        }
+    }
+
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
+    }
+}
+
+configure(rootProject) {
+    jar {
+        // FIXME: Find better solution to avoid the root project beeing built
+        destinationDirectory = new File("$rootDir/build/tmp/libs")
+    }
 }
 
 task javadocClean(type: Delete) {
-  delete rootDir.getPath() + '/docs/javadoc'
+    delete rootDir.getPath() + '/docs/javadoc'
 }
 
 task javadocAll(type: Javadoc) {
-  dependsOn(javadocClean)
-  source javadocProjects.collect {
-    project -> project.sourceSets.main.allJava
-  }
-  exclude '**/internal/**'
-  exclude '**/java-gen/**'
-  exclude '**/app/**'
+    dependsOn(javadocClean)
+    source javadocProjects.collect {
+        project -> project.sourceSets.main.allJava
+    }
+    exclude '**/internal/**'
+    exclude '**/java-gen/**'
+    exclude '**/app/**'
 
-  destinationDir = new File(rootDir, 'docs/javadoc')
+    destinationDir = new File(rootDir, 'docs/javadoc')
 
-  classpath = files(javadocProjects.collect { project ->
-    project.sourceSets.main.compileClasspath })
+    classpath = files(javadocProjects.collect { project ->
+        project.sourceSets.main.compileClasspath })
 
-  classpath += files(javadocProjects.collect { project ->
-    project.sourceSets.main.output })
+    classpath += files(javadocProjects.collect { project ->
+        project.sourceSets.main.output })
+}
+
+task packages {
+    apply from: rootDir.getPath() + "/packages/build.gradle"
+    dependsOn debianPackages
 }
 
 task distribute(type: Tar) {
-  dependsOn(distributionProjects.build)
-  dependsOn(javadocAll)
+    dependsOn(distributionProjects.build)
+    dependsOn(javadocAll)
 
-  compression = Compression.GZIP
-  archiveFileName = project.name + '-' + projectVersion + '.tar.gz'
+    compression = Compression.GZIP
+    archiveFileName = project.name + '-' + projectVersion + '.tar.gz'
 
-  into(project.name) {
-    from('build') {
-      include 'libs/*' + projectVersion + '*.jar'
-    }
-    from('./') {
-      include 'LICENSE**'
-      include 'NOTICE**'
-      include 'conf/**'
-      include 'libs/**'
-      include 'licenses/**'
-    }
-    into('licenses') {
-      for (Project distributionProject: distributionProjects) {
-        from (distributionProject.getProjectDir().toString() + '/libs') {
-          exclude '**/*.jar'
-          exclude '**.jar'
+    into(project.name) {
+        from('build') {
+            include 'libs/*' + projectVersion + '*.jar'
         }
-      }
+        from('./') {
+            include 'LICENSE**'
+            include 'NOTICE**'
+            include 'conf/**'
+            include 'libs/**'
+            include 'licenses/**'
+        }
+        into('licenses') {
+            for (Project distributionProject: distributionProjects) {
+                from (distributionProject.getProjectDir().toString() + '/libs') {
+                    exclude '**/*.jar'
+                    exclude '**.jar'
+                }
+            }
+        }
     }
-  }
-  destinationDirectory = file('build/dist/')
+    destinationDirectory = file('build/dist/')
 }

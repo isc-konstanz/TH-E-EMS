@@ -24,72 +24,64 @@ import java.util.Map;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.cmpt.inv.ext.PowerListener.PowerCallbacks;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class ConsumptionPower extends Configurable implements PowerCallbacks, ValueListener {
+public class ConsumptionPower extends Component implements PowerCallbacks, ValueListener {
 
 	private final static String SECTION = "Consumption";
 
 	private volatile InverterCallbacks callbacks = null;
 
 	@Configuration(section=Configurations.GENERAL)
-	private ChannelListener consPower;
+	private Channel consPower;
 
 	@Configuration
-	private ChannelListener acPower;
+	private Channel acPower;
 
 	@Configuration(value= {"dc1_power", "dc_power"})
-	private ChannelListener dc1Power;
+	private Channel dc1Power;
 
 	@Configuration(mandatory=false)
-	private ChannelListener dc2Power;
+	private Channel dc2Power;
 
 	@Configuration
-	private ChannelListener eesPower;
+	private Channel eesPower;
 
 	private Map<PowerType, Value> powerValues = new HashMap<PowerType, Value>();
 
 	private volatile boolean running = false;
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public ConsumptionPower activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
+	public ConsumptionPower() {
+		super(SECTION);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public ConsumptionPower configure(Configurations configs) throws ConfigurationException {
-		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
-			
-			consPower.registerValueListener(this);
-			
-			eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
-			acPower.registerValueListener(new PowerListener(this, PowerType.AC));
-			dc1Power.registerValueListener(new PowerListener(this, PowerType.DC1));
-			if (dc2Power != null) {
-				dc2Power.registerValueListener(new PowerListener(this, PowerType.DC2));
-			}
-			running = true;
+	protected void onActivate() throws ComponentException {
+		super.onActivate();
+		if (!isEnabled()) {
+			return;
 		}
-		return this;
+		consPower.registerValueListener(this);
+		
+		eesPower.registerValueListener(new PowerListener(this, PowerType.EES));
+		acPower.registerValueListener(new PowerListener(this, PowerType.AC));
+		dc1Power.registerValueListener(new PowerListener(this, PowerType.DC1));
+		if (dc2Power != null) {
+			dc2Power.registerValueListener(new PowerListener(this, PowerType.DC2));
+		}
+		running = true;
 	}
 
-	public ConsumptionPower register(InverterCallbacks callbacks) {
+	public void register(InverterCallbacks callbacks) {
 		this.callbacks = callbacks;
-		return this;
 	}
 
 	public void resume() {
@@ -104,19 +96,10 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 		this.callbacks = null;
 	}
 
-	public void deactivate() {
-		consPower.deregister();
-		
-		if (isEnabled()) {
-			eesPower.deregister();
-			acPower.deregister();
-			dc1Power.deregister();
-			if (dc2Power != null) {
-				dc2Power.deregister();
-			}
-		}
-		callbacks = null;
-		running = false;
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		this.running = false;
 	}
 
 	public Value getLatestValue() throws InvalidValueException {
@@ -129,14 +112,14 @@ public class ConsumptionPower extends Configurable implements PowerCallbacks, Va
 
 	@Override
 	public void onPowerValueReceived(PowerType type, Value power) {
-		long time = power.getTime();
+		long time = power.getEpochMillis();
 		
 		powerValues.put(type, power);
 		if (!isRunning()) {
 			return;
 		}
 		for (Value value : powerValues.values()) {
-			if (value.getTime() != time) {
+			if (value.getEpochMillis() != time) {
 				return;
 			}
 		}

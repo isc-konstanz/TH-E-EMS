@@ -22,18 +22,16 @@ package org.the.ems.cmpt.circ;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation.CirculationCallbacks;
+import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ContentManagementService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public class CirculationPump extends Configurable implements CirculationCallbacks {
+public class CirculationPump extends Component implements CirculationCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(CirculationPump.class);
 
 	private final static String SECTION = "Circulation";
@@ -49,7 +47,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	private double flowTempDeltaMin = 0.5;
 
 	@Configuration
-	private ChannelListener state;
+	private Channel state;
 
 	private Value stateValueLast = new BooleanValue(false);
 
@@ -58,32 +56,21 @@ public class CirculationPump extends Configurable implements CirculationCallback
 	private volatile boolean running = false;
 
 	public CirculationPump(Circulation circulation) {
+		super(SECTION);
 		this.circulation = circulation;
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	public CirculationPump activate(ContentManagementService content) throws ComponentException {
-		super.activate(content);
-		return setConfiguredSection(SECTION);
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public CirculationPump configure(Configurations configs) throws ConfigurationException {
-		if (!configs.contains(SECTION, STATE)) {
-			return this;
+	protected void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		if (!isEnabled()) {
+			return;
 		}
-		if (configs.isEnabled(SECTION)) {
-			super.configure(configs);
-			
-			circulation.register(this);
-			state.registerValueListener(new CirculationPumpStateListener());
-			
-			running = true;
-			logger.debug("Activated TH-E EMS CirculationPump");
-		}
-		return this;
+		circulation.register(this);
+		state.registerValueListener(new CirculationPumpStateListener());
+		
+		running = true;
+		logger.debug("Activated TH-E EMS CirculationPump");
 	}
 
 	public void resume() {
@@ -94,12 +81,21 @@ public class CirculationPump extends Configurable implements CirculationCallback
 		running = false;
 	}
 
-	public void deactivate() {
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
 		if (isEnabled()) {
 			circulation.deregister();
-			state.deregister();
 		}
 		running = false;
+	}
+
+	@Override
+	public boolean isEnabled() {
+		if (!getConfigurations().containsKey(SECTION, STATE)) {
+			return false;
+		}
+		return super.isEnabled();
 	}
 
 	public boolean isRunning() {
@@ -135,7 +131,7 @@ public class CirculationPump extends Configurable implements CirculationCallback
 		public void onValueReceived(Value value) {
 			boolean state = value.booleanValue();
 			if (state && !stateValueLast.booleanValue()) {
-				startTimeLast = value.getTime();
+				startTimeLast = value.getEpochMillis();
 			}
 			stateValueLast = value;
 		}

@@ -21,6 +21,8 @@ package org.the.ems.core;
 
 public interface ComponentService {
 
+	public static final String PID = "org.the.ems.cmpt";
+
 	public String getId();
 
 	public default ComponentType getType() {
@@ -28,7 +30,5 @@ public interface ComponentService {
 	}
 
 	public ComponentStatus getStatus();
-
-	public void setStatus(ComponentStatus status) throws EnergyManagementException;
 
 }

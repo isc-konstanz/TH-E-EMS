@@ -51,16 +51,22 @@ public class TwoPointHeating extends HeatingControl {
 
 	@Override
 	public boolean isStartable() {
-		if (!isAboveMinimumTemperature()) {
+		if (!isBelowMaximumTemperature()) {
 			return false;
+		}
+		if (!isAboveMinimumTemperature()) {
+			return true;
 		}
 		return super.isStartable();
 	}
 
 	@Override
 	public boolean isStoppable() {
-		if (!isBelowMaximumTemperature()) {
+		if (!isAboveMinimumTemperature()) {
 			return false;
+		}
+		if (!isBelowMaximumTemperature()) {
+			return true;
 		}
 		return super.isStoppable();
 	}
@@ -68,10 +74,10 @@ public class TwoPointHeating extends HeatingControl {
 	protected void onTemperatureChanged(Value value) {
 		double temperature = value.doubleValue();
 		if (!isAboveMinimumTemperature(temperature)) {
-			doStart();
+			start();
 		}
 		else if (!isBelowMaximumTemperature(temperature)) {
-			doStop();
+			stop();
 		}
 	}
 
@@ -79,7 +85,7 @@ public class TwoPointHeating extends HeatingControl {
 
 		@Override
 		public void onValueReceived(Value value) {
-			logger.trace("Received {} temperature value: {}°C", getId(), value);
+			logger.trace("Received {} temperature value: {}Â°C", getId(), value);
 			
 	        if (temperatureValue != value.doubleValue()) {
 	        	onTemperatureChanged(value);

@@ -29,7 +29,28 @@ public class FloatValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
+	public boolean isNaN() {
+		return Float.isNaN(floatValue());
+	}
+
+	public boolean isFinite() {
+		return Float.isFinite(floatValue());
+	}
+
+	public boolean isInfinite() {
+		return Float.isInfinite(floatValue());
+	}
+
 	public static FloatValue emptyValue() {
+		return new FloatValue(Float.NaN);
+	}
+
+	public static FloatValue zeroValue() {
 		return new FloatValue(0);
 	}
+
+	public static FloatValue copy(Value value) {
+		return new FloatValue(value.floatValue(), value.getEpochMillis());
+	}
+
 }

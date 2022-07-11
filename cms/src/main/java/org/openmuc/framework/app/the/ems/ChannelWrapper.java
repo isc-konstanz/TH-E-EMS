@@ -23,7 +23,6 @@ import static org.the.ems.core.data.InvalidValueException.Severity.ERROR;
 import static org.the.ems.core.data.InvalidValueException.Severity.INFO;
 import static org.the.ems.core.data.InvalidValueException.Severity.WARNING;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -56,7 +55,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	 * implementation about changed temperatures
 	 */
 	public interface ChannelCallbacks {
-		public void doExecute(Runnable task);
+		public void execute(Runnable task);
 	}
 
 	/**
@@ -72,7 +71,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	public ChannelWrapper(ChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
 		this.callbacks = callbacks;
 		this.channel = channel;
-		this.listeners = new ArrayList<ValueListener>();
+		this.listeners = new LinkedList<ValueListener>();
 	}
 
 	@Override
@@ -117,24 +116,32 @@ public class ChannelWrapper implements Channel, RecordListener {
 	}
 
 	@Override
+	public void deregisterValueListeners() {
+		synchronized (listeners) {
+			listeners.clear();
+			channel.removeListener(this);
+		}
+	}
+
+	@Override
 	public void setLatestValue(Value value) {
 		Runnable task = () -> {
 			channel.setLatestRecord(encodeRecord(value));
 		};
-		callbacks.doExecute(task);
+		callbacks.execute(task);
 	}
 
 	@Override
 	public void write(Value value) {
 		Runnable task = () -> {
-			if (value.getTime() <= System.currentTimeMillis()) {
+			if (value.getEpochMillis() <= System.currentTimeMillis()) {
 				channel.write(encodeValue(value));
 			}
 			else {
 				channel.writeFuture(encodeFutureValueList(new ValueList(value)));
 			}
 		};
-		callbacks.doExecute(task);
+		callbacks.execute(task);
 	}
 
 	@Override
@@ -145,7 +152,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 			ListIterator<Value> iter = values.sort().listIterator();
 			while(iter.hasNext()) {
 				Value value = iter.next();
-				if(value.getTime() <= time) {
+				if(value.getEpochMillis() <= time) {
 					iter.remove();
 					
 					channel.write(encodeValue(value));
@@ -153,7 +160,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 			}
 			channel.writeFuture(encodeFutureValueList(values));
 		};
-		callbacks.doExecute(task);
+		callbacks.execute(task);
 	}
 
 	@Override
@@ -283,7 +290,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 
 	private static org.openmuc.framework.data.Record encodeRecord(Value value) {
 		org.openmuc.framework.data.Value recordValue = encodeValue(value);
-		return new org.openmuc.framework.data.Record(recordValue, value.getTime(), Flag.VALID);
+		return new org.openmuc.framework.data.Record(recordValue, value.getEpochMillis(), Flag.VALID);
 	}
 
 	private static List<org.openmuc.framework.data.FutureValue> encodeFutureValueList(ValueList values) {
@@ -300,7 +307,7 @@ public class ChannelWrapper implements Channel, RecordListener {
 	private static org.openmuc.framework.data.FutureValue encodeFutureValue(Value value) {
 		org.openmuc.framework.data.Value future = encodeValue(value);
 		if (future != null) {
-			return new org.openmuc.framework.data.FutureValue(future, value.getTime());
+			return new org.openmuc.framework.data.FutureValue(future, value.getEpochMillis());
 		}
 		return null;
 	}

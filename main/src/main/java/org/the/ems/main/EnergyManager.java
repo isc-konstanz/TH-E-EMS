@@ -19,8 +19,12 @@
  */
 package org.the.ems.main;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.felix.service.command.CommandProcessor;
 import org.osgi.service.component.annotations.Activate;
@@ -38,12 +42,12 @@ import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
 import org.the.ems.core.ComponentType;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.SchedulableService;
 import org.the.ems.core.UnknownComponentException;
-import org.the.ems.core.cmpt.ApplianceService;
 import org.the.ems.core.cmpt.CogeneratorService;
 import org.the.ems.core.cmpt.ElectricVehicleService;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
@@ -52,7 +56,6 @@ import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.cmpt.VentilationService;
-import org.the.ems.core.config.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -95,8 +98,11 @@ public final class EnergyManager extends Configurable
 	@Reference
 	ConfigurationService configs;
 
+	@Reference
+	ContentManagementService content;
+
 	@Activate
-	protected void activate(Map<String, ?> properties) {
+	protected final void activate(Map<String, ?> properties) {
 		logger.info("Activating TH-E Energy Management System");
 		try {
 			configure(Configurations.create(properties));
@@ -111,7 +117,7 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Modified
-	void modified(Map<String, ?> properties) {
+	protected final void modified(Map<String, ?> properties) {
 		try {
 			configure(Configurations.create(properties));
 			manager.interrupt();
@@ -122,7 +128,7 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Deactivate
-	protected void deactivate() {
+	protected final void deactivate() {
 		logger.info("Deactivating TH-E Energy Management System");
 		deactivate = true;
 		
@@ -147,6 +153,11 @@ public final class EnergyManager extends Configurable
 	}
 
 	@Override
+	protected final ContentManagementService getContentManagement() {
+		return content;
+	}
+
+	@Override
 	public void onScheduleReceived(ControlSchedule schedule) {
 		scheduleUpdate = schedule;
 		manager.interrupt();
@@ -162,18 +173,6 @@ public final class EnergyManager extends Configurable
 
 	protected void unbindScheduleService(ScheduleService scheduleService) {
 		scheduleService.deregisterScheduleListener(this);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindApplianceService(ApplianceService applianceService) {
-		bindComponentService(applianceService);
-	}
-
-	protected void unbindApplianceService(ApplianceService applianceService) {
-		unbindComponentService(applianceService);
 	}
 
 	@Reference(
@@ -277,26 +276,44 @@ public final class EnergyManager extends Configurable
 		policy = ReferencePolicy.DYNAMIC
 	)
 	protected void bindComponentService(ComponentService componentService) {
-		String id = componentService.getId();
-		
 		synchronized (components) {
-			if (!components.containsKey(id)) {
-				logger.info("Registered TH-E EMS {}: {}", 
-						componentService.getType().getFullName(), id);
-				
-				components.put(id, componentService);
-				manager.interrupt();
+			String id = componentService.getId();
+			String msg = MessageFormat.format("Registered TH-E EMS {0}: {1}", 
+					componentService.getType().getFullName(), id);
+			
+			if (componentService instanceof Component) {
+				if (!components.containsKey(id)) {
+					if (componentService.getType() != ComponentType.GENERAL) {
+						logger.info(msg);
+					}
+					else if (logger.isDebugEnabled()) {
+						logger.debug(msg);
+					}
+					components.put(id, (Component) componentService);
+					if (manager != null) {
+						manager.interrupt();
+					}
+				}
+			}
+			else {
+				logger.warn("Registered component of unknown type \"{}\". "
+						+ "Scheduling and interrupting will not be handled for this service!", 
+						componentService.getClass().getSimpleName());
 			}
 		}
 	}
 
 	protected void unbindComponentService(ComponentService componentService) {
-		String id = componentService.getId();
-		
 		synchronized (components) {
-			logger.info("Deregistered TH-E EMS {}: {}", 
+			String id = componentService.getId();
+			String msg = MessageFormat.format("Deregistered TH-E EMS {0}: {1}", 
 					componentService.getType().getFullName(), id);
-			
+			if (componentService.getType() != ComponentType.GENERAL) {
+				logger.info(msg);
+			}
+			else if (logger.isDebugEnabled()) {
+				logger.debug(msg);
+			}
 			components.remove(id);
 		}
 	}
@@ -311,7 +328,8 @@ public final class EnergyManager extends Configurable
 
 	@Override
 	public List<ComponentService> getComponents(ComponentType... types) {
-		return components.getAll(types);
+		return components.getAll(types).stream().map(ComponentService.class::cast)
+		        .collect(Collectors.toList());
 	}
 
 	@Override
@@ -373,7 +391,7 @@ public final class EnergyManager extends Configurable
 			schedule = scheduleUpdate;
 		}
 		synchronized (components) {
-			for (ComponentService component : components.values()) {
+			for (Component component : components.values()) {
 				try {
 					if (maintenance) {
 						component.setStatus(ComponentStatus.MAINTENANCE);
@@ -383,23 +401,41 @@ public final class EnergyManager extends Configurable
 						if (component.getStatus() != ComponentStatus.ENABLED) {
 							component.setStatus(ComponentStatus.ENABLED);
 						}
-						
 						if (component instanceof SchedulableService && scheduleFlag) {
-							try {
-								if (schedule.contains(component)) {
-									((SchedulableService) component).schedule(schedule.get(component));
-								}
-							} catch (ComponentException e) {
-								logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);
-							}
+							handleComponentSchedule((SchedulableService) component);
 						}
-						if (component instanceof Component) ((Component) component).interrupt();
 					}
+					handleComponentInterrupt(component);
+					
 				} catch (EnergyManagementException e) {
 					logger.warn("Error while handling event for component \"{}\": ", component.getId(), e);
 				}
 			}
 		}
+	}
+
+	private void handleComponentSchedule(SchedulableService component) throws EnergyManagementException {
+		try {
+			if (schedule.contains(component)) {
+				((SchedulableService) component).schedule(schedule.get(component));
+			}
+		} catch (ComponentException e) {
+			logger.warn("Error while scheduling component \"{}\": ", component.getId(), e);
+		}
+	}
+
+	private void handleComponentInterrupt(Component component) throws EnergyManagementException {
+        try {
+    		Method method = Component.class.getDeclaredMethod("interrupt");
+    		method.setAccessible(true);
+        	method.invoke(component);
+
+        } catch (IllegalAccessException | NoSuchMethodException | SecurityException e) {
+            throw new RuntimeException(e);
+            
+        } catch (InvocationTargetException e) {
+            throw new EnergyManagementException(e.getCause());
+        }
 	}
 
 }

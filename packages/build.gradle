@@ -1,0 +1,115 @@
+import java.nio.file.Paths
+
+String projectReplace(String line, String date, String projectName, String projectDesc, projectDepends) {
+    return line.replaceAll('<date>', date)
+               .replaceAll('<package>', projectName)
+               .replaceAll('<description>', projectDesc)
+               .replaceAll('<depends>', projectDepends)
+               .replaceAll('<version>', projectVersion)
+               .replaceAll('<maintainer>', projectMaintainer)
+               .replaceAll('<repository>', projectRepository)
+               .replaceAll('<homepage>', projectHomepage)
+}
+
+String projectReplace(String line, String date, String projectName) {
+    return projectReplace(line, date, projectName, '', '')
+}
+
+task deletePackages(type: Delete) {
+    delete Paths.get(rootDir.getPath(), 'build', 'dpkg')
+    followSymlinks = true
+}
+
+task debianPackages {
+    dependsOn(distributionProjects.build)
+    dependsOn(deletePackages)
+    doLast {
+        def date = new Date().format("EEE, dd MMM yyyy HH:mm:ss ZZZZ", TimeZone.getTimeZone(projectTimeZone))
+        for (Project project: distributionProjects) {
+            if (project.getProjectDir().equals(getProjectDir())) {
+                continue
+            }
+            if (['api', 'cmpt', 'cms'].any { project.name.contains(it) }) {
+                continue
+            }
+            def projectName = project.projectKey
+            def projectDesc = project.projectDescription
+            def projectDir = project.getProjectDir().getPath()
+            def projectPackage = Paths.get(rootDir.getPath(), 'build', 'dpkg', projectName + '-' + projectVersion).toString()
+            def projectBundles = Paths.get(projectPackage, 'bundle').toString()
+            
+            def projectDepends = project.configurations.runtimeClasspath { transitive = false }
+                                                       .findAll { it.getName().startsWith('th-e-') }
+                                                       .collect { it.getName().replaceAll('th-e-ems-api-.*jar',  'th-e-ems')
+                                                                              .replaceAll('th-e-ems-cmpt-.*jar', 'th-e-ems')
+                                                                              .replaceAll('th-e-ems-cms-.*jar',  'th-e-ems')
+                                                                              .replaceAll('-[0-9].*jar', '') }.unique().join(', ')
+            if (!projectDepends?.trim()) {
+                projectDepends = 'th-e-ems'
+            }
+            copy {
+                //from project.configurations.default
+                from project.configurations.default.getAllArtifacts().getFiles()
+                into Paths.get(projectPackage, 'bundle').toString()
+            }
+            copy {
+                from Paths.get(rootDir.getPath(), 'packages', 'debian')
+                into Paths.get(projectPackage, 'debian')
+                filter {
+                    line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
+                }
+            }
+            ['conf', 'lib'].each { dir -> copy {
+                    from Paths.get(projectDir, dir)
+                    into Paths.get(projectPackage, dir)
+                }
+            }
+            def packageDir = Paths.get(projectDir, 'pkg').toString()
+            if (new File(packageDir).exists()) {
+                copy {
+                    from Paths.get(projectDir, 'pkg')
+                    into Paths.get(projectPackage)
+                    filter {
+                        line -> projectReplace(line, date, projectName, projectDesc, projectDepends)
+                    }
+                    exclude '*.gradle'
+                }
+                ['conf', 'lib'].each { dir -> copy {
+                        from Paths.get(projectDir, dir)
+                        into Paths.get(projectPackage, dir)
+                    }
+                }
+                def gradleFile = new File(packageDir, 'debian.gradle')
+                if (gradleFile.exists()) {
+                    apply from: gradleFile.getPath()
+                }
+            }
+        }
+        new File(rootDir.getPath(), 'packages').eachDir { dir ->
+            def projectName = dir.getName()
+            def projectDir = dir.getPath()
+            def projectPackage = Paths.get(rootDir.getPath(), 'build', 'dpkg', projectName + '-' + projectVersion).toString()
+            if (new File(projectDir, 'debian').exists()) {
+                copy {
+                    from Paths.get(rootDir.getPath(), 'packages', 'debian')
+                    into Paths.get(projectPackage, 'debian')
+                    filter {
+                        line -> projectReplace(line, date, projectName)
+                    }
+                }
+                copy {
+                    from projectDir
+                    into projectPackage
+                    filter {
+                        line -> projectReplace(line, date, projectName)
+                    }
+                    exclude '*.gradle'
+                }
+                def gradleFile = new File(projectDir, 'debian.gradle')
+                if (gradleFile.exists()) {
+                    apply from: gradleFile.getPath()
+                }
+            }
+        }
+    }
+}

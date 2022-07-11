@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-cmpt-chp-serenergy'
 project.ext {
-    projectName = 'TH-E-Component-Serenergy'
+    projectKey = 'th-e-ems-chp-serenergy'
+    projectName = 'TH-E-EMS-Cogenerator-Serenergy'
     projectFullName = 'TH-E EMS Component - Serenergy Fuel Cell'
     projectDescription = 'Serenergy fuel cell component for TH-E EMS framework.'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': '')
 }

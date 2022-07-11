@@ -29,7 +29,6 @@ import org.the.ems.core.ComponentType;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
@@ -56,12 +55,12 @@ public class PeakShavingControl extends Control {
 	protected Channel setpoint;
 
 	@Configuration
-	protected ChannelListener power;
+	protected Channel power;
 
-	@Configuration(mandatory = false, value = { "power_limit", "power_limitation" })
-	protected ChannelListener powerLimit;
+	@Configuration(mandatory=false, value={"power_limit", "power_limitation"})
+	protected Channel powerLimit;
 
-	@Configuration(mandatory = false)
+	@Configuration(mandatory=false)
 	protected double powerScale = 1;
 
 	@Configuration(mandatory = false)
@@ -70,43 +69,45 @@ public class PeakShavingControl extends Control {
 	@Configuration
 	protected Channel powerSetpoint;
 
-	protected Value powerValue = DoubleValue.emptyValue();
-	protected Value powerLimitValue = DoubleValue.emptyValue();
+	protected Value powerValue;
+	protected Value powerLimitValue;
 	protected PidControl control;
+
+	protected double soc = 0;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		power.registerValueListener(new PowerListener());
 		powerLimit.registerValueListener(new PowerLimitListener());
-		
+
 		control = new PidControl().configure(configs);
-		powerLimitValue = new DoubleValue(importMax, System.currentTimeMillis());
-		powerValue = new DoubleValue(0, System.currentTimeMillis());
+
+		powerValue = DoubleValue.zeroValue();
+		powerLimitValue = new DoubleValue(importMax);
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
-		power.deregister();
-		powerLimit.deregister();
+		power.deregisterValueListeners();
+		powerLimit.deregisterValueListeners();
 	}
 
 	protected void set(Value value) {
 		double power = value.doubleValue();
-		long time = Math.max(powerLimitValue.getTime(), powerValue.getTime());
+		long time = Math.max(powerLimitValue.getEpochMillis(), powerValue.getEpochMillis());
 		double error = 0;
 
 		double controlValue;
 		try {
 			if (power < 0) {
 				error = getPowerExportMax() - power;
-			} else if (power >= 0) {
+			}
+			else if (power >= 0) {
 				error = getPowerImportMax() - power;
 			}
-
-			controlValue = control.get(time, error);
-
+			controlValue = control.process(time, error);
 			if (controlValue != powerSetpoint.getLatestValue().doubleValue()) {
 				onControlChanged(new DoubleValue(-controlValue, time));
 			}
@@ -116,10 +117,11 @@ public class PeakShavingControl extends Control {
 	}
 
 	protected void onControlChanged(Value value) {
-		if (value.doubleValue() > 0 && inverters.hasSufficientCapacity()) {
+		if (value.doubleValue() > 0 && inverters.hasDischargableStorage()) {
 			this.inverters.set(value);
-		} else {
-			this.inverters.set(new DoubleValue(0, value.getTime()));
+		}
+		else {
+			this.inverters.set(new DoubleValue(0, value.getEpochMillis()));
 		}
 	}
 
@@ -170,9 +172,8 @@ public class PeakShavingControl extends Control {
 		@Override
 		public void onValueReceived(Value value) {
 			logger.trace("Received power value: {}W", value);
-
-			Value power = new DoubleValue(value.doubleValue() * powerScale, value.getTime());
-
+			
+			Value power = new DoubleValue(value.doubleValue()*powerScale, value.getEpochMillis());
 			if (power.doubleValue() != powerValue.doubleValue()) {
 				// Only update PID control if the power value changed.
 				// Measurements will most probably always differ and only values read via a

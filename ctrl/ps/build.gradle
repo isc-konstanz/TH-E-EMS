@@ -18,9 +18,9 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-archivesBaseName = 'th-e-ctrl-ps'
 project.ext {
-    projectName = 'TH-E-Control-PeakShaving'
+    projectKey = 'th-e-ems-ctrl-ps'
+    projectName = 'TH-E-EMS-Control-PeakShaving'
     projectFullName = 'TH-E EMS Control - Peak Shaving'
     projectDescription = 'The Peak Shaving Control of TH-E EMS framework'
 }
@@ -30,13 +30,5 @@ dependencies {
 }
 
 jar {
-    bnd('Bundle-Name':        projectName,
-        'Bundle-Description': projectDescription,
-        'Export-Package':     '')
-}
-
-eclipse {
-    project {
-        name = projectName
-    }
+    bnd('Export-Package': '')
 }

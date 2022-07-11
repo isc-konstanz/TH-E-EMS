@@ -25,7 +25,6 @@ import java.util.Map;
 public enum ComponentType {
 	GENERAL("cmpt", "Component"),
 	VENTILATION("vnt", "Ventilation"),
-	APPLIANCE("apl", "Appliance"),
 	ELECTRIC_VEHICLE("ev", "Electric Vehicle"),
 	ELECTRICAL_ENERGY_STORAGE("ees", "Electrical Energy Storage"),
 	THERMAL_ENERGY_STORAGE("tes", "Thermal Energy Storage"),

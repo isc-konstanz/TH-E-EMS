@@ -1,10 +1,10 @@
 package org.the.ems.ctrl.mpc;
 
-import org.the.ems.core.config.Configurable;
+import org.the.ems.core.Configurable;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
-import org.the.ems.core.data.ChannelListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -24,15 +24,12 @@ public class Command extends Configurable implements ValueListener {
 	private volatile CommandCallbacks callbacks = null;
 
 	@Configuration(mandatory=false)
-	private ChannelListener command = null;
+	private Channel command = null;
 
 	public Command(Configurations configs) throws ConfigurationException {
 		configure(configs);
 		if (command != null) {
 			command.registerValueListener(this);
-		}
-		else {
-			setEnabled(false);
 		}
 	}
 
@@ -47,8 +44,15 @@ public class Command extends Configurable implements ValueListener {
 
 	public void deactivate() {
 		if (isEnabled()) {
-			command.deregister();
+			command.deregisterValueListeners();
 		}
+	}
+
+	public boolean isEnabled() {
+		if (command != null) {
+			return true;
+		}
+		return super.isEnabled();
 	}
 
 	@Override

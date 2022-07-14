@@ -98,6 +98,30 @@ public interface ElectricalEnergyStorageService extends SchedulableService {
 	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException;
 
 	/*
+	 * Verify whether the storage can be charged.
+	 * For instance, this may return false if the configured maximum state of charge
+	 * is already reached.
+	 * 
+	 * @return the flag whether the storage can be charged
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public boolean isChargable() throws ComponentException, InvalidValueException;
+
+	/*
+	 * Verify whether the storage can be discharged.
+	 * For instance, this may return false if the configured minimum state of charge
+	 * is already reached.
+	 * 
+	 * @return the flag whether the storage can be discharged
+	 * 
+	 * @throws ComponentException if any kind of error occurs retrieving the value
+	 * @throws InvalidValueException if the retrieved value returned invalid
+	 */
+	public boolean isDischargable() throws ComponentException, InvalidValueException;
+
+	/*
 	 * Get the DC power in watts [W].
 	 * 
 	 * @return the DC power {@link Value}

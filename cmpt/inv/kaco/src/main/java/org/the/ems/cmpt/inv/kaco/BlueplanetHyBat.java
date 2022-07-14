@@ -6,7 +6,7 @@ import org.the.ems.core.config.Configuration;
 
 public class BlueplanetHyBat extends ElectricalEnergyStorage {
 
-	private final static String SECTION = "Storage";
+	private final static String SECTION = "EnergyStorage";
 
 	protected BlueplanetHyBat() {
 		super(SECTION);

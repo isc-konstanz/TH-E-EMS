@@ -9,7 +9,7 @@ import org.the.ems.core.data.Value;
 
 public class EffektaBattery extends ElectricalEnergyStorage {
 
-	private final static String SECTION = "Storage";
+	private final static String SECTION = "EnergyStorage";
 
 	@Configuration
 	private double chargeVoltageMax = 53;

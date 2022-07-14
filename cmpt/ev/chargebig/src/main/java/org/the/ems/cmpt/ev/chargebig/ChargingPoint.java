@@ -14,8 +14,8 @@ import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 
-public class ChargePoint {
-	private static final Logger logger = LoggerFactory.getLogger(ChargePoint.class);
+public class ChargingPoint {
+	private static final Logger logger = LoggerFactory.getLogger(ChargingPoint.class);
 
 	private static final String SECTION = "ChargePoints";
 
@@ -25,7 +25,7 @@ public class ChargePoint {
 	private final Channel currentLimit;
 	private final Channel state;
 
-	public ChargePoint(double currentLimitMin, double currentLimitMax, Channel currentLimit, Channel state) {
+	public ChargingPoint(double currentLimitMin, double currentLimitMax, Channel currentLimit, Channel state) {
 		this.currentLimitMin = currentLimitMin;
 		this.currentLimitMax = currentLimitMax;
 		this.currentLimit = currentLimit;
@@ -33,13 +33,13 @@ public class ChargePoint {
 	}
 
 	public double getFlexibilityPower() {
-		ChargePointState state;
+		ChargingPointState state;
 		try {
 			state = getState();
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving charge point state: {}", e.getMessage());
-			state = ChargePointState.ERROR;
+			state = ChargingPointState.ERROR;
 		}
 		switch (state) {
 		case CHARGING:
@@ -73,14 +73,14 @@ public class ChargePoint {
 		return currentLimit.getLatestValue().doubleValue();
 	}
 
-	public ChargePointState getState() throws InvalidValueException {
-		return ChargePointState.valueOf(state.getLatestValue().intValue());
+	public ChargingPointState getState() throws InvalidValueException {
+		return ChargingPointState.valueOf(state.getLatestValue().intValue());
 	}
 
 	public boolean isConnected() {
 		try {
-			return this.getState() == ChargePointState.CHARGING ||
-					this.getState() == ChargePointState.CONNECTED;
+			return this.getState() == ChargingPointState.CHARGING ||
+					this.getState() == ChargingPointState.CONNECTED;
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving charge point state: {}", e.getMessage());
@@ -90,7 +90,7 @@ public class ChargePoint {
 
 	public boolean isCharging() {
 		try {
-			return this.getState() == ChargePointState.CHARGING;
+			return this.getState() == ChargingPointState.CHARGING;
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving charge point state: {}", e.getMessage());
@@ -98,7 +98,7 @@ public class ChargePoint {
 		}
 	}
 
-	public static List<ChargePoint> newCollection(ContentManagementService content, Configurations configs) 
+	public static List<ChargingPoint> newCollection(ContentManagementService content, Configurations configs) 
 			throws ConfigurationException {
 		
 		Integer count = configs.getInteger(SECTION, "count");
@@ -114,14 +114,14 @@ public class ChargePoint {
 			limitMax = 20.0;
 		}
 		
-		List<ChargePoint> chargePoints = new ArrayList<ChargePoint>(count);
+		List<ChargingPoint> chargePoints = new ArrayList<ChargingPoint>(count);
 		for (int i=1; i<=count; i++) {
-			ChargePoint chargePoint = null;
+			ChargingPoint chargePoint = null;
 			try {
 				Channel limit = getConfiguredChannel(content, configs, i, "current_limit");
 				Channel state = getConfiguredChannel(content, configs, i, "state");
 				
-				chargePoint = new ChargePoint(limitMin, limitMax, limit, state);
+				chargePoint = new ChargingPoint(limitMin, limitMax, limit, state);
 				logger.debug("Registered charge point #{}", i);
 				
 			} catch (UnknownChannelException e) {

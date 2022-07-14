@@ -74,7 +74,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	@Configuration
 	private Channel chargeCurrent;
 
-	private List<ChargePoint> chargePoints;
+	private List<ChargingPoint> chargePoints;
 
 	@Override
 	public Value getChargePower() throws ComponentException, InvalidValueException {
@@ -191,7 +191,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	private void onConfigureChargePoints(Configurations configs) throws ConfigurationException {
-		chargePoints = ChargePoint.newCollection(getContentManagement(), configs);
+		chargePoints = ChargingPoint.newCollection(getContentManagement(), configs);
 	}
 
 	@Override

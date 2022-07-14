@@ -1,0 +1,231 @@
+{
+    "name": "Ladepunkt",
+    "group": "Flotteladen",
+    "category": "EVSE",
+    "description": "Requires the <b>MQTT</b> driver to be installed.",
+
+    "devices": [
+        {
+            "name": "_<node>",
+            "description": "<name>",
+            "driver": "virtual"
+        },
+        {
+            "name": "<node>",
+            "description": "<name> MQTT connection",
+            "driver": "mqtt",
+            "address": "<host>",
+            "settings": "port=<port>;parser=flotteladen"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "serialNumber",
+            "name": "Serial number",
+            "description": "The serial number of the charging point to be communicating with.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "host",
+            "name": "Host name",
+            "description": "The host name of the MQTT broker.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "port",
+            "name": "Port",
+            "description": "The port of the target MQTT broker.<br>By convention, MQTT brokers use the port 1883.",
+            "type": "text",
+            "default": "1883",
+            "mandatory": false
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the values will be posted.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 1000,
+            "mandatory": false
+        }
+    ],
+
+    "items": [
+        {
+            "id": "status",
+            "type": "Text",
+            "label": "Status",
+            "header": true,
+            "select": {
+                "0":"Standby",
+                "1":"Connected",
+                "2":"Charging",
+                "3":"Charging complete"
+            },
+            "default": "Loading",
+            "input": "<node>*status*code"
+        },
+        {
+            "id": "current-max",
+            "type": "Text",
+            "label": "Maximum current",
+            "format": "%.1f A",
+            "input": "<node>*current*max"
+        },
+        {
+            "id": "current-min",
+            "type": "Text",
+            "label": "Minimum current",
+            "format": "%.1f A",
+            "input": "<node>*current*min"
+        },
+        {
+            "id": "current-setpoint",
+            "type": "Slider",
+            "label": "Setpoint current",
+            "format": "%.1f A",
+            "step": 0.1,
+            "min": "6",
+            "max": "32",
+            "mapping": {
+                "SET": { "channel": "<node>*current*setpoint" }
+            },
+            "input": "<node>*current"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*status*code",
+            "description": "Status code",
+            "device": "_<node>",
+            "configs": {"valueType":"INTEGER"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
+                "feed": {"name": "Status code", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*status",
+            "description": "Status",
+            "device": "<node>",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['status']",
+            "configs": {"listening": true, "valueType": "STRING", "valueTypeLength": 24}
+        },
+        {
+            "name": "<node>*power",
+            "description": "Charging power",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*current*min",
+            "description": "Minimum charging current",
+            "device": "<node>",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['minChargingCurrent']['value']",
+            "configs": {"listening": true, "scalingFactor": 0.001, "valueType": "DOUBLE", "unit": "A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"HTTP"}
+        },
+        {
+            "name": "<node>*current*max",
+            "description": "Maximum charging current",
+            "device": "<node>",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['maxChargingCurrent']['value']",
+            "configs": {"listening": true, "scalingFactor": 0.001, "valueType": "DOUBLE", "unit": "A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"HTTP"}
+        },
+        {
+            "name": "<node>*current",
+            "description": "Charging current",
+            "device": "<node>",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['chargingCurrent']['value']",
+            "configs": {"listening": true, "scalingFactor": 0.001, "valueType": "DOUBLE", "unit": "A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Current", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*current*setpoint",
+            "description": "Charging current setpoint",
+            "device": "<node>",
+            "address": "seal/chargingpoints/<serialNumber>/setcurrent;$['current']['value']",
+            "configs": {"scalingFactor": 0.001, "valueType": "DOUBLE", "unit": "A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Current setpoint", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*required*complete*time",
+            "description": "Required charging complete time",
+            "device": "<node>",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['chargingMode']['requiredChargingCompletedTime']",
+            "configs": {"listening": true, "valueType": "STRING", "valueTypeLength": 48}
+        },
+        {
+            "name": "<node>*required*complete*energy",
+            "description": "Required charging complete energy quantity",
+            "device": "<node>",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['chargingMode']['requiredChargingCompletedQuantity']",
+            "configs": {"listening": true, "scalingFactor": 0.001, "valueType": "DOUBLE", "unit": "kWh"}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Status code",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current",
+            "unit": "A"
+        },
+        {
+            "name": "Power",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power",
+            "unit": "W"
+        },
+        {
+            "name": "Current",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current",
+            "unit": "A"
+        },
+        {
+            "name": "Current setpoint",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current_setpoint",
+            "unit": "A"
+        }
+    ]
+}

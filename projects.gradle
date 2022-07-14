@@ -38,6 +38,7 @@ project.ext {
         it.getPath() == ':cmpt' ||
         it.getPath() == ':cmpt:ev' ||
         it.getPath() == ':cmpt:ev:chargebig' ||
+        it.getPath() == ':cmpt:ev:flotteladen' ||
         it.getPath() == ':cmpt:chp' ||
         it.getPath() == ':cmpt:chp:energiewerkstatt' ||
         it.getPath() == ':cmpt:chp:ice' ||

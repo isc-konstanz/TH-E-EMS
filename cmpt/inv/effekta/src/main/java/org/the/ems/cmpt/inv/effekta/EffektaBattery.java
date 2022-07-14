@@ -34,7 +34,7 @@ import org.the.ems.core.data.ValueListener;
 public class EffektaBattery extends ElectricalEnergyStorage {
 	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
 
-	private final static String SECTION = "Storage";
+	private final static String SECTION = "EnergyStorage";
 
 	@Configuration("voltage_charge_max")
 	private double chargeVoltageMax = 52;

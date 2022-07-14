@@ -231,7 +231,8 @@ public final class ConfigurationService extends Thread {
 			String pid = type.getId();
 			if (configs.containsKey(ConfigurationReader.GENERAL, "type")) {
 				pid = pid.concat(".")
-						.concat(configs.get(ConfigurationReader.GENERAL, "type").toLowerCase());
+						.concat(configs.get(ConfigurationReader.GENERAL, "type").toLowerCase()
+																				.replaceAll("[^a-zA-Z0-9]", "."));
 			}
 			
 			String alias = id.substring(type.getKey().length());

@@ -6,16 +6,16 @@
 
     "devices": [
         {
+            "name": "_<node>",
+            "description": "<name>",
+            "driver": "virtual"
+        },
+        {
             "name": "<node>",
-            "description": "Modbus RTU connection",
+            "description": "<name> Modbus RTU connection",
             "driver": "modbus",
             "address": "<address>",
             "settings": "RTU:SERIAL_ENCODING_RTU:<baudRate>:DATABITS_8:PARITY_NONE:STOPBITS_2:ECHO_FALSE:FLOWCONTROL_NONE:FLOWCONTROL_NONE"
-        },
-        {
-            "name": "<node>*ctrl",
-            "description": "Inverter control",
-            "driver": "virtual"
         }
     ],
 
@@ -134,102 +134,61 @@
             "step": 100,
             "default": 0,
             "mapping": {
-                "SET": { "channel": "<node>*setpoint*power", "write":true }
+                "SET": { "channel": "<node>*power*setpoint", "write":true }
             },
-            "input": "<node>*setpoint*power"
+            "input": "<node>*power*setpoint"
         }
     ],
 
     "channels": [
         {
-            "name": "<node>*current",
-            "description": "Inverter current",
-            "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:230:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": -0.1},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": true, "engine":"SQL",
-                "feed": {"name": "Current DC", "tag": "Inverter"}
-            }
-        },
-        {
-            "name": "<node>*current*max",
-            "description": "Inverter maximal charging or discharging current",
-            "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:287:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1}
-        },
-        {
-            "name": "<node>*setpoint*import*current",
-            "description": "Inverter import current",
-            "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:1457:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A", "scalingFactor": 0.1},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
-                "feed": {"name": "Setpoint import current", "tag": "Inverter"}
-            }
-        },
-        {
-            "name": "<node>*setpoint*export*current",
-            "description": "Inverter export current",
-            "device": "<node>",
-            "address": "1:HOLDING_REGISTERS:1240:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"A"},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 1, "average": false, "engine":"SQL",
-                "feed": {"name": "Setpoint export current", "tag": "Inverter"}
-            }
-        },
-        {
             "name": "<node>*mode",
-            "description": "Inverter mode",
+            "description": "<name> mode",
             "device": "<node>",
             "address": "1:HOLDING_REGISTERS:7:UINT16",
-            "configs": {"samplingInterval": 5000, "valueType":"LONG"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType":"LONG"}
         },
         {
             "name": "<node>*power",
-            "description": "Inverter power",
-            "device": "<node>*ctrl",
-			"configs": {"valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Power", "tag": "Inverter"}
+            "description": "<name> power",
+            "device": "_<node>",
+			"configs": {"valueType":"FLOAT", "unit":"W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
 			}
         },
         {
-            "name": "<node>*setpoint*power",
-            "description": "Inverter power setpoint",
-            "device": "<node>*ctrl",
+            "name": "<node>*power*setpoint",
+            "description": "<name> power setpoint",
+            "device": "_<node>",
             "configs": {"valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 10, "average": false, "engine":"SQL",
-                "feed": {"name": "Setpoint power", "tag": "Inverter"}
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "average": false, "engine":"SQL",
+                "feed": {"name": "Setpoint power", "tag": "<name>"}
+			}
+        },
+        {
+            "name": "<node>*l1*power*import",
+            "description": "<name> L1 import power",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:211:INT32",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType":"FLOAT", "unit":"W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Import power", "tag": "<name> L1"}
+			}
+        },
+        {
+            "name": "<node>*pv1*power",
+            "description": "<name> PV1 power",
+            "device": "<node>",
+            "address": "1:HOLDING_REGISTERS:228:INT32",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType":"FLOAT", "unit":"W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name> PV1"}
 			}
         }
     ],
 
     "feeds": [
-        {
-            "name": "Current DC",
-            "tag": "<name>",
-            "type": "DataType::REALTIME",
-            "engine": "Engine::MYSQL",
-            "table": "<node>_current",
-            "unit": "A"
-        },
-        {
-            "name": "Setpoint import current",
-            "tag": "<name>",
-            "type": "DataType::REALTIME",
-            "engine": "Engine::MYSQL",
-            "table": "<node>_setpoint_import_current",
-            "unit": "A"
-        },
-        {
-            "name": "Setpoint export current",
-            "tag": "<name>",
-            "type": "DataType::REALTIME",
-            "engine": "Engine::MYSQL",
-            "table": "<node>_setpoint_export_current",
-            "unit": "A"
-        },
         {
             "name": "Power",
             "tag": "<name>",
@@ -239,11 +198,27 @@
             "unit": "W"
         },
         {
+            "name": "Import power",
+            "tag": "<name> L1",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l1_power_import",
+            "unit": "W"
+        },
+        {
             "name": "Setpoint power",
             "tag": "<name>",
             "type": "DataType::REALTIME",
             "engine": "Engine::MYSQL",
-            "table": "<node>_setpoint_power",
+            "table": "<node>_power_setpoint",
+            "unit": "W"
+        },
+        {
+            "name": "Power",
+            "tag": "<name> PV1",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_pv1_power",
             "unit": "W"
         }
     ]

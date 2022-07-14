@@ -2,7 +2,7 @@
     "name": "HX10 Battery",
     "category": "Inverter",
     "group": "Effekta",
-    "description": "Pylontech battery",
+    "description": "Effekta HX10 battery.<br>Requires the <b>Modbus</b> (RTU) driver to be installed",
 
     "options": [
         {
@@ -11,6 +11,71 @@
             "description": "The device key of the inverter, managing this battery.",
             "type": "text",
             "mandatory": true
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the values of the meter device will be read.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 5000,
+            "mandatory": false
+        },
+        {
+            "id": "offset",
+            "name": "Refresh offset",
+            "description": "Defines the time waited, until the values of the meter device will be read. Necessary for multiple meters on the same line.",
+            "type": "selection",
+            "select": [
+                { "name": "None", "value": 0 },
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 0,
+            "mandatory": false
         }
     ],
 
@@ -44,39 +109,72 @@
 
     "channels": [
         {
-            "name": "<node>*setpoint*voltage",
-            "description": "Battery voltage setpoint",
-			"driver": "modbus",
-            "device": "<inverter>",
-            "address": "1:HOLDING_REGISTERS:285:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"V", "scalingFactor": 0.1}
-        },
-        {
             "name": "<node>*voltage",
-            "description": "Battery voltage",
+            "description": "<name> voltage",
 			"driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:188:INT16",
-            "configs": {"samplingInterval": 5000, "valueType":"FLOAT", "unit":"V", "scalingFactor": 0.1},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
                 "feed": {"name": "Voltage", "tag": "<name>" }
             }
         },
         {
-            "name": "<node>*voltage*min",
+            "name": "<node>*voltage*setpoint",
+            "description": "<name> voltage setpoint",
 			"driver": "modbus",
-            "description": "Battery minimal voltage",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:285:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"}
+        },
+        {
+            "name": "<node>*voltage*min",
+            "description": "Battery voltage minimum",
+			"driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:1477:INT16",
-            "configs": {"samplingInterval": 60000, "valueType":"FLOAT", "unit":"V", "scalingFactor": 0.1}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"}
+        },
+        {
+            "name": "<node>*current",
+            "description": "<name> current",
+			"driver": "modbus",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:230:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 1, "average": true, "engine":"SQL",
+                "feed": {"name": "Current", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*current*export*setpoint",
+            "description": "<name> export current setpoint",
+			"driver": "modbus",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:1240:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType":"FLOAT", "unit":"A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Setpoint export current", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*current*import*setpoint",
+            "description": "<name> import current setpoint",
+			"driver": "modbus",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:1457:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Setpoint import current", "tag": "<name>"}
+            }
         },
         {
             "name": "<node>*soc",
-            "description": "Battery soc estimation",
+            "description": "Battery SoC estimation",
 			"driver": "virtual",
-            "device": "<inverter>*ctrl",
+            "device": "_<inverter>",
 			"configs": {"valueType":"DOUBLE", "unit":"%"},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "average": false, "engine":"SQL",
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 1, "average": true, "engine":"SQL",
                 "feed": {"name": "State of charge", "tag": "<name>" }
 			}
 		},
@@ -84,9 +182,9 @@
             "name": "<node>*power",
             "description": "Basttery power",
 			"driver": "virtual",
-            "device": "<inverter>*ctrl",
+            "device": "_<inverter>",
 			"configs": {"valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingDelayMaximum": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
                 "feed": {"name": "Power", "tag": "<name>" }
 			}
         }
@@ -108,6 +206,30 @@
             "engine": "Engine::MYSQL",
             "table": "<node>_voltage",
             "unit": "V"
+        },
+        {
+            "name": "Current",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current",
+            "unit": "A"
+        },
+        {
+            "name": "Setpoint import current",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current_import_setpoint",
+            "unit": "A"
+        },
+        {
+            "name": "Setpoint export current",
+            "tag": "<name>",
+            "type": "DataType::REALTIME",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_current_export_setpoint",
+            "unit": "A"
         },
         {
             "name": "Power",

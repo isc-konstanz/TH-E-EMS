@@ -1,0 +1,219 @@
+{
+    "name": "H3 3000/5000 cabinet",
+    "group": "Serenergy",
+    "category": "Cogenerator",
+    "description": "Serenergy Methanol fuel cell cabinet",
+
+    "devices": [
+        {
+            "name": "_<node>",
+            "description": "<name>",
+            "driver": "virtual"
+        },
+        {
+            "name": "<node>",
+            "description": "<name> UPC UA connection",
+            "driver": "opcua",
+            "address": "<address>",
+            "settings": "ns=6"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "address",
+            "name": "Server address",
+            "description": "The address to the OPC server, e.g. 192.168.178.48:4840/opc.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the values of the device will be read.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 1000,
+            "mandatory": false
+        }
+    ],
+
+    "items": [
+        {
+            "id": "enable",
+            "type": "Switch",
+            "label": "Enable",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*ctrl*state", "value": true },
+                "OFF": { "channel": "<node>*ctrl*state", "value": false }
+            },
+            "input": "<node>*state"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "power",
+            "format": "%.1f W",
+            "input": "<node>*power"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*ctrl*state",
+            "description": "<name> ctrl state",
+            "device": "_<node>",
+            "configs": {"valueType":"BOOLEAN"}
+        },
+        {
+            "name": "<node>*ctrl*enable",
+            "description": "<name> control enable",
+            "device": "<node>",
+            "address": "::cabinet:hmi.input.enable",
+            "configs": {"valueType":"BOOLEAN"}
+        },
+        {
+            "name": "<node>*ctrl*start",
+            "description": "<name> control start",
+            "device": "<node>",
+            "address": "::cabinet:hmi.input.start",
+            "configs": {"valueType":"BOOLEAN"}
+        },
+        {
+            "name": "<node>*ctrl*stop",
+            "description": "<name> control stop",
+            "device": "<node>",
+            "address": "::cabinet:hmi.input.stop",
+            "configs": {"valueType":"BOOLEAN"}
+        },
+        {
+            "name": "<node>*state",
+            "description": "<name> state",
+            "device": "<node>",
+            "address": "::cabinet:hmi.output.cabinetOperation",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "engine":"SQL",
+                "feed": {"name": "State", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*enable",
+            "description": "<name> enabled status",
+            "device": "<node>",
+            "address": "::cabinet:hmi.output.cabinetEnabled",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "engine":"HTTP"}
+        },
+        {
+            "name": "<node>*ready",
+            "description": "<name> ready status",
+            "device": "<node>",
+            "address": "::cabinet:hmi.output.readyToStart",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"BOOLEAN"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "engine":"HTTP"}
+        },
+        {
+            "name": "<node>*power",
+            "description": "<name> power",
+            "device": "<node>",
+            "address": "::cabinet:hmi.output.powerOut",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"FLOAT", "unit": "W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*voltage",
+            "description": "<name> cabinet voltage",
+            "device": "<node>",
+            "address": "::cabinet:hmi.output.cabinetVoltage",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"FLOAT", "unit": "V"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*current",
+            "description": "<name> cabinet current",
+            "device": "<node>",
+            "address": "1.3.6.1.4.1.46029.1.1.1.3.9.3.0",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"FLOAT", "unit": "A"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Current", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*temp",
+            "description": "<name> cabinet temperature",
+            "device": "<node>",
+            "address": "::cabinet:hmi.output.cabinetTemperature",
+            "configs": {"samplingInterval": "<refresh>", "valueType":"FLOAT", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "loggingTolerance": 0.1, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Temperature", "tag": "<name>"}
+            }
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "State",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*state"
+        },
+        {
+            "name": "Power",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*power",
+            "unit": "W"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Current",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*current",
+            "unit": "A"
+        },
+        {
+            "name": "Temperature",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*temp",
+            "unit": "°C"
+        }
+    ]
+}

@@ -28,7 +28,6 @@ import org.the.ems.core.settings.StopSettings;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class Serenergy extends Cogenerator {
-
 	private static final Logger logger = LoggerFactory.getLogger(Serenergy.class);
 
 	@Configuration(mandatory = false)
@@ -42,9 +41,6 @@ public class Serenergy extends Cogenerator {
 
 	@Configuration
 	protected Channel stop;
-
-	@Configuration
-	protected Channel status;
 
 	@Configuration
 	private Channel stackLimit;

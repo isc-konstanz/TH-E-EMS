@@ -41,11 +41,14 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
 	protected static final String CHARGE_POWER_VALUE = "charge_power";
 	protected static final String CHARGE_STATE_VALUE = "soc";
 
-	@Configuration(scale=1000)
-	protected double powerMax;
+	public static final int DEFAULT_POWER_MAX = 22000;
+	public static final int DEFAULT_POWER_MIN = 6000;
 
-	@Configuration(scale=1000)
-	protected double powerMin;
+	@Configuration(mandatory=false, scale=1000)
+	protected double powerMax = DEFAULT_POWER_MAX;
+
+	@Configuration(mandatory=false, scale=1000)
+	protected double powerMin = DEFAULT_POWER_MIN;
 
 	@Configuration(mandatory=false)
 	protected double capacity = Double.NaN;

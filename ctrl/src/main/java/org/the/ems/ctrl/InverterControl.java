@@ -5,22 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.InverterService;
-import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 
 public class InverterControl extends ComponentControl<InverterService> {
 	private final static Logger logger = LoggerFactory.getLogger(InverterControl.class);
 
 	public static class InverterCollection extends ComponentCollection<InverterControl> {
-		private static final long serialVersionUID = 4407719774138591764L;
-
-		public boolean hasChargableStorage() {
-			return values().stream().anyMatch(c -> c.hasChargableStorage());
-		}
-
-		public boolean hasDischargableStorage() {
-			return values().stream().anyMatch(c -> c.hasDischargableStorage());
-		}
+		private static final long serialVersionUID = -4628704408727170104L;
 
 		public void set(Value value) {
 			for (InverterControl controlledInverter : values()) {
@@ -29,7 +20,6 @@ public class InverterControl extends ComponentControl<InverterService> {
 				controlledInverter.set(value);
 			}
 		}
-
 	}
 
 	public interface InverterCallbacks extends ControlCallbacks {
@@ -39,28 +29,6 @@ public class InverterControl extends ComponentControl<InverterService> {
 
 	protected InverterControl(InverterCallbacks callbacks, InverterService inverter) throws ComponentException {
 		super(callbacks, inverter);
-	}
-
-	public boolean hasChargableStorage() {
-		try {
-			return component.getEnergyStorage().isChargable();
-			
-		} catch (ComponentException | InvalidValueException e) {
-			logger.warn("Unable to retrieve chargable status of storage from inverter \"{}\": {}", 
-					component.getId(), e.getMessage());
-			return false;
-		}
-	}
-
-	public boolean hasDischargableStorage() {
-		try {
-			return component.getEnergyStorage().isDischargable();
-			
-		} catch (ComponentException | InvalidValueException e) {
-			logger.warn("Unable to retrieve chargable status of storage from inverter \"{}\": {}", 
-					component.getId(), e.getMessage());
-			return false;
-		}
 	}
 
 	public final void set(Value value) {

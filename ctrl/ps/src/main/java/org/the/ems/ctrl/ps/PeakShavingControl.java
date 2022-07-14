@@ -1,23 +1,6 @@
-/* 
- * Copyright 2016-2021 ISC Konstanz
- * 
- * This file is part of TH-E-EMS.
- * For more information visit https://github.com/isc-konstanz/th-e-ems
- * 
- * TH-E-EMS is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * TH-E-EMS is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License
- * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
- */
 package org.the.ems.ctrl.ps;
+
+import static java.lang.Math.abs;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -30,28 +13,48 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
-import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.ctrl.Control;
-import org.the.ems.ctrl.PidControl;
+import org.the.ems.ctrl.tp.TwoPointControl;
 
-//FIXME: Reintroduced "Control" as parent class for PeakShavingControl
-@Component(scope = ServiceScope.BUNDLE, configurationPid = Control.PID
-		+ ".ps", configurationPolicy = ConfigurationPolicy.REQUIRE)
-public class PeakShavingControl extends Control {
+@Component(
+	scope = ServiceScope.BUNDLE,
+	configurationPid = Control.PID+".ps",
+	configurationPolicy = ConfigurationPolicy.REQUIRE
+)
+public class PeakShavingControl extends TwoPointControl {
 	private final static Logger logger = LoggerFactory.getLogger(PeakShavingControl.class);
 
-	@Configuration(mandatory = false, scale = -1000)
+	@Configuration(mandatory=false, scale=-1000)
 	protected double exportMax = Double.NEGATIVE_INFINITY;
 
-	@Configuration(mandatory = false, scale = 1000)
+	@Configuration(mandatory=false, scale=1000)
 	protected double exportHyst = 0;
 
-	@Configuration(mandatory = false, scale = 1000)
+	@Configuration(mandatory=false, scale=1000)
 	protected double importMax = 0;
 
-	@Configuration(mandatory = false)
+	@Configuration(mandatory=false, section="PID", value="proportional")
+	protected double controlProportional = 0.2;
+
+	@Configuration(mandatory=false, section="PID", value="integral")
+	protected double controlIntegral = 0.04;
+
+	@Configuration(mandatory=false, section="PID", value="derivative")
+	protected double controlDerivative = 0;
+
+	@Configuration(mandatory=false, section="PID", value="tolerance")
+	protected double controlTolerance = 10;
+
+	@Configuration(mandatory=false, section="PID", value="maximum")
+	protected double controlMax = Double.POSITIVE_INFINITY;
+	protected double controlErrorIntegral = 0;
+	protected double controlError = 0;
+	protected double controlValue = 0;
+
+
+	@Configuration(mandatory=false)
 	protected Channel setpoint;
 
 	@Configuration
@@ -63,15 +66,13 @@ public class PeakShavingControl extends Control {
 	@Configuration(mandatory=false)
 	protected double powerScale = 1;
 
-	@Configuration(mandatory = false)
+	@Configuration(mandatory=false)
 	protected int powerSamples = 5;
 
-	@Configuration
-	protected Channel powerSetpoint;
+	protected double powerAverage = 0;
 
-	protected Value powerValue;
-	protected Value powerLimitValue;
-	protected PidControl control;
+	protected Value powerValue = DoubleValue.zeroValue();
+	protected double powerLimitValue = Double.NaN;
 
 	protected double soc = 0;
 
@@ -80,89 +81,127 @@ public class PeakShavingControl extends Control {
 		super.onActivate(configs);
 		power.registerValueListener(new PowerListener());
 		powerLimit.registerValueListener(new PowerLimitListener());
-
-		control = new PidControl().configure(configs);
-
-		powerValue = DoubleValue.zeroValue();
-		powerLimitValue = new DoubleValue(importMax);
 	}
 
 	@Override
 	public void onDeactivate() throws ComponentException {
 		super.onDeactivate();
 		power.deregisterValueListeners();
-		powerLimit.deregisterValueListeners();
 	}
 
 	protected void set(Value value) {
 		double power = value.doubleValue();
-		long time = Math.max(powerLimitValue.getEpochMillis(), powerValue.getEpochMillis());
 		double error = 0;
-
-		double controlValue;
-		try {
-			if (power < 0) {
-				error = getPowerExportMax() - power;
-			}
-			else if (power >= 0) {
-				error = getPowerImportMax() - power;
-			}
-			controlValue = control.process(time, error);
-			if (controlValue != powerSetpoint.getLatestValue().doubleValue()) {
-				onControlChanged(new DoubleValue(-controlValue, time));
-			}
-		} catch (InvalidValueException e) {
-			logger.warn("Obligatory inverter value missing: {}", e.getMessage());
+		
+		if (power < 0 && power <= getPowerExportMax()) {
+			error = getPowerExportMax() - power;
+			logger.trace("Power export above {}: {}", abs(getPowerExportMax()), power);
 		}
-	}
-
-	protected void onControlChanged(Value value) {
-		if (value.doubleValue() > 0 && inverters.hasDischargableStorage()) {
-			this.inverters.set(value);
+		if (power >= 0 && power > getPowerImportMax()) {
+			error = getPowerImportMax() - power;
+			logger.trace("Power import above {}: {}", abs(getPowerImportMax()), power);
 		}
-		else {
-			this.inverters.set(new DoubleValue(0, value.getEpochMillis()));
+		
+		if (error != 0.0 &&
+				(controlValue < 0 && power <= getPowerExportMax()) || 
+				(controlValue > 0 && power > getPowerImportMax())) {
+			
+			controlValue = 0;
+			controlError = 0;
+			controlErrorIntegral = 0;
+			
+			logger.debug("Power boundary infringement changed extreme. Control values will be resetted.");
 		}
+		else if (controlValue > 0) {
+			error = getPowerExportMax() - power;
+			logger.trace("Power export error from {}: {}", abs(getPowerExportMax()), error);
+		}
+		else if (controlValue < 0) {
+			error = getPowerImportMax() - power;
+			logger.trace("Power import error from {}: {}", abs(getPowerImportMax()), error);
+		}
+		
+		controlErrorIntegral += error;
+		
+		if (controlErrorIntegral > controlMax) {
+			controlErrorIntegral = controlMax;
+		}
+		if (controlErrorIntegral < -controlMax) {
+			controlErrorIntegral = -controlMax;
+		}
+//		TODO: Verify PID control functionality and uncomment again together with commented lines above
+//		double controlValue = controlErrorProportional + controlErrorIntegral + controlErrorDerivate;
+		double controlValue = controlErrorIntegral;
+		if ((abs(this.controlValue) < controlTolerance && 
+				abs(controlValue) < controlTolerance) ||
+				(this.controlValue > 0 && controlValue < 0) ||
+				(this.controlValue < 0 && controlValue > 0)) {
+			
+			controlValue = 0;
+			controlError = 0;
+			controlErrorIntegral = 0;
+			
+			if (this.controlValue != 0) {
+				logger.debug("Power boundary infringement resolved.");
+			}
+		}
+		else if (controlValue > controlMax) {
+			controlValue = controlMax;
+		}
+		else if (controlValue < -controlMax) {
+			controlValue = -controlMax;
+		}
+		this.controlValue = controlValue;
+		if (controlValue != 0) {
+			logger.trace("Power control value update: {}", controlValue);
+		}
+		this.inverters.set(new DoubleValue(controlValue, value.getEpochMillis()));
 	}
 
 	protected double getPowerImportMax() {
-		if (!Double.isNaN(powerLimitValue.doubleValue())) {
-			return Math.min(powerLimitValue.doubleValue(), importMax);
+		if (!Double.isNaN(powerLimitValue)) {
+			return Math.min(powerLimitValue, importMax);
 		}
 		return importMax;
-
+		
 	}
 
 	protected double getPowerExportMax() {
-		if (!Double.isNaN(powerLimitValue.doubleValue())) {
-			return Math.max(-powerLimitValue.doubleValue(), exportMax);
+		if (!Double.isNaN(powerLimitValue)) {
+			return Math.max(-powerLimitValue, exportMax);
 		}
 		return exportMax;
 	}
 
 	protected void onPowerChanged(Value value) {
 		double power = value.doubleValue();
-
-		if ((power >= getPowerImportMax() || power >= getPowerExportMax() + exportHyst)
-				&& heatings.hasStoppable(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP)) {
+		
+		if ((power >= getPowerImportMax() || power >= getPowerExportMax() + exportHyst) &&
+				heatings.hasStoppable(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP)) {
+			
 			heatings.stopFirst(ComponentType.HEATING_ROD, ComponentType.HEAT_PUMP);
 			logger.debug("Stopping electrical heating due to power boundary infringement: {}", power);
-
-//		} else if (power >= getPowerImportMax() && heatings.hasStartable(ComponentType.COMBINED_HEAT_POWER)) {
-//			FIXME: uncomment following lines for original peak-shaving
-//			heatings.startFirst(ComponentType.COMBINED_HEAT_POWER);
-//			logger.debug("Starting cogeneration due to power boundary infringement: {}", power);
-
-		} else if (power <= getPowerExportMax() && heatings.hasStoppable(ComponentType.COMBINED_HEAT_POWER)) {
+		}
+		else if (power >= getPowerImportMax() &&
+				heatings.hasStartable(ComponentType.COMBINED_HEAT_POWER)) {
+			
+			heatings.startFirst(ComponentType.COMBINED_HEAT_POWER);
+			logger.debug("Starting cogeneration due to power boundary infringement: {}", power);
+		}
+		else if (power <= getPowerExportMax() && 
+				heatings.hasStoppable(ComponentType.COMBINED_HEAT_POWER)) {
+			
 			heatings.stopFirst(ComponentType.COMBINED_HEAT_POWER);
 			logger.debug("Stopping cogeneration due to power boundary infringement: {}", power);
-
-		} else if (power <= getPowerExportMax() && power + heatings.getStartableMinPower(ComponentType.HEAT_PUMP,
-				ComponentType.HEATING_ROD) <= exportHyst + getPowerExportMax()) {
+		}
+		else if (power <= getPowerExportMax() && 
+				power + heatings.getStartableMinPower(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD) 
+					<= exportHyst + getPowerExportMax()) {
+			
 			heatings.startFirst(ComponentType.HEAT_PUMP, ComponentType.HEATING_ROD);
 			logger.debug("Starting electrical heating due to power boundary infringement: {}", power);
-
-		} else {
+		}
+		else {
 			set(value);
 		}
 	}
@@ -176,12 +215,11 @@ public class PeakShavingControl extends Control {
 			Value power = new DoubleValue(value.doubleValue()*powerScale, value.getEpochMillis());
 			if (power.doubleValue() != powerValue.doubleValue()) {
 				// Only update PID control if the power value changed.
-				// Measurements will most probably always differ and only values read via a
-				// SCADA
+				// Measurements will most probably always differ and only values read via a SCADA
 				// system which are no new measurements can be expected to be exactly the same.
-				powerValue = power;
 				onPowerChanged(power);
 			}
+			powerValue = power;
 		}
 	}
 
@@ -190,8 +228,8 @@ public class PeakShavingControl extends Control {
 		@Override
 		public void onValueReceived(Value value) {
 			logger.trace("Received power limit value: {}W", value);
-
-			powerLimitValue = value;
+			
+			powerLimitValue = value.doubleValue();
 			onPowerChanged(powerValue);
 		}
 	}

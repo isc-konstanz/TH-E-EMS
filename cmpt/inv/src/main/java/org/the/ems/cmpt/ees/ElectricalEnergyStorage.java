@@ -101,6 +101,16 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	}
 
 	@Override
+	public boolean isChargable() throws ComponentException, InvalidValueException {
+		return getStateOfCharge().doubleValue() >= getMinStateOfCharge();
+	}
+
+	@Override
+	public boolean isDischargable() throws ComponentException, InvalidValueException {
+		return getStateOfCharge().doubleValue() < getMaxStateOfCharge();
+	}
+
+	@Override
 	@Configuration(value=POWER_VALUE, mandatory=false)
 	public Value getPower() throws ComponentException, InvalidValueException {
 		return getConfiguredValue(POWER_VALUE);

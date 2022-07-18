@@ -19,36 +19,38 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
+import org.the.ems.core.data.Value;
+
 public enum Mode {
-    DISABLED("0000000000000000"),
-    DEFAULT("1011011000000000"),
-    CHARGE_FROM_GRID("1110001000000000"),
-    FEED_INTO_GRID("1011111000000000");
+    DISABLED("00000000"),
+    DEFAULT("10110110"),
+    CHARGE_FROM_GRID("11100010"),
+    FEED_INTO_GRID("10111110");
 
     private final short mode;
 
     private Mode(String bitStr) {
-    	this((short) Integer.parseUnsignedInt(bitStr, 2));
+    	this((short) Integer.parseUnsignedInt(bitStr+"00000000", 2));
     }
 
     private Mode(short bits) {
         this.mode = bits;
     }
 
-    public short getShort() {
-        return mode;
-    } 
-
     public long getLong() {
-        return (long) mode;
+    	return parseLong(mode);
     }
 
-    public String getBinary() {
-    	return Integer.toBinaryString(mode);
+    private long parseLong(long value) {
+        return mode & 0xFFFF;
     }
 
     public String getByteArray() {
         return Integer.toBinaryString(mode);
+    }
+
+    public boolean equals(Value value) {
+    	return parseLong(value.longValue()) == getLong();
     }
 
 }

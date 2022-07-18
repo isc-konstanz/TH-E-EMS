@@ -19,25 +19,34 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
+import java.util.Map.Entry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
+import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
+import org.the.ems.core.data.WriteContainer;
 
 public class EffektaBattery extends ElectricalEnergyStorage {
 	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
 
 	private final static String SECTION = "EnergyStorage";
 
+	private final static int CURRENT_MAX = 200;
+
 	@Configuration("voltage_charge_max")
-	private double chargeVoltageMax = 52;
+	private double chargeVoltageMax = 52.5;
 
 	@Configuration("voltage_discharge_min")
 	private double dischargeVoltageMin = 48;
@@ -51,20 +60,41 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration
 	private Channel current;
 
-	@Configuration
-	private Channel currentMax;
+	@Configuration("current_charge_max")
+	private Channel chargeCurrentMax;
 
-	@Configuration("current_charge")
-	private Channel chargeCurrent;
+	@Configuration("current_discharge_max")
+	private Channel dischargeCurrentMax;
 
-	@Configuration("current_discharge")
-	private Channel dischargeCurrent;
+	@Configuration(value = "power_standby", mandatory = false)
+	private double dischargePowerStandby = 100;
+
+	@Configuration(value = "*_power*", mandatory = false)
+	private ChannelCollection externalPowers;
+
+	private Value powerSetpoint;
 
 	@Configuration
 	private Channel power;
 
 	@Configuration
 	private Channel soc;
+
+	@Configuration
+	private Channel mode;
+
+	@Configuration(mandatory = false)
+	private int modeChangeDelay = 1000;
+
+	@Configuration(mandatory = false, scale = 1000)
+	private int modeChangedPause = 10000;
+
+	private long modeChangedTime = Long.MIN_VALUE;
+
+	private Mode modeSetting = Mode.DEFAULT;
+
+	private volatile long timestampLast = Long.MIN_VALUE;
+
 
 	protected EffektaBattery() {
 		super(SECTION);
@@ -73,18 +103,150 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
+		try {
+			initStateOfCharge(System.currentTimeMillis());
+			
+		} catch (InvalidValueException e) {
+			// Do nothing
+		}
+		try {
+			set(DoubleValue.zeroValue());
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving battery mode: {}", e.getLocalizedMessage());
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Error setting battery mode: {}", e.getLocalizedMessage());
+		}
+		soc.registerValueListener(new StateOfChargeListener());
+		current.registerValueListener(new ValueListener() {
 
-		power.setLatestValue(new DoubleValue(0));
-		soc.setLatestValue(new DoubleValue(50));
+			@Override
+			public void onValueReceived(Value value) {
+				try {
+					processStateOfCharge(value.getEpochMillis());
+					
+				} catch (InvalidValueException e) {
+					logger.debug("Error processing battery state of charge: {}", e.getLocalizedMessage());
+				}
+			}
+		});
 	}
 
 	@Override
-	protected void onDeactivate() {
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		soc.deregisterValueListeners();
 		voltage.deregisterValueListeners();
 	}
 
 	@Override
-	public Value getVoltage() throws ComponentException, InvalidValueException {
+	protected void onInterrupt() throws ComponentException {
+		super.onInterrupt();
+		
+		long timestamp = System.currentTimeMillis();
+		try {
+			if (timestamp - modeChangedTime > modeChangedPause && !modeSetting.equals(mode.getLatestValue())) {
+				setMode(Mode.DEFAULT);
+			}
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving battery mode: {}", e.getLocalizedMessage());
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Error setting battery mode: {}", e.getLocalizedMessage());
+		}
+	}
+
+	@Override
+    protected void onSet(WriteContainer container, Value power) throws ComponentException {
+		long timestamp = power.getEpochMillis();
+		try {
+			if (power.doubleValue() == 0.) {
+				timestamp += onSetMode(container, Mode.DEFAULT, timestamp);
+				container.addDouble(chargeCurrentMax, CURRENT_MAX, timestamp);
+				container.addDouble(dischargeCurrentMax, CURRENT_MAX, timestamp);
+			}
+			else {
+				double voltage = getVoltage().doubleValue();
+				double currentSetpoint = Math.abs(power.doubleValue()/voltage);
+				if (currentSetpoint > CURRENT_MAX) {
+					currentSetpoint = CURRENT_MAX;
+				}
+				if (power.doubleValue() >= 0.) {
+					if (!isChargable()) {
+						throw new ComponentException("Unable to charge battery");
+					}
+					if (getCurrent().doubleValue() >= currentSetpoint) {
+						timestamp += onSetMode(container, Mode.DEFAULT, timestamp);
+					}
+					else {
+						timestamp += onSetMode(container, Mode.CHARGE_FROM_GRID, timestamp);
+					}
+					container.addDouble(chargeCurrentMax, CURRENT_MAX, timestamp);
+					container.addDouble(dischargeCurrentMax, currentSetpoint, timestamp);
+				}
+				else {
+					if (!isDischargable()) {
+						throw new ComponentException("Unable to discharge battery");
+					}
+					timestamp += onSetMode(container, Mode.FEED_INTO_GRID, timestamp);
+					container.addDouble(chargeCurrentMax, CURRENT_MAX, timestamp);
+					container.addDouble(dischargeCurrentMax, currentSetpoint, timestamp);
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				for (Entry<Channel, ValueList> entry : container.entrySet()) {
+					for (Value value : entry.getValue()) {
+						logger.debug("Writing value to channel {}: {}", entry.getKey().getId(), value.toString());
+					}
+				}
+			}
+			powerSetpoint = power;
+			
+		} catch (InvalidValueException e) {
+			throw new ComponentException(e);
+		}
+    }
+
+	public final void setMode(Mode mode) throws EnergyManagementException {
+		doSetMode(mode, System.currentTimeMillis());
+	}
+
+	void doSetMode(Mode mode, long timestamp) throws EnergyManagementException {
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
+		WriteContainer container = new WriteContainer();
+		onSetMode(container, mode, timestamp);
+		write(container);
+	}
+
+	protected long onSetMode(WriteContainer container, Mode mode, long timestamp) throws InvalidValueException {
+		long modeValue = this.mode.getLatestValue().shortValue() & 0xFFFF;
+		long modeSetpoint = mode.getLong();
+		long errormask = modeSetpoint ^ modeValue;
+		long bitmask = 0x0001L;
+		for (int i = 1; i <= 16; i++) {
+			if ((errormask & bitmask) != 0) {
+				if ((modeSetpoint & bitmask) != 0) {
+					container.addLong(this.mode, bitmask, timestamp);
+				}
+				else {
+					container.addLong(this.mode, (~bitmask) & 0xFFFF, timestamp);
+				}
+				timestamp += modeChangeDelay;
+			}
+			bitmask = Long.rotateLeft(bitmask, 1);
+		}
+		onSetVoltageSetpoint(container, mode, timestamp);
+		
+		this.modeChangedTime = timestamp;
+		this.modeSetting = mode;
+		return timestamp;
+	}
+
+	@Override
+	public Value getVoltage() throws InvalidValueException {
 		return voltage.getLatestValue();
 	}
 
@@ -98,8 +260,34 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		voltage.deregisterValueListener(listener);
 	}
 
-	public Channel getVoltageSetpoint() {
-		return voltageSetpoint;
+	public final void setVoltageSetpoint(Mode mode) throws EnergyManagementException {
+		doSetVoltageSetpoint(mode, System.currentTimeMillis());
+	}
+
+	void doSetVoltageSetpoint(Mode mode, long timestamp) throws EnergyManagementException {
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
+		WriteContainer container = new WriteContainer();
+		onSetVoltageSetpoint(container, mode, timestamp);
+		write(container);
+	}
+
+	private boolean onSetVoltageSetpoint(WriteContainer container, Mode mode, long timestamp) {
+		try {
+			if (mode == Mode.FEED_INTO_GRID && 
+					voltageSetpoint.getLatestValue().doubleValue() != getVoltageMin()) {
+				container.addDouble(voltageSetpoint, getVoltageMin(), timestamp);
+				return true;
+			}
+			else if (voltageSetpoint.getLatestValue().doubleValue() != getVoltageMax()) {
+				container.addDouble(voltageSetpoint, getVoltageMax(), timestamp);
+				return true;
+			}
+		} catch (InvalidValueException e) {
+			logger.warn("Error retrieving floating voltage: {}", e.getMessage());
+		}
+		return false;
 	}
 
 	public double getVoltageMin() {
@@ -110,39 +298,32 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return chargeVoltageMax;
 	}
 
-	public Channel getCurrentMax() {
-		return currentMax;
-	}
-
-	public void setCurrent(Value value) {
-		current.setLatestValue(value);
-	}
-
 	public Value getCurrent() throws InvalidValueException {
 		return current.getLatestValue();
 	}
 
-	public Value getChargeCurrent() throws InvalidValueException {
-		return chargeCurrent.getLatestValue();
-	}
-
-	public Value getDischargeCurrent() throws InvalidValueException {
-		return dischargeCurrent.getLatestValue();
-	}
-
-	public void setPower(Value value) {
-		power.setLatestValue(value);
-		try {
-			current.setLatestValue(new DoubleValue(value.doubleValue() / voltage.getLatestValue().doubleValue()));
-			
-		} catch (InvalidValueException e) {
-			logger.warn("Obligatory value missing: {}", e.getMessage());
-		}
+	@Override
+	public Value getPower() throws InvalidValueException {
+		return power.getLatestValue();
 	}
 
 	@Override
-	public Value getPower() throws InvalidValueException {
-		return new DoubleValue(current.getLatestValue().doubleValue() * voltage.getLatestValue().doubleValue());
+	public Value getPower(ValueListener listener) throws InvalidValueException {
+		return power.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerPowerListener(ValueListener listener) throws ComponentException {
+		power.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterPowerListener(ValueListener listener) throws ComponentException {
+		power.deregisterValueListener(listener);
+	}
+
+	private void setPower(double value, long timestamp) {
+		power.setLatestValue(new DoubleValue(value, timestamp));
 	}
 
 	@Override
@@ -150,32 +331,102 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return soc.getLatestValue();
 	}
 
-	public Value processStateOfCharge(long time) throws InvalidValueException {
-		long timeLast = getStateOfCharge().getEpochMillis();
-		double current = getCurrent().doubleValue();
-		double value;
-		if (voltage.getLatestValue().doubleValue() >= getVoltageMax()) {
-			setStateOfCharge(new DoubleValue(100));
-		}
-		else if (voltage.getLatestValue().doubleValue() <= getVoltageMin()) {
-			setStateOfCharge(new DoubleValue(0));
-		}
-		else if (!Double.isNaN(current)) {
-			double energy = current * voltage.getLatestValue().doubleValue() * (time - timeLast) / (1000 * 3600);
-			value = getStateOfCharge().doubleValue() - energy / (getCapacity() * 1000) * 100;
-			if (value < 0) {
-				value = 0;
-			}
-			if (value > 100) {
-				value = 100;
-			}
-			setStateOfCharge(new DoubleValue(value, time));
-		}
-		return getStateOfCharge();
+	@Override
+	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException {
+		return soc.getLatestValue(listener);
 	}
 
-	public void setStateOfCharge(Value value) {
-		soc.setLatestValue(value);
+	@Override
+	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException {
+		soc.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException {
+		soc.deregisterValueListener(listener);
+	}
+
+	private void setStateOfCharge(double value, long timestamp) {
+		if (value < 0) {
+			value = 0;
+		}
+		if (value > 100) {
+			value = 100;
+		}
+		soc.setLatestValue(new DoubleValue(value, timestamp));
+	}
+
+	private void initStateOfCharge(long timestamp) throws InvalidValueException {
+		double state = (getVoltage().doubleValue() - getVoltageMin()) / (getVoltageMax() - getVoltageMin())*100;
+		setStateOfCharge(state, timestamp);
+	}
+
+	private void processStateOfCharge(long timestamp) throws InvalidValueException {
+		double voltage = getVoltage().doubleValue();
+		double current = getCurrent().doubleValue();
+		double power = current*voltage + dischargePowerStandby;
+		
+		for (Channel externalPower : externalPowers.values()) {
+			try {
+				double externalPowerValue = externalPower.getLatestValue().doubleValue();
+				current -= externalPowerValue/voltage;
+				power -= externalPowerValue;
+				
+			} catch (InvalidValueException e) {
+				logger.debug("Error retrieving external power to process current: {}", e);
+			}
+		}
+		setPower(power, timestamp);
+		
+		try {
+			double state = Double.NaN;
+			double stateLast = getStateOfCharge().doubleValue();
+			if (voltage <= getVoltageMin()) {
+				state = 0;
+			}
+			else if (voltage >= getVoltageMax()) {
+				state = 100;
+			}
+			if (Double.isNaN(current)) {
+				return;
+			}
+			else if (!Double.isNaN(current)) {
+				long timestampDelta = timestamp - this.timestampLast;
+				if (timestampDelta < 1000) {
+					// Skip too short intervals to avoid artefacts
+					return;
+				}
+				double energy = power/1000.*(timestampDelta/3600000.);
+				state = stateLast - energy/getCapacity()*100.;
+			}
+			if (Double.isNaN(state)) {
+				return;
+			}
+			setStateOfCharge(state, timestamp);
+			
+		} catch (InvalidValueException e) {
+			initStateOfCharge(timestamp);
+			
+		} finally {
+			timestampLast = timestamp;
+		}
+	}
+
+	private class StateOfChargeListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value value) {
+			double state = value.doubleValue();
+			if ((!isChargable(state) || !isDischargable(state)) && powerSetpoint.doubleValue() != 0) {
+				try {
+					set(DoubleValue.zeroValue());
+					
+				} catch (EnergyManagementException e) {
+					logger.warn("Error while resetting battery setpoint due to state of charge threshold violation: {}",
+							e.getMessage());
+				}
+			}
+		}
 	}
 
 }

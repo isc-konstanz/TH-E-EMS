@@ -19,6 +19,8 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
+import java.util.Arrays;
+
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
@@ -31,12 +33,9 @@ import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.ChannelCollection;
-import org.the.ems.core.data.ChannelListener;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
@@ -46,370 +45,67 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPid = InverterService.PID+".effekta", 
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Effekta extends Inverter<EffektaBattery> {
+public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
 
-	protected Mode mode = Mode.DEFAULT;
-
-	private String[] keys;
-
-//	private Value setpointPower = DoubleValue.emptyValue();
-	private double voltage = 0;
-	private double current = 0;
-	private boolean initialized = false;
-	private boolean dischargeProtection = false;
-	private boolean overchargeProtection = false;
-	private long modeChangedTime = 0;
-
-	@Configuration(mandatory = false)
-	private boolean activeError = false;
+	@Configuration
+	protected Channel power;
 
 	@Configuration
-	protected long messagesDelay;
-
-	@Configuration(mandatory = false, scale = 1000)
-	protected long modeChangedPause = 30000;
+	protected Channel powerImport;
 
 	@Configuration
-	private Channel operationMode;
+	protected Channel powerExport;
 
-	@Configuration
-	private Channel setpointCurrentExport;
-
-	@Configuration
-	private Channel setpointCurrentImport;
-
-	@Configuration(value = "pwr_*")
-	protected ChannelCollection powers;
-
-	@Configuration
-	protected ChannelListener currentInv;
+	private volatile long timestampLast = Long.MIN_VALUE;
 
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		storage.registerVoltageListener(new VoltageListener());
-		currentInv.registerValueListener(new CurrentListener());
+		setpoint.setLatestValue(DoubleValue.zeroValue());
 
-		WriteContainer container = new WriteContainer();
-		long time = System.currentTimeMillis();
+		//powerImport.registerValueListener(this);
+		powerExport.registerValueListener(this);
+	}
 
-		container.addDouble(storage.getCurrentMax(), Math.min((int) getMaxPower() / storage.getVoltageMin(), 200), time);
-		setpoint.setLatestValue(new DoubleValue(0, time));
-		modeChangedTime = time;
-		try {
-			doWrite(container);
-
-		} catch (EnergyManagementException e) {
-			logger.warn("Effekta activation error: {}", e.getMessage());
-		}
-
-		keys = new String[powers.size()];
-		int i = powers.size() - 1;
-		for (String key : powers.keySet()) {
-			keys[i] = key;
-			powers.get(key).setLatestValue(new DoubleValue(0));
-			i--;
-		}
+	@Override
+	public void onDeactivate() throws ComponentException {
+		powerExport.deregisterValueListeners();
 	}
 
 	@Override
 	public void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
-		long time = value.getEpochMillis();
-//		if (System.currentTimeMillis() >= setpointPower.getTime() + 15000) {
-//			
-//		}
-//		if (time >= modeChangedPause + modeChangedTime) {
-
+		//long timestamp = value.getEpochMillis();
+		// TODO: implement setpoint including DC inputs
 		try {
-			if (value.doubleValue() == 0 && mode != Mode.DISABLED) {
-				setMode(container, time, Mode.DISABLED);
-			} else if (value.doubleValue() < 0 && mode != Mode.CHARGE_FROM_GRID && !overchargeProtection) {
-				setMode(container, time, Mode.CHARGE_FROM_GRID);
-			} else if (value.doubleValue() > 0 && mode != Mode.FEED_INTO_GRID && !dischargeProtection) {
-				setMode(container, time, Mode.FEED_INTO_GRID);
-			}
-		} catch (InvalidValueException e) {
-			logger.debug("Invalid value exception error: {}", e.getMessage());
+			storage.set(value);
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Unable to set battery charging current: {}", e.getMessage());
 		}
-
-		switch (mode) {
-		case CHARGE_FROM_GRID:
-			if (!overchargeProtection) {
-				container.addDouble(setpointCurrentImport, -value.doubleValue() / voltage, time);
-				setpoint.setLatestValue(value);
-			} else {
-				container.addDouble(setpointCurrentImport, 0, time);
-				setpoint.setLatestValue(new DoubleValue(0, time));
-			}
-			break;
-		case FEED_INTO_GRID:
-			try {
-				if (storage.getStateOfCharge().doubleValue() >= storage.getMinStateOfCharge()) {
-					if (!dischargeProtection) {
-						if (overchargeProtection && powers.containsKey("pwr_fuelcell")
-								&& powers.get("pwr_fuelcell").getLatestValue().doubleValue() > 0) {
-							value = new DoubleValue(powers.get("pwr_fuelcell").getLatestValue().doubleValue(), time);
-						}
-						container.addDouble(setpointCurrentExport, value.doubleValue() / voltage, time);
-						setpoint.setLatestValue(value);
-					} else {
-						container.addDouble(setpointCurrentExport, 0, time);
-						setpoint.setLatestValue(new DoubleValue(0, time));
-					}
-				}
-			} catch (Exception e) {
-				logger.warn("Obligatory value missing on setpoint update: {}", e.getMessage());
-			}
-			break;
-		case DEFAULT:
-		case DISABLED:
-			break;
-		}
-//		}
 	}
 
 	@Override
-	protected void onInterrupt() throws ComponentException {
-		// TODO: Verify if power setpoint is actually reached
-		long time = System.currentTimeMillis();
-
-		if (time >= modeChangedTime + modeChangedPause) {
-			try {
-				WriteContainer container = new WriteContainer();
-
-				// check if setpoint power is actually reached (tolerance = 20%)
-				if (hasReachedSetpoint(container, time, 0.2)) {
-					onSetpointChanged(container, new DoubleValue(setpoint.getLatestValue().doubleValue(), time));
-				}
-
-				// check if voltage setpoint is set
-				setVoltageSetpoint(container, time);
-
-				// check if mode is actually reached
-				if (operationMode.getLatestValue().longValue() != (mode.getLong() & 0xFFFFL)) {
-					setMode(container, time, mode);
-				}
-
-				doWrite(container);
-
-			} catch (EnergyManagementException e) {
-				modeChangedTime = time;
-				logger.warn("Interrupt call failed: {}", e.getLocalizedMessage());
-			}
-		}
-	}
-
-	public boolean hasReachedSetpoint(WriteContainer container, long time, double tolerance)
-			throws InvalidValueException, ComponentException {
-		if (powers.get("pwr_inverter").getLatestValue().doubleValue() >= setpoint.getLatestValue().doubleValue()
-				* (1 + tolerance)
-				|| powers.get("pwr_inverter").getLatestValue().doubleValue() <= setpoint.getLatestValue().doubleValue()
-						* (1 - tolerance)) {
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	public boolean setVoltageSetpoint(WriteContainer container, long timestamp) {
+	public void onValueReceived(Value value) {
+		long timeMax = -1;
 		try {
-			if (mode == Mode.CHARGE_FROM_GRID) {
-				if (storage.getVoltageSetpoint().getLatestValue().doubleValue() != storage.getVoltageMax()) {
-					container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMax(), timestamp);
-					return true;
+			for (Channel channel : Arrays.asList(powerImport, powerExport)) {
+				Value powerValue = channel.getLatestValue();
+				if (powerValue.getEpochMillis() <= timestampLast) {
+					return;
 				}
-			} else if (mode == Mode.FEED_INTO_GRID) {
-				if (storage.getVoltageSetpoint().getLatestValue().doubleValue() != storage.getVoltageMin()) {
-					container.addDouble(storage.getVoltageSetpoint(), storage.getVoltageMin(), timestamp);
-					return true;
+				if (powerValue.getEpochMillis() > timeMax) {
+					timeMax = powerValue.getEpochMillis();
 				}
 			}
+			timestampLast = timeMax;
+			power.setLatestValue(new DoubleValue(
+					powerImport.getLatestValue().doubleValue() - 
+					powerExport.getLatestValue().doubleValue(), timestampLast));
+			
 		} catch (InvalidValueException e) {
-			logger.warn("No voltage setpoint available {}", e.getMessage());
-		}
-		return false;
-	}
-
-	private void setMode(WriteContainer container, long timestamp, Mode mode) throws InvalidValueException {
-		long actualMode = operationMode.getLatestValue().shortValue() & 0xFFFF;
-		long modeSetpoint = mode.getLong() & 0xFFFF;
-		long errormask = modeSetpoint ^ actualMode;
-		long bitmask = 0x0001L;
-		long nBitmask;
-
-		if (setVoltageSetpoint(container, timestamp)) {
-			timestamp += messagesDelay;
-		}
-
-		for (int i = 1; i <= 16; i++) {
-			if ((errormask & bitmask) != 0) {
-				if ((modeSetpoint & bitmask) != 0) {
-					container.addDouble(operationMode, bitmask, timestamp);
-					timestamp += messagesDelay;
-				} else {
-					nBitmask = (~bitmask) & 0xFFFF;
-					container.addDouble(operationMode, nBitmask, timestamp);
-					timestamp += messagesDelay;
-				}
-			}
-			bitmask = Long.rotateLeft(bitmask, 1);
-		}
-
-		logger.info("Mode: {} - setting bits:", mode);
-		for (ValueList values : container.values()) {
-			for (Value value : values) {
-				logger.info("Bits: {}", Long.toBinaryString((int) value.doubleValue()));
-			}
-		}
-		logger.info(" --------------- ");
-
-		modeChangedTime = System.currentTimeMillis();
-		this.mode = mode;
-	}
-
-	public void getDischargeProtection(Long time) throws InvalidValueException, EnergyManagementException {
-		if (storage.getStateOfCharge().doubleValue() <= storage.getMinStateOfCharge() && !dischargeProtection) {
-			dischargeProtection = true;
-			set(new DoubleValue(0, time));
-			logger.warn("Low SOC! Feeding into the Grid stopped.");
-		}
-		else if (storage.getStateOfCharge().doubleValue() > storage.getMinStateOfCharge() + 5
-				&& dischargeProtection) {
-			dischargeProtection = false;
+			logger.debug("Unable to calculate weighted storage temperature: {}", e.getMessage());
 		}
 	}
 
-	public void getOverchargeProtection() throws InvalidValueException, EnergyManagementException {
-		if (storage.getStateOfCharge().doubleValue() >= storage.getMaxStateOfCharge() && !overchargeProtection) {
-			overchargeProtection = true;
-		}
-		else if (storage.getStateOfCharge().doubleValue() < storage.getMaxStateOfCharge() - 2
-				&& overchargeProtection) {
-			overchargeProtection = false;
-		}
-	}
-
-	private void setStoragePower() throws InvalidValueException {
-		Double pwr = current * voltage;
-
-		powers.get("pwr_inverter").setLatestValue(new DoubleValue(current * voltage));
-		for (String key : keys) {
-			switch (key) {
-			case "pwr_photovoltaik":
-				pwr -= powers.get(key).getLatestValue().doubleValue();
-				break;
-			case "pwr_fuelcell":
-				pwr -= powers.get(key).getLatestValue().doubleValue();
-				break;
-			}
-		}
-		storage.setPower(new DoubleValue(pwr));
-	}
-
-	private class VoltageListener implements ValueListener {
-
-		@Override
-		public void onValueReceived(Value value) {
-			long time = value.getEpochMillis();
-			WriteContainer container = new WriteContainer();
-
-			if (!initialized) {
-				storage.setStateOfCharge(new DoubleValue((value.doubleValue() - storage.getVoltageMin())
-						/ (storage.getVoltageMax() - storage.getVoltageMin()) * 100));
-				initialized = true;
-			}
-
-			try {
-				if (voltage != value.doubleValue() || time - storage.getStateOfCharge().getEpochMillis() >= 60000) {
-
-					switch (mode) {
-					case CHARGE_FROM_GRID:
-						container.addDouble(setpointCurrentImport,
-								-setpoint.getLatestValue().doubleValue() / value.doubleValue(), time);
-						break;
-					case FEED_INTO_GRID:
-						if (value.doubleValue() > storage.getVoltageMin() && !dischargeProtection) {
-							container.addDouble(setpointCurrentExport,
-									setpoint.getLatestValue().doubleValue() / value.doubleValue(), time);
-						}
-						else if (value.doubleValue() <= storage.getVoltageMin() || dischargeProtection) {
-							setpoint.setLatestValue(new DoubleValue(0, time));
-							container.addDouble(setpointCurrentExport,
-									setpoint.getLatestValue().doubleValue() / voltage, time);
-						}
-						break;
-					case DEFAULT:
-					case DISABLED:
-						break;
-					}
-
-					voltage = value.doubleValue();
-					storage.processStateOfCharge(time);
-					getDischargeProtection(time);
-					getOverchargeProtection();
-
-					if (powers.containsKey("pwr_fuelcell") && overchargeProtection
-							&& powers.get("pwr_fuelcell").getLatestValue().doubleValue() > 0) {
-						set(new DoubleValue(powers.get("pwr_fuelcell").getLatestValue().doubleValue(), time));
-					}
-
-					doWrite(container);
-					setStoragePower();
-				}
-			} catch (Exception e) {
-				logger.warn("Invalid value exception in voltage listener: {}", e);
-			}
-
-		}
-	}
-
-	private class CurrentListener implements ValueListener {
-
-		@Override
-		public void onValueReceived(Value value) {
-			long time = value.getEpochMillis();
-			double storageCurrent = value.doubleValue();
-
-			try {
-				if (value.doubleValue() != current || time - storage.getStateOfCharge().getEpochMillis() >= 60000) {
-					current = value.doubleValue();
-
-					for (String key : keys) {
-						switch (key) {
-						case "pwr_photovoltaik":
-							storageCurrent -= powers.get(key).getLatestValue().doubleValue() / voltage;
-							break;
-						case "pwr_fuelcell":
-							storageCurrent -= powers.get(key).getLatestValue().doubleValue() / voltage;
-							break;
-						}
-					}
-
-					if (!Double.isNaN(storageCurrent)) {
-						storage.setCurrent(new DoubleValue(storageCurrent));
-					}
-					else {
-						storage.setCurrent(new DoubleValue(0));
-					}
-
-					if (initialized) {
-						storage.processStateOfCharge(value.getEpochMillis());
-						getDischargeProtection(value.getEpochMillis());
-						getOverchargeProtection();
-					}
-
-					if (powers.containsKey("pwr_fuelcell") && overchargeProtection
-							&& powers.get("pwr_fuelcell").getLatestValue().doubleValue() >= 0) {
-						set(powers.get("pwr_fuelcell").getLatestValue());
-					}
-
-					setStoragePower();
-				}
-			} catch (Exception e) {
-				logger.warn("Error in current listener: {}", e);
-			}
-
-		}
-	}
 }

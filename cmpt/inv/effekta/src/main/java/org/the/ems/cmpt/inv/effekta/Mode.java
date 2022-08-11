@@ -23,34 +23,35 @@ import org.the.ems.core.data.Value;
 
 public enum Mode {
     DISABLED("00000000"),
-    DEFAULT("10110110"),
-    CHARGE_FROM_GRID("11100010"),
-    FEED_INTO_GRID("10111110");
+    DEFAULT("11110000"),
+    CHARGE_FROM_GRID("11100000"),
+    FEED_INTO_GRID("11111110");
 
-    private final short mode;
+    private final int mode;
 
     private Mode(String bitStr) {
-    	this((short) Integer.parseUnsignedInt(bitStr+"00000000", 2));
+    	this(Integer.parseUnsignedInt(bitStr+"00000000", 2));
     }
 
-    private Mode(short bits) {
+    private Mode(int bits) {
         this.mode = bits;
     }
 
-    public long getLong() {
-    	return parseLong(mode);
+    public int getInteger() {
+    	return mode;
     }
 
-    private long parseLong(long value) {
-        return mode & 0xFFFF;
+    public String toBinaryString() {
+        return toBinaryString(mode);
     }
 
-    public String getByteArray() {
-        return Integer.toBinaryString(mode);
+    public static String toBinaryString(int value) {
+    	String valueStr = Integer.toBinaryString(value);
+    	return "0".repeat(16 - valueStr.length()) + valueStr;
     }
 
     public boolean equals(Value value) {
-    	return parseLong(value.longValue()) == getLong();
+    	return getInteger() == value.intValue();
     }
 
 }

@@ -111,98 +111,114 @@
         {
             "name": "<node>*mode",
             "description": "<name> mode",
-			"driver": "modbus",
+            "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:7:UINT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType":"LONG"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "INTEGER"}
         },
         {
             "name": "<node>*voltage",
             "description": "<name> voltage",
-			"driver": "modbus",
+            "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:188:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"},
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "V"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
                 "feed": {"name": "Voltage", "tag": "<name>" }
             }
         },
         {
-            "name": "<node>*voltage*setpoint",
-            "description": "<name> voltage setpoint",
-			"driver": "modbus",
-            "device": "<inverter>",
-            "address": "1:HOLDING_REGISTERS:285:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"}
-        },
-        {
             "name": "<node>*voltage*float",
             "description": "<name> floating voltage",
-			"driver": "modbus",
+            "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:624:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "V"}
+        },
+        {
+            "name": "<node>*voltage*max",
+            "description": "<name> maximum voltage",
+            "driver": "modbus",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:623:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": " FLOAT", "unit": "V"}
         },
         {
             "name": "<node>*voltage*min",
             "description": "<name> minimum voltage",
-			"driver": "modbus",
+            "driver": "modbus",
             "device": "<inverter>",
-            "address": "1:HOLDING_REGISTERS:1477:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"V"}
+            "address": "1:HOLDING_REGISTERS:264:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": " FLOAT", "unit": "V"}
+        },
+        {
+            "name": "<node>*voltage*setpoint",
+            "description": "<name> voltage setpoint",
+            "driver": "modbus",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:285:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "V"}
+        },
+        {
+            "name": "<node>*voltage*setpoint*enabled",
+            "description": "<name> voltage setpoint enabled",
+            "driver": "modbus",
+            "device": "<inverter>",
+            "address": "1:HOLDING_REGISTERS:284:INT16",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN", "unit": "V"}
         },
         {
             "name": "<node>*current",
             "description": "<name> current",
-			"driver": "virtual",
+            "driver": "modbus",
             "device": "<inverter>",
-            "address": "1:HOLDING_REGISTERS:230:INT16",
-            "configs": {"valueType":"FLOAT", "unit":"A"},
+            "address": "1:HOLDING_REGISTERS:230:INT32",
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 1, "average": true, "engine":"SQL",
-                "feed": {"name": "Current", "tag": "<name>"}
+                "feed": {"name": "Charge current", "tag": "<name>"}
             }
         },
         {
             "name": "<node>*current*discharge*max",
             "description": "<name> maximum discharge current",
-			"driver": "modbus",
+            "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:1240:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"A"},
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Setpoint export current", "tag": "<name>"}
+                "feed": {"name": "Discharge current maximum", "tag": "<name>"}
             }
         },
         {
             "name": "<node>*current*charge*max",
             "description": "<name> maximum charge current",
-			"driver": "modbus",
+            "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:1457:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType":"FLOAT", "unit":"A"},
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "Setpoint import current", "tag": "<name>"}
+                "feed": {"name": "Charge current maximum", "tag": "<name>"}
             }
         },
         {
             "name": "<node>*soc",
-            "description": "Battery SoC estimation",
-			"driver": "virtual",
+            "description": "<name> SoC estimation",
+            "driver": "virtual",
             "device": "_<inverter>",
-			"configs": {"valueType":"DOUBLE", "unit":"%"},
+            "configs": {"valueType": "DOUBLE", "unit": "%"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 1, "average": true, "engine":"SQL",
                 "feed": {"name": "State of charge", "tag": "<name>" }
-			}
-		},
+            }
+        },
         {
             "name": "<node>*power",
-            "description": "Basttery power",
-			"driver": "virtual",
+            "description": "<name> power",
+            "driver": "virtual",
             "device": "_<inverter>",
-			"configs": {"valueType":"DOUBLE", "unit":"W"},
+            "configs": {"valueType": "DOUBLE", "unit": "W"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "average": true, "engine":"SQL",
                 "feed": {"name": "Power", "tag": "<name>" }
-			}
+            }
         }
     ],
 

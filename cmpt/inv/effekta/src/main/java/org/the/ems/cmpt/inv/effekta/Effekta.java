@@ -68,9 +68,14 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 	@Configuration(value = "power_input_dc_*")
 	private ChannelCollection directPowerInputs;
 
-	private volatile Value setpointValue = DoubleValue.zeroValue();
+	@Configuration(mandatory = false, scale = 1000)
+	private int storageSetpointChangeDelay = 15000;
 
-	private volatile long timestampLast = Long.MIN_VALUE;
+	private volatile double storageSetpointError = 0;
+	private volatile Value storageSetpoint = DoubleValue.zeroValue();
+
+	private volatile long storageSetpointChangedTime = Long.MIN_VALUE;
+	private volatile long setpointUpdateTime = Long.MIN_VALUE;
 
 	private List<Channel> getPowers() {
 		return Stream.of(Arrays.asList(alternatingPowerOutput, alternatingPowerInput), directPowerInputs.values())
@@ -138,21 +143,48 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 
 	@Override
 	public void onSetpointUpdate(WriteContainer container, Value setpoint) throws ComponentException {
-		long timestamp =  setpoint.getEpochMillis();
+		long timestamp =  System.currentTimeMillis();
 		try {
-//			double inputPower = getInputPower().doubleValue();
-//			double setpointError = setpoint.doubleValue() - getActivePower().doubleValue();
-//			double setpointPower = setpointValue.doubleValue()+setpointError;
-//			
-//			if (setpointPower > 0 && !storage.isDischargable()) {
-//				
-//			}
-//			if (setpointPower < 0 && !storage.isChargable()) {
-//				
-//			}
-//			setpointValue = new DoubleValue(setpointPower, timestamp);
-//			storage.set(setpointValue);
-			storage.set(setpoint);
+			double setpointPower = setpoint.doubleValue();
+			if (setpointPower == 0) {
+				storageSetpoint = new DoubleValue(setpointPower, timestamp);
+				storageSetpointError = 0;
+				storageSetpointChangedTime = timestamp;
+			}
+			else if (storage.isReady()) {
+				// Wait 10 seconds per kW power setpoint
+				int storageSetpointChangePause = (int) Math.round(Math.abs(
+						Math.max(storageSetpointChangeDelay * storageSetpointError/1000, storageSetpointChangeDelay)));
+				if (storageSetpointChangePause <= timestamp - storageSetpointChangedTime || 
+					storageSetpointChangedTime < 0) {
+					storageSetpointError = setpointPower - getActivePower().doubleValue();
+					if (storageSetpoint.doubleValue() == 0) {
+						storageSetpointError += getInputPower().doubleValue();
+					}
+					setpointPower = storageSetpoint.doubleValue() + storageSetpointError;
+					if (Math.abs(setpointPower) < storage.getPowerMin()) {
+						// TODO: verify if resetting the setpoint value is the correct thing to do here
+						// Check if avoiding sign switching for values below 500W works better
+						setpointValue = DoubleValue.zeroValue();
+						setpointPower = 0;
+						storageSetpointError = 0;
+					}
+					else if (setpointPower > getMaxPower()) {
+						setpointPower = getMaxPower();
+					}
+					else if (setpointPower < getMinPower()) {
+						setpointPower = getMinPower();
+					}
+					storageSetpoint = new DoubleValue(setpointPower, timestamp);
+					storageSetpointChangedTime = timestamp;
+				}
+			}
+			else {
+				// Set latest changed time while the storage is not ready, to start waiting for the setpoint value
+				// just after the battery mode was applied
+				storageSetpointChangedTime = timestamp;
+			}
+			storage.set(storageSetpoint);
 			
 		} catch (EnergyManagementException e) {
 			logger.warn("Unable to set battery charging setpoint: {}", e.getMessage());
@@ -167,7 +199,7 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 			
 			for (Channel power : getPowers()) {
 				Value powerValue = power.getLatestValue();
-				if (powerValue.getEpochMillis() <= timestampLast) {
+				if (powerValue.getEpochMillis() <= setpointUpdateTime) {
 					return;
 				}
 				if (powerValue.getEpochMillis() > timeMax) {
@@ -188,7 +220,7 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 			
 			power.setLatestValue(new DoubleValue(alternatingPowerValue, timeMax));
 			
-			timestampLast = timeMax;
+			setpointUpdateTime = timeMax;
 			onSetpointUpdate();
 			
 		} catch (InvalidValueException e) {

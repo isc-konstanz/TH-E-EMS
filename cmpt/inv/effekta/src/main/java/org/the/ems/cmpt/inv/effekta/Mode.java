@@ -23,9 +23,9 @@ import org.the.ems.core.data.Value;
 
 public enum Mode {
     DISABLED("00000000"),
-    DEFAULT("11110000"),
+    DEFAULT("10111000"),
     CHARGE_FROM_GRID("11100000"),
-    FEED_INTO_GRID("11111110");
+    FEED_INTO_GRID("10100110");
 
     private final int mode;
 

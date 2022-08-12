@@ -165,7 +165,7 @@
             "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:284:INT16",
-            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN", "unit": "V"}
+            "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "valueType": "BOOLEAN"}
         },
         {
             "name": "<node>*current",

@@ -19,6 +19,8 @@
  */
 package org.the.ems.cmpt.inv.effekta;
 
+import java.util.Map.Entry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
@@ -32,6 +34,7 @@ import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
@@ -41,6 +44,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	private final static String SECTION = "EnergyStorage";
 
 	private final static int CURRENT_MAX = 200;
+	private final static int CURRENT_MIN = 10;
 
 	@Configuration
 	private Channel voltage;
@@ -72,8 +76,11 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration(value = "power_standby", mandatory = false)
 	private double dischargePowerStandby = 100;
 
-	@Configuration(value = "*_power*", mandatory = false)
+	@Configuration(value = "power_extern_*", mandatory = false)
 	private ChannelCollection externalPowers;
+
+	@Configuration(value = "power_input_*")
+	private ChannelCollection inputPowers;
 
 	volatile Value powerSetpoint;
 
@@ -92,11 +99,10 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration(mandatory = false, scale = 1000)
 	private int modeChangedPause = 30000;
 
-	private long modeChangedTime = Long.MIN_VALUE;
-
 	private Mode modeSetting = Mode.DEFAULT;
 
-	private volatile long timestampLast = Long.MIN_VALUE;
+	private volatile long modeChangedTime = Long.MIN_VALUE;
+	private volatile long stateProcessedLast = Long.MIN_VALUE;
 
 
 	protected EffektaBattery() {
@@ -162,47 +168,85 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	@Override
     protected void onSet(WriteContainer container, Value power) throws ComponentException {
-		long timestamp = power.getEpochMillis();
-		try {
-			if (power.doubleValue() == 0.) {
-				timestamp += onSetMode(container, Mode.DEFAULT, timestamp);
-				container.addDouble(chargeCurrentMax, CURRENT_MAX, timestamp);
-				container.addDouble(dischargeCurrentMax, CURRENT_MAX, timestamp);
-			}
-			else {
-				double voltage = getVoltage().doubleValue();
-				double currentSetpoint = Math.abs(power.doubleValue()/voltage);
-				if (currentSetpoint > CURRENT_MAX) {
-					currentSetpoint = CURRENT_MAX;
-				}
-				if (power.doubleValue() >= 0.) {
-					if (!isChargable()) {
-						throw new ComponentException("Unable to charge battery");
-					}
-					if (getCurrent().doubleValue() >= currentSetpoint) {
-						timestamp += onSetMode(container, Mode.DEFAULT, timestamp);
-					}
-					else {
-						timestamp += onSetMode(container, Mode.CHARGE_FROM_GRID, timestamp);
-					}
-					container.addDouble(chargeCurrentMax, CURRENT_MAX, timestamp);
-					container.addDouble(dischargeCurrentMax, currentSetpoint, timestamp);
-				}
-				else {
-					if (!isDischargable()) {
-						throw new ComponentException("Unable to discharge battery");
-					}
-					timestamp += onSetMode(container, Mode.FEED_INTO_GRID, timestamp);
-					container.addDouble(chargeCurrentMax, CURRENT_MAX, timestamp);
-					container.addDouble(dischargeCurrentMax, currentSetpoint, timestamp);
-				}
-			}
+		if (powerSetpoint == null || 
+				powerSetpoint.doubleValue() != power.doubleValue()) {
+			
+			doSetpointChanged(container, power);
 			powerSetpoint = power;
+		}
+    }
+
+	void doSetpointChanged(WriteContainer container, Value power) 
+			throws ComponentException {
+		try {
+			if (!isReady()) {
+				throw new ComponentException("Unable to write setpoint while battery mode not applied");
+			}
+			onSetpointChanged(container, power);
 			
 		} catch (InvalidValueException e) {
 			throw new ComponentException(e);
 		}
-    }
+	}
+
+	protected void onSetpointChanged(WriteContainer container, Value power) 
+			throws ComponentException, InvalidValueException {
+		
+		logger.debug("Setting battery power setpoint: {}", power);
+		
+		long timestamp = power.getEpochMillis();
+		if (power.doubleValue() == 0.) {
+			timestamp = onSetMode(container, Mode.DEFAULT, timestamp);
+			container.addDoubleIfChanged(chargeCurrentMax, CURRENT_MAX);
+			container.addDoubleIfChanged(dischargeCurrentMax, CURRENT_MIN);
+		}
+		else {
+			double voltage = getVoltage().doubleValue();
+			double currentSetpoint = Math.abs(power.doubleValue()/voltage);
+			if (currentSetpoint > CURRENT_MAX) {
+				currentSetpoint = CURRENT_MAX;
+			}
+			logger.debug("Setting battery charge current limit: {}", currentSetpoint);
+			
+			if (power.doubleValue() >= 0.) {
+				if (!isChargable()) {
+					throw new ComponentException("Unable to charge battery");
+				}
+				double inputCurrentValue = 0;
+				for (Channel inputPower : inputPowers.values()) {
+					inputCurrentValue = inputPower.getLatestValue().doubleValue()/voltage;
+				}
+				if (inputCurrentValue < currentSetpoint) {
+					timestamp = onSetMode(container, Mode.CHARGE_FROM_GRID, timestamp);
+				}
+				else {
+					timestamp = onSetMode(container, Mode.DEFAULT, timestamp);
+				}
+				container.addDoubleIfChanged(chargeCurrentMax, currentSetpoint);
+				container.addDoubleIfChanged(dischargeCurrentMax, CURRENT_MIN);
+			}
+			else {
+				if (!isDischargable()) {
+					throw new ComponentException("Unable to discharge battery");
+				}
+				timestamp = onSetMode(container, Mode.FEED_INTO_GRID, timestamp);
+				container.addDoubleIfChanged(chargeCurrentMax, CURRENT_MAX);
+				container.addDoubleIfChanged(dischargeCurrentMax, currentSetpoint);
+			}
+		}
+		if (logger.isDebugEnabled()) {
+			for (Entry<Channel, ValueList> channel : container.entrySet()) {
+				for (Value value : channel.getValue()) {
+					if (mode == channel.getKey()) {
+						logger.debug("Writing battery mode bit: {}", Mode.toBinaryString(value.intValue()));
+					}
+					else {
+						logger.debug("Writing value to channel \"{}\": {}", channel.getKey().getId(), value);
+					}
+				}
+			}
+		}
+	}
 
 	public final void setMode(Mode mode) throws EnergyManagementException {
 		doSetMode(mode, System.currentTimeMillis());
@@ -218,11 +262,9 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	}
 
 	protected long onSetMode(WriteContainer container, Mode mode, long timestamp) throws InvalidValueException {
-		if (onSetVoltageSetpoint(container, mode, timestamp)) {
-			timestamp += modeChangeDelay;
-		}
-		int modeInverse = this.mode.getLatestValue().intValue() & 0xFFFF;
+		long modeChangedTimestamp = timestamp;
 		int modeSetpoint = mode.getInteger();
+		int modeInverse = this.mode.getLatestValue().intValue() & 0xFFFF;
 		int errormask = modeSetpoint ^ modeInverse;
 		int bitmask = 0x0100;
 		for (int i = 1; i <= 8; i++) {
@@ -234,17 +276,22 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 				else {
 					bits = (~bitmask) & 0xFFFF;
 				}
-				container.addInteger(this.mode, bits, timestamp);
-				timestamp += modeChangeDelay;
-				
-				logger.debug("Writing battery mode bit: {}", Mode.toBinaryString(bits));
+				container.addInteger(this.mode, bits, modeChangedTimestamp);
+				modeChangedTimestamp += modeChangeDelay;
 			}
 			bitmask = Integer.rotateLeft(bitmask, 1);
 		}
+		modeChangedTimestamp = onSetVoltageSetpoint(container, mode, modeChangedTimestamp);
 		
-		this.modeChangedTime = timestamp;
 		this.modeSetting = mode;
-		return timestamp;
+		this.modeChangedTime = timestamp;
+		return modeChangedTimestamp;
+	}
+
+	public boolean isReady() throws InvalidValueException {
+		return modeChangedTime <= 0 ||
+				modeChangedPause < System.currentTimeMillis() - modeChangedTime || 
+				modeSetting.equals(mode.getLatestValue()) && hasVoltageSetpoint(modeSetting);
 	}
 
 	@Override
@@ -275,26 +322,43 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		write(container);
 	}
 
-	private boolean onSetVoltageSetpoint(WriteContainer container, Mode mode, long timestamp) {
+	private long onSetVoltageSetpoint(WriteContainer container, Mode mode, long timestamp) {
 		try {
 			if (mode == Mode.FEED_INTO_GRID) {
+				if (!getVoltageSetpointEnabled().booleanValue()) {
+					container.addInteger(voltageSetpointEnabled, 1, timestamp);
+					timestamp += modeChangeDelay;
+				}
 				if (getVoltageSetpoint().doubleValue() != getVoltageMin().doubleValue()) {
 					container.addDouble(voltageSetpoint, getVoltageMin().doubleValue(), timestamp);
-					container.addInteger(voltageSetpointEnabled, 1, timestamp);
-					return true;
+					timestamp += modeChangeDelay;
 				}
 			}
 			else {
 				if (getVoltageSetpoint().doubleValue() != getVoltageFloating().doubleValue()) {
 					container.addDouble(voltageSetpoint, getVoltageFloating().doubleValue(), timestamp);
+					timestamp += modeChangeDelay;
+				}
+				if (getVoltageSetpointEnabled().booleanValue()) {
 					container.addInteger(voltageSetpointEnabled, 0, timestamp);
-					return true;
+					timestamp += modeChangeDelay;
 				}
 			}
 		} catch (InvalidValueException e) {
 			logger.warn("Error retrieving floating voltage: {}", e.getMessage());
 		}
-		return false;
+		return timestamp;
+	}
+
+	private boolean hasVoltageSetpoint(Mode mode) throws InvalidValueException {
+		if (mode == Mode.FEED_INTO_GRID) {
+			return getVoltageSetpointEnabled().booleanValue() && 
+					getVoltageSetpoint().doubleValue() == getVoltageMin().doubleValue();
+		}
+		else {
+			return !getVoltageSetpointEnabled().booleanValue() && 
+					getVoltageSetpoint().doubleValue() == getVoltageFloating().doubleValue();
+		}
 	}
 
 	public Value getVoltageMax() throws InvalidValueException {
@@ -313,8 +377,20 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		return voltageSetpoint.getLatestValue();
 	}
 
+	public Value getVoltageSetpointEnabled() throws InvalidValueException {
+		return voltageSetpointEnabled.getLatestValue();
+	}
+
 	public Value getCurrent() throws InvalidValueException {
 		return current.getLatestValue();
+	}
+
+	public Value getPowerSetpoint() {
+		return powerSetpoint;
+	}
+
+	public double getPowerMin() throws InvalidValueException {
+		return getVoltage().doubleValue()*CURRENT_MIN;
 	}
 
 	@Override
@@ -407,7 +483,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 				return;
 			}
 			else if (!Double.isNaN(current)) {
-				long timestampDelta = timestamp - this.timestampLast;
+				long timestampDelta = timestamp - this.stateProcessedLast;
 				if (timestampDelta < 1000) {
 					// Skip too short intervals to avoid artefacts
 					return;
@@ -424,7 +500,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 			initStateOfCharge(timestamp);
 			
 		} finally {
-			timestampLast = timestamp;
+			stateProcessedLast = timestamp;
 		}
 	}
 

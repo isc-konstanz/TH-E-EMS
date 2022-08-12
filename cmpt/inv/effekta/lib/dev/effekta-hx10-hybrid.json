@@ -156,8 +156,8 @@
             "format": "%.1f kW",
             "max": 10000,
             "min": -10000,
-            "step": 100,
-            "default": 0,
+            "step": 500,
+            "scale": 0.001,
             "mapping": {
                 "SET": { "channel": "<node>*power*setpoint", "write":true }
             },

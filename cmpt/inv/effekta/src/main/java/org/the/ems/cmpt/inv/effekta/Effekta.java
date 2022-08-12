@@ -158,7 +158,7 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 				if (storageSetpointChangePause <= timestamp - storageSetpointChangedTime || 
 					storageSetpointChangedTime < 0) {
 					storageSetpointError = setpointPower - getActivePower().doubleValue();
-					if (storageSetpoint.doubleValue() == 0) {
+					if (storageSetpoint.doubleValue() == 0 && storage.getPower().doubleValue() > storage.getPowerMin()) {
 						storageSetpointError += getInputPower().doubleValue();
 					}
 					setpointPower = storageSetpoint.doubleValue() + storageSetpointError;

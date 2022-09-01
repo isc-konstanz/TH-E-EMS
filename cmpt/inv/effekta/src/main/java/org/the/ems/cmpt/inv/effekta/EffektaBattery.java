@@ -449,7 +449,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 
 	private void initStateOfCharge(long timestamp) throws InvalidValueException {
 		double state = (getVoltage().doubleValue() - getVoltageMin().doubleValue()) / 
-				(getVoltageMax().doubleValue() - getVoltageMin().doubleValue())*100.;
+				(getVoltageFloating().doubleValue() - getVoltageMin().doubleValue())*100.;
 		setStateOfCharge(state, timestamp);
 	}
 
@@ -459,7 +459,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		double power = current*voltage;
 		setPower(power, timestamp);
 		
-		power += dischargePowerStandby;	
+		power -= dischargePowerStandby;	
 		for (Channel externalPower : externalPowers.values()) {
 			try {
 				double externalPowerValue = externalPower.getLatestValue().doubleValue();
@@ -476,7 +476,7 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 			if (voltage <= getVoltageMin().doubleValue()) {
 				state = 0;
 			}
-			else if (voltage >= getVoltageMax().doubleValue()) {
+			else if (voltage >= getVoltageFloating().doubleValue()) {
 				state = 100;
 			}
 			if (Double.isNaN(current)) {
@@ -509,12 +509,13 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 		@Override
 		public void onValueReceived(Value value) {
 			double state = value.doubleValue();
-			if ((!isChargable(state) || !isDischargable(state)) && powerSetpoint.doubleValue() != 0) {
+			if ((powerSetpoint.doubleValue() > 0 && !isChargable(state)) || 
+					(powerSetpoint.doubleValue() < 0 && !isDischargable(state))) {
 				try {
 					set(DoubleValue.zeroValue());
 					
 				} catch (EnergyManagementException e) {
-					logger.warn("Error while resetting battery setpoint due to state of charge threshold violation: {}",
+					logger.warn("Error resetting battery setpoint due to state of charge threshold violation: {}",
 							e.getMessage());
 				}
 			}

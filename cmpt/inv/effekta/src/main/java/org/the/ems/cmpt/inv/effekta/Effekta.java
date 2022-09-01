@@ -69,12 +69,15 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 	private ChannelCollection directPowerInputs;
 
 	@Configuration(mandatory = false, scale = 1000)
-	private int storageSetpointChangeDelay = 15000;
+	private int storageSetpointChangeDelay = 10000;
+
+	@Configuration(mandatory = false)
+	private double storageSetpointChangeMax = 1000;
 
 	private volatile double storageSetpointError = 0;
 	private volatile Value storageSetpoint = DoubleValue.zeroValue();
 
-	private volatile long storageSetpointChangedTime = Long.MIN_VALUE;
+	private volatile long storageSetpointUpdateTime = Long.MIN_VALUE;
 	private volatile long setpointUpdateTime = Long.MIN_VALUE;
 
 	private List<Channel> getPowers() {
@@ -149,40 +152,52 @@ public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
 			if (setpointPower == 0) {
 				storageSetpoint = new DoubleValue(setpointPower, timestamp);
 				storageSetpointError = 0;
-				storageSetpointChangedTime = timestamp;
+				storageSetpointUpdateTime = timestamp;
 			}
 			else if (storage.isReady()) {
 				// Wait 10 seconds per kW power setpoint
 				int storageSetpointChangePause = (int) Math.round(Math.abs(
 						Math.max(storageSetpointChangeDelay * storageSetpointError/1000, storageSetpointChangeDelay)));
-				if (storageSetpointChangePause <= timestamp - storageSetpointChangedTime || 
-					storageSetpointChangedTime < 0) {
+				if (storageSetpointChangePause <= timestamp - storageSetpointUpdateTime || storageSetpointUpdateTime < 0) {
 					storageSetpointError = setpointPower - getActivePower().doubleValue();
 					if (storageSetpoint.doubleValue() == 0 && storage.getPower().doubleValue() > storage.getPowerMin()) {
 						storageSetpointError += getInputPower().doubleValue();
 					}
-					setpointPower = storageSetpoint.doubleValue() + storageSetpointError;
-					if (Math.abs(setpointPower) < storage.getPowerMin()) {
-						// TODO: verify if resetting the setpoint value is the correct thing to do here
-						// Check if avoiding sign switching for values below 500W works better
-						setpointValue = DoubleValue.zeroValue();
-						setpointPower = 0;
-						storageSetpointError = 0;
+					
+					// Dampen change possible at once
+					if (Math.abs(storageSetpointError) > storageSetpointChangeMax) {
+						logger.debug("Dampen storage setpoint error: {}", storageSetpointError);
+						if (storageSetpointError > 0) {
+							storageSetpointError = storageSetpointChangeMax;
+						}
+						else if (storageSetpointError < 0) {
+							storageSetpointError = -storageSetpointChangeMax;
+						}
 					}
-					else if (setpointPower > getMaxPower()) {
+					
+					setpointPower = storageSetpoint.doubleValue() + storageSetpointError;
+					if (setpointPower > getMaxPower()) {
 						setpointPower = getMaxPower();
 					}
 					else if (setpointPower < getMinPower()) {
 						setpointPower = getMinPower();
 					}
+					if (Math.abs(setpointPower) < storage.getPowerMin()) {
+						if (setpointPower > 0) {
+							setpointPower = storage.getPowerMin();
+						}
+						else if (setpointPower < 0) {
+							setpointPower = -storage.getPowerMin();
+						}
+					}
 					storageSetpoint = new DoubleValue(setpointPower, timestamp);
-					storageSetpointChangedTime = timestamp;
+					storageSetpointUpdateTime = timestamp;
 				}
 			}
 			else {
 				// Set latest changed time while the storage is not ready, to start waiting for the setpoint value
 				// just after the battery mode was applied
-				storageSetpointChangedTime = timestamp;
+				storageSetpointUpdateTime = timestamp;
 			}
 			storage.set(storageSetpoint);
 			

@@ -289,7 +289,7 @@
             "address": "1:HOLDING_REGISTERS:614:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "samplingGroup": "IN_A", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "L3 current", "tag": "<name> input"}
+                "feed": {"name": "L1 current", "tag": "<name> input"}
             }
         },
         {
@@ -300,7 +300,7 @@
             "address": "1:HOLDING_REGISTERS:616:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "samplingGroup": "IN_A", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "L3 current", "tag": "<name> input"}
+                "feed": {"name": "L2 current", "tag": "<name> input"}
             }
         },
         {
@@ -373,7 +373,7 @@
             "address": "1:HOLDING_REGISTERS:216:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "samplingGroup": "AC", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "V"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "L3 voltage", "tag": "<name> output"}
+                "feed": {"name": "L1 voltage", "tag": "<name> output"}
             }
         },
         {
@@ -384,7 +384,7 @@
             "address": "1:HOLDING_REGISTERS:247:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "samplingGroup": "AC", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "V"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "L3 voltage", "tag": "<name> output"}
+                "feed": {"name": "L2 voltage", "tag": "<name> output"}
             }
         },
         {
@@ -406,7 +406,7 @@
             "address": "1:HOLDING_REGISTERS:220:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "samplingGroup": "AC", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "L3 current", "tag": "<name> output"}
+                "feed": {"name": "L1 current", "tag": "<name> output"}
             }
         },
         {
@@ -417,7 +417,7 @@
             "address": "1:HOLDING_REGISTERS:239:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "samplingGroup": "AC", "scalingFactor": 0.1, "valueType": "FLOAT", "unit": "A"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
-                "feed": {"name": "L3 current", "tag": "<name> output"}
+                "feed": {"name": "L2 current", "tag": "<name> output"}
             }
         },
         {

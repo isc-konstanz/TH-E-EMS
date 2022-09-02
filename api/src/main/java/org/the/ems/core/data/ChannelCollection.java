@@ -20,6 +20,7 @@
 package org.the.ems.core.data;
 
 import java.util.HashMap;
+import java.util.stream.Stream;
 
 public class ChannelCollection extends HashMap<String, Channel> {
 	private static final long serialVersionUID = -3921802331893007358L;
@@ -37,7 +38,11 @@ public class ChannelCollection extends HashMap<String, Channel> {
 	}
 
 	public void deregisterValueListeners() {
-		values().stream().forEach(c -> c.deregisterValueListeners());
+		stream().forEach(c -> c.deregisterValueListeners());
+	}
+
+	public Stream<Channel> stream() {
+		return values().stream();
 	}
 
 }

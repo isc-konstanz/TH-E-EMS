@@ -27,7 +27,7 @@ import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
 import org.the.ems.core.cmpt.ElectricalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
-import org.the.ems.core.data.Channel;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -47,13 +47,8 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	protected static final String POWER_VALUE = "power";
 	protected static final String VOLTAGE_VALUE = "voltage";
 
-	protected ElectricalEnergyStorage(String section) {
-		super(section);
-	}
-
-	protected ElectricalEnergyStorage() {
-		super();
-	}
+	@Configuration
+	protected double capacity;
 
 	@Configuration(mandatory=false)
 	private double socMax = 100;
@@ -61,8 +56,20 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Configuration(mandatory=false)
 	private double socMin = 0;
 
-	@Configuration
-	protected double capacity;
+	@Configuration(mandatory=false)
+	private double socHyst = 10;
+
+	private volatile boolean socBoundaryFlag = false;
+
+	private final SoCBoundaryListener socBoundaryListener = new SoCBoundaryListener();
+
+	protected ElectricalEnergyStorage(String section) {
+		super(section);
+	}
+
+	protected ElectricalEnergyStorage() {
+		super();
+	}
 
 	@Override
 	public double getCapacity() {
@@ -77,6 +84,10 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	public double getMinStateOfCharge() {
 		return socMin;
+	}
+
+	public double getStateOfChargeHysteresis() {
+		return socHyst;
 	}
 
 	@Override
@@ -102,12 +113,28 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 
 	@Override
 	public boolean isChargable() throws ComponentException, InvalidValueException {
-		return getStateOfCharge().doubleValue() >= getMinStateOfCharge();
+		return this.isChargable(getStateOfCharge().doubleValue());
+	}
+
+	protected boolean isChargable(double soc) {
+		double socBoundary = getMaxStateOfCharge();
+		if (socBoundaryFlag) {
+			socBoundary -= getStateOfChargeHysteresis();
+		}
+		return soc < socBoundary;
 	}
 
 	@Override
 	public boolean isDischargable() throws ComponentException, InvalidValueException {
-		return getStateOfCharge().doubleValue() < getMaxStateOfCharge();
+		return this.isDischargable(getStateOfCharge().doubleValue());
+	}
+
+	protected boolean isDischargable(double soc) {
+		double socBoundary = getMinStateOfCharge();
+		if (socBoundaryFlag) {
+			socBoundary += getStateOfChargeHysteresis();
+		}
+		return soc > socBoundary;
 	}
 
 	@Override
@@ -152,6 +179,18 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 		deregisterConfiguredValueListener(VOLTAGE_VALUE, listener);
 	}
 
+	@Override
+	protected void onActivate(Configurations configs) throws ComponentException {
+		super.onActivate(configs);
+		this.registerStateOfChargeListener(socBoundaryListener);
+	}
+
+	@Override
+	protected void onDeactivate() throws ComponentException {
+		super.onDeactivate();
+		this.deregisterStateOfChargeListener(socBoundaryListener);
+	}
+
     @Override
     public final void schedule(Schedule schedule)
             throws UnsupportedOperationException, EnergyManagementException {
@@ -159,20 +198,18 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
         if (isMaintenance()) {
             throw new MaintenanceException("Unable to schedule battery while in maintenance");
         }
-        WriteContainer container = new WriteContainer();
-        for (Value value : schedule) {
-            doSet(container, value);
-        }
-        doWrite(container);
+        doSchedule(schedule);
     }
 
-    protected void doSchedule(WriteContainer container, Schedule schedule) 
+    protected void doSchedule(Schedule schedule) 
             throws UnsupportedOperationException, EnergyManagementException {
-        
+
+        WriteContainer container = new WriteContainer();
         for (Value value : schedule) {
-            doSet(container, value);
+            onSet(container, value);
         }
         onSchedule(container, schedule);
+        write(container);
     }
 
     protected void onSchedule(WriteContainer container, Schedule schedule) 
@@ -183,16 +220,25 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
     @Override
     public final void set(Value value) 
             throws UnsupportedOperationException, EnergyManagementException {
-        
-        WriteContainer container = new WriteContainer();
-        doSet(container, value);
-        doWrite(container);
+
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
+		if (value.doubleValue() > 0 && !isChargable()) {
+			throw new ComponentException("Unable to charge battery");
+		}
+		if (value.doubleValue() < 0 && !isDischargable()) {
+			throw new ComponentException("Unable to discharge battery");
+		}
+        doSet(value);
     }
 
-    protected void doSet(WriteContainer container, Value value)
+    protected void doSet(Value value)
             throws UnsupportedOperationException, EnergyManagementException {
-        
+
+        WriteContainer container = new WriteContainer();
         onSet(container, value);
+        write(container);
     }
 
     protected void onSet(WriteContainer container, Value value)
@@ -201,13 +247,18 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
         throw new UnsupportedOperationException();
     }
 
-    protected void doWrite(WriteContainer container) throws EnergyManagementException {
-        if (container.size() < 1) {
-            return;
-        }
-        for (Channel channel : container.keySet()) {
-            channel.write(container.get(channel));
-        }
-    }
+	private class SoCBoundaryListener implements ValueListener {
+
+		@Override
+		public void onValueReceived(Value value) {
+			double state = value.doubleValue();
+			if (!isChargable(state) || !isDischargable(state)) {
+				socBoundaryFlag = true;
+			}
+			else if (isChargable(state) && isDischargable(state)) {
+				socBoundaryFlag = false;
+			}
+		}
+	}
 
 }

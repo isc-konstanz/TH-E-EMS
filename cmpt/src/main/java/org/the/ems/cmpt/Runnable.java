@@ -231,14 +231,12 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException("Unable to schedule component while in maintenance");
 		}
-		WriteContainer container = new WriteContainer();
-		for (Value value : schedule) {
-			onSet(container, value);
-		}
-		write(container);
+		doSchedule(schedule);
 	}
 
-	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException, InvalidValueException {
+	void doSchedule(Schedule schedule) throws EnergyManagementException {
+		WriteContainer container = new WriteContainer();
+		
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -257,6 +255,8 @@ public abstract class Runnable extends Component implements RunnableService {
 				onSet(container, value);
 			}
 		}
+		onSchedule(container, schedule);
+		write(container);
 	}
 
 	protected void onSchedule(WriteContainer container, Schedule schedule) 

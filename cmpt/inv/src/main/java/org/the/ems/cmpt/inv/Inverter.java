@@ -22,6 +22,7 @@ package org.the.ems.cmpt.inv;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
+import java.text.MessageFormat;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -444,20 +445,19 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
         if (isMaintenance()) {
             throw new MaintenanceException("Unable to schedule inverter while in maintenance");
         }
-        WriteContainer container = new WriteContainer();
-        for (Value value : schedule) {
-            doSet(container, value);
-        }
-        doWrite(container);
+        doSchedule(schedule);
     }
 
-    protected void doSchedule(WriteContainer container, Schedule schedule) 
+    protected void doSchedule(Schedule schedule) 
             throws UnsupportedOperationException, EnergyManagementException {
-        
+
+        WriteContainer container = new WriteContainer();
         for (Value value : schedule) {
-            doSet(container, value);
+        	onSet(container, value);
         }
         onSchedule(container, schedule);
+        
+        write(container);
     }
 
     protected void onSchedule(WriteContainer container, Schedule schedule) 
@@ -468,16 +468,23 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
     @Override
     public final void set(Value value) 
             throws UnsupportedOperationException, EnergyManagementException {
-        
-        WriteContainer container = new WriteContainer();
-        doSet(container, value);
-        doWrite(container);
+
+		if (isMaintenance()) {
+			throw new MaintenanceException();
+		}
+        doSet(value);
     }
 
-    protected void doSet(WriteContainer container, Value value)
+    protected void doSet(Value value)
             throws UnsupportedOperationException, EnergyManagementException {
-        
+
+		if (value.doubleValue() > getMaxPower() || 
+				value.doubleValue() < getMinPower()) {
+			throw new ComponentException(MessageFormat.format("Invalid setpoint power value: {0}", value));
+		}
+        WriteContainer container = new WriteContainer();
         onSet(container, value);
+        write(container);
     }
 
 	public void onSet(WriteContainer container, Value value) throws ComponentException {
@@ -504,46 +511,18 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		else if (setpoint < getMinPower()) {
 			setpoint = getMinPower();
 		}
-		
-//		double soc = storage.getStateOfCharge().doubleValue();
-//		if (soc < storage.getMinStateOfCharge() || soc > storage.getMaxStateOfCharge()) {
-//			if (this.setpoint.getLatestValue().doubleValue() != 0) {
-//				container.add(this.setpoint, new DoubleValue(0));
-//			}
-//			logger.debug("Requested inverter setpoint not allowed for Battery State of Charge of {}%", soc);
-//			return;
-//		}
-		onSetpointChanged(container, new DoubleValue(setpoint, value.getEpochMillis()));
+		onSetpointUpdate(container, new DoubleValue(setpoint, value.getEpochMillis()));
 	}
 
-    protected void doWrite(WriteContainer container) throws EnergyManagementException {
-        if (container.size() < 1) {
-            return;
-        }
-        for (Channel channel : container.keySet()) {
-            channel.write(container.get(channel));
-        }
-    }
-
-	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
+	protected void onSetpointUpdate(WriteContainer container, Value value) throws ComponentException {
 		// TODO: Verify setpoint import/export sign
 	}
 
 	@Override
-	public void onSetpointChanged(Value value) throws EnergyManagementException { set(value); }
-
-	@Override
 	public void onSetpointUpdate() {
 		try {
-			WriteContainer container = new WriteContainer();
+			set(setpointValue);
 			
-			doSet(container, setpointValue);
-			if (container.size() < 1) {
-				return;
-			}
-			for (Channel channel : container.keySet()) {
-				channel.write(container.get(channel));
-			}
 		} catch (EnergyManagementException e) {
 			logger.debug("Unable to updating inverter setpoint: {}", e.getMessage());
 		}

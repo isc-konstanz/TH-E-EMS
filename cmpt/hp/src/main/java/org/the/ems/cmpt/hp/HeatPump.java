@@ -88,10 +88,6 @@ public class HeatPump extends Heating implements HeatPumpService {
 	}
 
 	@Override
-	protected void onStop(WriteContainer container, ValueSettings settings) throws ComponentException {
-	}
-
-	@Override
 	protected void onStateChanged(Value value) {
 		if (value.booleanValue() && temperatureInputValue.doubleValue() > temperatureInMax) {
 			logger.warn("Unable to switch on heat pump: Heating flow input temperature above threshold: {}", 

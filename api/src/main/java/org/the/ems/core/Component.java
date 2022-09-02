@@ -206,6 +206,9 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	protected void write(WriteContainer container) throws EnergyManagementException {
+        if (container.size() < 1) {
+            return;
+        }
 		for (Channel channel : container.keySet()) {
 			channel.write(container.get(channel));
 		}

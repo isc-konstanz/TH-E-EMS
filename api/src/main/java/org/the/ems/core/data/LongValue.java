@@ -29,6 +29,10 @@ public class LongValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
+	public boolean equals(long value) {
+		return longValue() != value;
+	}
+
 	public static LongValue zeroValue() {
 		return new LongValue(0);
 	}

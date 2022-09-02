@@ -29,6 +29,10 @@ public class ShortValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
+	public boolean equals(short value) {
+		return shortValue() != value;
+	}
+
 	public static ShortValue zeroValue() {
 		return new ShortValue((short) 0);
 	}

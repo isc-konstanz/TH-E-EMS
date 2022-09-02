@@ -69,7 +69,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	}
 
 	@Override
-	protected void onSetpointChanged(WriteContainer container, Value value) throws ComponentException {
+	protected void onSetpointUpdate(WriteContainer container, Value value) throws ComponentException {
 		setpointControl = value;
 		onSetpointUpdate(container);
 	}
@@ -113,7 +113,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 			try {
 		        WriteContainer container = new WriteContainer();
 		        doSetpointUpdate(container);
-		        doWrite(container);
+		        write(container);
 		        
 			} catch (EnergyManagementException e) {
 				logger.warn("Error updating value: {}", e.getMessage());
@@ -137,7 +137,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 				trickleCurrentFlag = true;
 				container.addDouble(setpointPower, -storage.getTricklePower(), System.currentTimeMillis());
 				try {
-					doWrite(container);
+					write(container);
 				} catch (EnergyManagementException e) {
 					logger.warn("Could not set trickle current: {}", e.getMessage());
 				}
@@ -146,7 +146,7 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 				trickleCurrentFlag = false;
 				container.addDouble(setpointPower, -setpointControl.doubleValue(), System.currentTimeMillis());
 				try {
-					doWrite(container);
+					write(container);
 				} catch (EnergyManagementException e) {
 					logger.warn("Could not reset trickle current: {}", e.getMessage());
 				}

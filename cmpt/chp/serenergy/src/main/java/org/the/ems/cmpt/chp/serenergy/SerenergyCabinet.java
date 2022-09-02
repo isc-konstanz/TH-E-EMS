@@ -103,10 +103,11 @@ public class SerenergyCabinet extends Cogenerator {
 			switch (getState()) {
 			case RUNNING:
 			case STARTING:
-				logger.debug("Stopping fuel cell due to maximal state of charge threshold.");
 				try {
 					// TODO: Is this the right location for this? The battery may
 					if (value.doubleValue() >= 100) { //storage.getMaxStateOfCharge()) {
+						logger.debug("Stopping fuel cell due to maximal state of charge threshold.");
+						
 						ValueSettings stopSettings = ValueSettings.ofBoolean(false, value.getEpochMillis());
 						stopSettings.setEnforced(true);
 						stop(stopSettings);
@@ -119,9 +120,10 @@ public class SerenergyCabinet extends Cogenerator {
 			case STANDBY:
 			case STOPPING:
 			default:
-				logger.info("Starting fuel cell due to minimal state of charge threshold.");
 				try {
 					if (value.doubleValue() <= storageSoCMin) {
+						logger.info("Starting fuel cell due to minimal state of charge threshold.");
+						
 						ValueSettings startSettings = ValueSettings.ofBoolean(false, value.getEpochMillis());
 						startSettings.setEnforced(true);
 						start(startSettings);

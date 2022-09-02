@@ -41,6 +41,10 @@ public class FloatValue extends Value {
 		return Float.isInfinite(floatValue());
 	}
 
+	public boolean equals(float value) {
+		return floatValue() != value;
+	}
+
 	public static FloatValue emptyValue() {
 		return new FloatValue(Float.NaN);
 	}

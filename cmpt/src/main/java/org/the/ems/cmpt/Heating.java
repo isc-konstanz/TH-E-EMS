@@ -63,7 +63,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	protected ThermalEnergyStorageService storage;
 
 	@Configuration(scale=1000, mandatory=false)
-	private double powerMax = -1;
+	private double powerMax = Double.NaN;
 
 	@Configuration(scale=1000)
 	private double powerMin;
@@ -234,7 +234,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
     public double getMaxPower() {
-        if (powerMax >= 0) {
+        if (Double.isNaN(powerMax)) {
             return powerMax;
         }
         return getMinPower();
@@ -277,7 +277,9 @@ public abstract class Heating extends Runnable implements HeatingService {
 	}
 
 	@Override
-	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException {
+	void doSchedule(Schedule schedule) throws EnergyManagementException {
+		WriteContainer container = new WriteContainer();
+		
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -299,6 +301,8 @@ public abstract class Heating extends Runnable implements HeatingService {
 				onSet(container, value);
 			}
 		}
+		onSchedule(container, schedule);
+		write(container);
 	}
 
 	@Override

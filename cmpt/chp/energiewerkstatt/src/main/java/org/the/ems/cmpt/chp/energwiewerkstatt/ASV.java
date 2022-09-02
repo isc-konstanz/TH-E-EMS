@@ -35,6 +35,7 @@ public class ASV extends Cogenerator {
 
 	private static final double SETPOINT_POWER_TOLERANCE = 100d;
 	private static final int SETPOINT_MONITORING_INTERVAL = 5;
+	private static final int SETPOINT_WRITE_INTERVAL = 900; // 15 Minutes interval
 
 	@Configuration()
 	private Channel enable;
@@ -99,15 +100,15 @@ public class ASV extends Cogenerator {
 	@Override
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
 		synchronized (setpointPowerValue) {
-			if (value.getEpochMillis() - System.currentTimeMillis() > 100 ||
-					(setpointPowerValue.isNaN() || 
-					setpointPowerValue.doubleValue() != value.doubleValue())) {
+			long timestamp = System.currentTimeMillis();
+			if (value.getEpochMillis() - timestamp > 100 ||  // TODO: Reengineer or delete this timestamp check
+					(setpointPowerValue.isNaN() || setpointPowerValue.doubleValue() != value.doubleValue())) {
 				setSetpointPowerValue(value);
 				if (logger.isDebugEnabled()) {
 					logger.debug("Updating Energiewerkstatt ASV power setpoint to {} kW",
 							Math.round(value.intValue()/1000));
 				}
-				container.add(setpointPower, value);
+				container.add(setpointPower, setpointPowerValue);
 			}
 		}
 	}
@@ -120,7 +121,7 @@ public class ASV extends Cogenerator {
 		}
 		synchronized (setpointPowerValue) {
 			setSetpointPowerValue(settings.getValue());
-			container.addInteger(enable, 1, settings.getEpochMillis());
+			container.addBoolean(enable, true, settings.getEpochMillis());
 			container.add(setpointPower, setpointPowerValue);
 		}
 	}
@@ -149,7 +150,7 @@ public class ASV extends Cogenerator {
 
 		synchronized (setpointPowerValue) {
 			setSetpointPowerValue(0, settings.getEpochMillis());
-			container.addInteger(enable, 0, settings.getEpochMillis());
+			container.addBoolean(enable, false, settings.getEpochMillis());
 			container.add(setpointPower, setpointPowerValue);
 		}
 	}
@@ -174,7 +175,8 @@ public class ASV extends Cogenerator {
 		try {
 			synchronized (setpointPowerValue) {
 				Value powerValue = getElectricalPower();
-				long interval = (System.currentTimeMillis() - setpointPowerValue.getEpochMillis())/1000;
+				long timestamp = System.currentTimeMillis();
+				long interval = (timestamp - setpointPowerValue.getEpochMillis())/1000;
 				if (interval % SETPOINT_MONITORING_INTERVAL == 0 && !setpointPowerValue.isNaN() &&
 						Math.abs(powerValue.doubleValue() - setpointPowerValue.doubleValue()) > SETPOINT_POWER_TOLERANCE) {
 					try {
@@ -192,10 +194,19 @@ public class ASV extends Cogenerator {
 						logger.warn("Error updating setpoint power value: {}", e.getMessage());
 					}
 				}
+				else if (interval >= SETPOINT_WRITE_INTERVAL && !setpointPowerValue.isNaN()) {
+					// Update latest setpoint timestamp
+					double setpointPowerValue = this.setpointPowerValue.doubleValue();
+					setSetpointPowerValue(new DoubleValue(setpointPowerValue, timestamp));
+					
+					WriteContainer container = new WriteContainer();
+					container.addBoolean(enable, setpointPowerValue > 0, timestamp);
+					container.addDouble(setpointPower, setpointPowerValue, timestamp);
+					write(container);
+				}
 			}
-		} catch (ComponentException | InvalidValueException e) {
+		} catch (EnergyManagementException e) {
 			logger.debug("Error while checking setpoint power value: {}", e.getMessage());
-			
 		}
 	}
 
@@ -208,18 +219,18 @@ public class ASV extends Cogenerator {
 			try {
 				switch (getState()) {
 				case STARTING:
+				case STANDBY:
+					if (powerValue >= getMinPower()) { //&& (electricalPowerValue.isNaN() || electricalPowerValue == 0)) {
+						onRunning();
+						setState(RunState.RUNNING);
+					}
+					break;
+				case STOPPING:
 				case RUNNING:
 					if (powerValue == 0) { //&& (electricalPowerValue.isNaN() || electricalPowerValue >= getMinPower())) {
 						ValueSettings stopSettings = ValueSettings.ofBoolean(false, System.currentTimeMillis());
                         stopSettings.setEnforced(true);
 						stop();
-					}
-					break;
-				case STANDBY:
-				case STOPPING:
-					if (powerValue >= getMinPower()) { //&& (electricalPowerValue.isNaN() || electricalPowerValue == 0)) {
-						onRunning();
-						setState(RunState.RUNNING);
 					}
 					break;
 				default:

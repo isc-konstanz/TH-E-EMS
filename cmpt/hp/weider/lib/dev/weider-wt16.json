@@ -59,7 +59,7 @@
         {
             "id": "refresh",
             "name": "Refresh interval",
-            "description": "Defines at which interval the values of the meter device will be read.",
+            "description": "Defines at which interval the values of the device will be read.",
             "type": "selection",
             "select": [
                 { "name": "1 second", "value": 1000 },

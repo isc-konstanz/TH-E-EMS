@@ -29,6 +29,10 @@ public class ByteValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
+	public boolean equals(byte value) {
+		return byteValue() != value;
+	}
+
 	public static ByteValue copy(Value value) {
 		return new ByteValue(value.byteValue(), value.getEpochMillis());
 	}

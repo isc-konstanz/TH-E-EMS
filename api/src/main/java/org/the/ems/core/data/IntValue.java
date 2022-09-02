@@ -29,6 +29,10 @@ public class IntValue extends Value {
 		this(value, System.currentTimeMillis());
 	}
 
+	public boolean equals(int value) {
+		return intValue() != value;
+	}
+
 	public static IntValue zeroValue() {
 		return new IntValue(0);
 	}

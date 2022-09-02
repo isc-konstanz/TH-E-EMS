@@ -118,10 +118,10 @@ public abstract class Value implements TemporalValue {
 		if (!(o instanceof Value)) {
 			return false;
 		}
-		Value eq = (Value) o;
-		return type == eq.type &&
-				Objects.equals(instant, eq.instant) &&
-				Objects.equals(value, eq.value);
+		Value v = (Value) o;
+		return type == v.type &&
+				Objects.equals(instant, v.instant) &&
+				Objects.equals(value, v.value);
 	}
 
 }

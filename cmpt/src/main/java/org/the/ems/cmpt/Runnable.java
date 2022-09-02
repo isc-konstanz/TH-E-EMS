@@ -61,8 +61,8 @@ public abstract class Runnable extends Component implements RunnableService {
 	protected Channel state;
 
 	private volatile Value stateValue = null;
-	private volatile long startTimeLast = 0;
-	private volatile long stopTimeLast = 0;
+	private volatile long startTimeLast = Long.MIN_VALUE;
+	private volatile long stopTimeLast = Long.MIN_VALUE;
 
 	private volatile RunState runState = RunState.DEFAULT;
 
@@ -141,8 +141,12 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	@Override
 	public int getRuntime() {
+		return getRuntime(System.currentTimeMillis());
+	}
+
+	public int getRuntime(long timestamp) {
 		if (startTimeLast > 0) {
-			return (int) (System.currentTimeMillis() - startTimeLast);
+			return (int) (timestamp - startTimeLast);
 		}
 		return 0;
 	}
@@ -154,15 +158,19 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	@Override
 	public int getIdletime() {
+		return getIdletime(System.currentTimeMillis());
+	}
+
+	public int getIdletime(long timestamp) {
 		if (stopTimeLast > 0) {
-			return (int) (System.currentTimeMillis() - stopTimeLast);
+			return (int) (timestamp - stopTimeLast);
 		}
 		return 0;
 	}
 
 	@Override
 	public int getMinIdletime() {
-		return runtimeMin;
+		return idletimeMin;
 	}
 
 	@Override
@@ -223,14 +231,12 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException("Unable to schedule component while in maintenance");
 		}
-		WriteContainer container = new WriteContainer();
-		for (Value value : schedule) {
-			onSet(container, value);
-		}
-		write(container);
+		doSchedule(schedule);
 	}
 
-	void doSchedule(WriteContainer container, Schedule schedule) throws ComponentException, InvalidValueException {
+	void doSchedule(Schedule schedule) throws EnergyManagementException {
+		WriteContainer container = new WriteContainer();
+		
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
@@ -249,6 +255,8 @@ public abstract class Runnable extends Component implements RunnableService {
 				onSet(container, value);
 			}
 		}
+		onSchedule(container, schedule);
+		write(container);
 	}
 
 	protected void onSchedule(WriteContainer container, Schedule schedule) 
@@ -268,7 +276,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		case STANDBY:
 		case STOPPING:
 			if (value.doubleValue() > stopValue.doubleValue()) {
-				if (value.getEpochMillis() - stopTimeLast < idletimeMin) {
+				if (getIdletime(value.getEpochMillis()) < idletimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
 							idletimeMin/60000));
 				}
@@ -279,7 +287,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		case STARTING:
 		case RUNNING:
 			if (value.doubleValue() == stopValue.doubleValue()) {
-				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
+				if (getRuntime(value.getEpochMillis()) < runtimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 							runtimeMin/60000));
 				}
@@ -363,7 +371,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-            if (time - stopTimeLast <= idletimeMin) {
+            if (getIdletime(time) <= idletimeMin) {
             	logger.debug("Component is not startable after interval shorter than {}mins", idletimeMin/60000);
     			return false;
             }
@@ -417,8 +425,8 @@ public abstract class Runnable extends Component implements RunnableService {
 		doStop(writeContainer, settings);
 		write(writeContainer);
 
-		// Set latest start time and state when writing was successful
-		startTimeLast = settings.getEpochMillis();
+		// Set latest stop time and state when writing was successful
+		stopTimeLast = settings.getEpochMillis();
 		setState(RunState.STOPPING);
 	}
 
@@ -451,7 +459,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		switch(getState()) {
 		case STARTING:
 		case RUNNING:
-            if (time - startTimeLast <= runtimeMin) {
+            if (getRuntime(time) <= runtimeMin) {
             	logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
     			return false;
             }

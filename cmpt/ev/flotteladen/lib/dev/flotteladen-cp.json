@@ -193,7 +193,7 @@
             "name": "<node>*required*complete*energy",
             "description": "Required charging complete energy quantity",
             "device": "<node>",
-            "address": "lms/chargingpoints/<serialNumber>/status;$['chargingMode']['requiredChargingCompletedQuantity']",
+            "address": "lms/chargingpoints/<serialNumber>/status;$['chargingMode']['requiredChargingQuantity']",
             "configs": {"listening": true, "scalingFactor": 0.001, "valueType": "DOUBLE", "unit": "kWh"}
         }
     ],

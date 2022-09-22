@@ -48,6 +48,7 @@ project.ext {
         it.getPath() == ':cmpt:vnt' ||
         it.getPath() == ':cmpt:tes' ||
         it.getPath() == ':cmpt:inv' ||
+        it.getPath() == ':cmpt:inv:effekta' ||
         it.getPath() == ':cmpt:inv:kaco' ||
         it.getPath() == ':ctrl' ||
         it.getPath() == ':ctrl:mpc' ||

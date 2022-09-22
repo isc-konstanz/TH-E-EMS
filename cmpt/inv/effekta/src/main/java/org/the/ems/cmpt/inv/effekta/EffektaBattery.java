@@ -39,7 +39,7 @@ import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 
 public class EffektaBattery extends ElectricalEnergyStorage {
-	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
+	private final static Logger logger = LoggerFactory.getLogger(EffektaBattery.class);
 
 	private final static String SECTION = "EnergyStorage";
 

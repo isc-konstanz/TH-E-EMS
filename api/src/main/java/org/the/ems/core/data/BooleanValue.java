@@ -19,7 +19,7 @@
  */
 package org.the.ems.core.data;
 
-public class BooleanValue extends Value {
+public class BooleanValue extends NumberValue {
 
 	public BooleanValue(boolean value, long timestamp) {
 		super(ValueType.BOOLEAN, (value ? 1 : 0), timestamp);
@@ -34,7 +34,7 @@ public class BooleanValue extends Value {
 	}
 
 	@Override
-	public String toString() {
+	public String stringValue() {
 		return Boolean.toString(booleanValue());
 	}
 

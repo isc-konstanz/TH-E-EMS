@@ -19,7 +19,7 @@
  */
 package org.the.ems.core.data;
 
-public class ShortValue extends Value {
+public class ShortValue extends NumberValue {
 
 	public ShortValue(short value, long timestamp) {
 		super(ValueType.SHORT, value, timestamp);

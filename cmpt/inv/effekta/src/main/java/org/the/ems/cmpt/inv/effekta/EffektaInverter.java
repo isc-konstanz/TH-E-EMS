@@ -50,8 +50,8 @@ import org.the.ems.core.data.WriteContainer;
 	configurationPid = InverterService.PID+".effekta", 
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class Effekta extends Inverter<EffektaBattery> implements ValueListener {
-	private final static Logger logger = LoggerFactory.getLogger(Effekta.class);
+public class EffektaInverter extends Inverter<EffektaBattery> implements ValueListener {
+	private final static Logger logger = LoggerFactory.getLogger(EffektaInverter.class);
 
 	@Configuration
 	protected Channel power;

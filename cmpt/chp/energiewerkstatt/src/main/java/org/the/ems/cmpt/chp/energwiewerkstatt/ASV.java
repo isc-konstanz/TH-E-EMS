@@ -20,7 +20,6 @@ import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
-import org.the.ems.core.settings.StartSettings;
 import org.the.ems.core.settings.StopSettings;
 import org.the.ems.core.settings.ValueSettings;
 
@@ -34,7 +33,7 @@ public class ASV extends Cogenerator {
 	private static final Logger logger = LoggerFactory.getLogger(ASV.class);
 
 	private static final double SETPOINT_POWER_TOLERANCE = 100d;
-	private static final int SETPOINT_MONITORING_INTERVAL = 5;
+	private static final int SETPOINT_MONITORING_INTERVAL = 10;
 	private static final int SETPOINT_WRITE_INTERVAL = 900; // 15 Minutes interval
 
 	@Configuration()
@@ -52,7 +51,8 @@ public class ASV extends Cogenerator {
 
 	@Configuration
 	private Channel setpointPower;
-	private DoubleValue setpointPowerValue = DoubleValue.emptyValue();
+
+	private volatile DoubleValue setpointPowerValue = DoubleValue.emptyValue();
 
 	protected void setSetpointPowerValue(Value value) throws ComponentException {
 		if (value.doubleValue() > getMaxPower() || 
@@ -99,17 +99,13 @@ public class ASV extends Cogenerator {
 
 	@Override
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
-		synchronized (setpointPowerValue) {
-			long timestamp = System.currentTimeMillis();
-			if (value.getEpochMillis() - timestamp > 100 ||  // TODO: Reengineer or delete this timestamp check
-					(setpointPowerValue.isNaN() || setpointPowerValue.doubleValue() != value.doubleValue())) {
-				setSetpointPowerValue(value);
-				if (logger.isDebugEnabled()) {
-					logger.debug("Updating Energiewerkstatt ASV power setpoint to {} kW",
-							Math.round(value.intValue()/1000));
-				}
-				container.add(setpointPower, setpointPowerValue);
+		if (setpointPowerValue.isNaN() || setpointPowerValue.doubleValue() != value.doubleValue()) {
+			setSetpointPowerValue(value);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Updating Energiewerkstatt ASV power setpoint to {} kW",
+						Math.round(value.intValue()/1000));
 			}
+			container.add(setpointPower, setpointPowerValue);
 		}
 	}
 
@@ -119,11 +115,9 @@ public class ASV extends Cogenerator {
 			logger.debug("Starting Energiewerkstatt ASV with power setpoint of {} kW",
 					Math.round(settings.getValue().intValue()/1000));
 		}
-		synchronized (setpointPowerValue) {
-			setSetpointPowerValue(settings.getValue());
-			container.addBoolean(enable, true, settings.getEpochMillis());
-			container.add(setpointPower, setpointPowerValue);
-		}
+		setSetpointPowerValue(settings.getValue());
+		container.addBoolean(enable, true, settings.getEpochMillis());
+		container.add(setpointPower, setpointPowerValue);
 	}
 
 	@Override
@@ -148,11 +142,9 @@ public class ASV extends Cogenerator {
 	protected void onStop(WriteContainer container, StopSettings settings) throws ComponentException {
 		logger.debug("Stopping Energiewerkstatt ASV");
 
-		synchronized (setpointPowerValue) {
-			setSetpointPowerValue(0, settings.getEpochMillis());
-			container.addBoolean(enable, false, settings.getEpochMillis());
-			container.add(setpointPower, setpointPowerValue);
-		}
+		setSetpointPowerValue(0, settings.getEpochMillis());
+		container.add(setpointPower, setpointPowerValue);
+		container.addBoolean(enable, false, settings.getEpochMillis());
 	}
 
 	@Override
@@ -173,34 +165,26 @@ public class ASV extends Cogenerator {
 	@Override
 	protected void onInterrupt() {
 		try {
-			synchronized (setpointPowerValue) {
+			if (!setpointPowerValue.isNaN()) {
 				Value powerValue = getElectricalPower();
 				long timestamp = System.currentTimeMillis();
-				long interval = (timestamp - setpointPowerValue.getEpochMillis())/1000;
-				if (interval % SETPOINT_MONITORING_INTERVAL == 0 && !setpointPowerValue.isNaN() &&
-						Math.abs(powerValue.doubleValue() - setpointPowerValue.doubleValue()) > SETPOINT_POWER_TOLERANCE) {
+				int interval = (int) ((timestamp - setpointPowerValue.getEpochMillis())/1000);
+				if (interval % SETPOINT_MONITORING_INTERVAL == 0 && isReady(timestamp) &&
+						SETPOINT_POWER_TOLERANCE < Math.abs(powerValue.doubleValue() - setpointPowerValue.doubleValue())) {
 					try {
-						if (setpointPowerValue.doubleValue() == 0) {
-							stop();
-						}
-						else if (powerValue.doubleValue() == 0) {
-							StartSettings settings = new ValueSettings(setpointPowerValue);
-							start(settings);
-						}
-						else {
-							set(setpointPowerValue);
-						}
+						set(setpointPowerValue);
+						
 					} catch (EnergyManagementException e) {
 						logger.warn("Error updating setpoint power value: {}", e.getMessage());
 					}
 				}
-				else if (interval >= SETPOINT_WRITE_INTERVAL && !setpointPowerValue.isNaN()) {
+				else if (interval >= SETPOINT_WRITE_INTERVAL) {
 					// Update latest setpoint timestamp
 					double setpointPowerValue = this.setpointPowerValue.doubleValue();
 					setSetpointPowerValue(new DoubleValue(setpointPowerValue, timestamp));
 					
 					WriteContainer container = new WriteContainer();
-					container.addBoolean(enable, setpointPowerValue > 0, timestamp);
+					container.addBoolean(enable, setpointPowerValue > 0., timestamp);
 					container.addDouble(setpointPower, setpointPowerValue, timestamp);
 					write(container);
 				}
@@ -220,17 +204,27 @@ public class ASV extends Cogenerator {
 				switch (getState()) {
 				case STARTING:
 				case STANDBY:
-					if (powerValue >= getMinPower()) { //&& (electricalPowerValue.isNaN() || electricalPowerValue == 0)) {
+					if (powerValue >= getMinPower()) {
 						onRunning();
 						setState(RunState.RUNNING);
 					}
 					break;
 				case STOPPING:
 				case RUNNING:
-					if (powerValue == 0) { //&& (electricalPowerValue.isNaN() || electricalPowerValue >= getMinPower())) {
-						ValueSettings stopSettings = ValueSettings.ofBoolean(false, System.currentTimeMillis());
-                        stopSettings.setEnforced(true);
-						stop();
+					if (powerValue == 0) {
+						try {
+							if (setpointPower.getLatestValue().doubleValue() > 0 || 
+									enable.getLatestValue().booleanValue()) {
+								ValueSettings stopSettings = ValueSettings.ofBoolean(false, System.currentTimeMillis());
+		                        stopSettings.setEnforced(true);
+								stop(stopSettings);
+								break;
+							}
+						} catch (InvalidValueException e) {
+							logger.warn("Error retrieving setpoint values while synchronizing run state: {}", e.getMessage());
+						}
+						onStandby();
+						setState(RunState.STANDBY);
 					}
 					break;
 				default:

@@ -40,6 +40,7 @@ import org.the.ems.core.data.IntValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.LongValue;
 import org.the.ems.core.data.ShortValue;
+import org.the.ems.core.data.StringValue;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
@@ -50,26 +51,12 @@ import org.the.ems.core.data.event.ValueEvent;
 
 public class ChannelWrapper implements Channel, RecordListener {
 
-	/**
-	 * Interface used to notify the {@link ContentManager} 
-	 * implementation about changed temperatures
-	 */
-	public interface ChannelCallbacks {
-		public void execute(Runnable task);
-	}
-
-	/**
-	 * The Channels' current callback object, which is notified of changed temperatures
-	 */
-	protected final ChannelCallbacks callbacks;
-
 	protected final org.openmuc.framework.dataaccess.Channel channel;
 	protected final List<ValueListener> listeners;
 
 	protected Value lastValue = null;
 
-	public ChannelWrapper(ChannelCallbacks callbacks, org.openmuc.framework.dataaccess.Channel channel) {
-		this.callbacks = callbacks;
+	public ChannelWrapper(org.openmuc.framework.dataaccess.Channel channel) {
 		this.channel = channel;
 		this.listeners = new LinkedList<ValueListener>();
 	}
@@ -125,42 +112,31 @@ public class ChannelWrapper implements Channel, RecordListener {
 
 	@Override
 	public void setLatestValue(Value value) {
-		Runnable task = () -> {
-			channel.setLatestRecord(encodeRecord(value));
-		};
-		callbacks.execute(task);
+		channel.setLatestRecord(encodeRecord(value));
 	}
 
 	@Override
 	public void write(Value value) {
-		Runnable task = () -> {
-			if (value.getEpochMillis() <= System.currentTimeMillis()) {
-				channel.write(encodeValue(value));
-			}
-			else {
-				channel.writeFuture(encodeFutureValueList(new ValueList(value)));
-			}
-		};
-		callbacks.execute(task);
+		if (value.getEpochMillis() <= System.currentTimeMillis()) {
+			channel.write(encodeValue(value));
+		}
+		else {
+			channel.writeFuture(encodeFutureValueList(new ValueList(value)));
+		}
 	}
 
 	@Override
 	public void write(ValueList values) {
-		Runnable task = () -> {
-			long time = System.currentTimeMillis();
-			
-			ListIterator<Value> iter = values.sort().listIterator();
-			while(iter.hasNext()) {
-				Value value = iter.next();
-				if(value.getEpochMillis() <= time) {
-					iter.remove();
-					
-					channel.write(encodeValue(value));
-				}
+		ListIterator<Value> iter = values.sort().listIterator();
+		while(iter.hasNext()) {
+			Value value = iter.next();
+			if(value.getEpochMillis() <= System.currentTimeMillis()) {
+				iter.remove();
+				
+				channel.write(encodeValue(value));
 			}
-			channel.writeFuture(encodeFutureValueList(values));
-		};
-		callbacks.execute(task);
+		}
+		channel.writeFuture(encodeFutureValueList(values));
 	}
 
 	@Override
@@ -226,8 +202,11 @@ public class ChannelWrapper implements Channel, RecordListener {
 			return newValue.longValue() != lastValue.longValue();
 		case FLOAT:
 			return newValue.floatValue() != lastValue.floatValue();
-		default:
+		case DOUBLE:
 			return newValue.doubleValue() != lastValue.doubleValue();
+		case STRING:
+		default:
+			return !newValue.stringValue().equals(lastValue.stringValue());
 		}
 	}
 
@@ -279,8 +258,11 @@ public class ChannelWrapper implements Channel, RecordListener {
 				return new LongValue(value.asLong(), time);
 			case FLOAT:
 				return new FloatValue(value.asFloat(), time);
-			default:
+			case DOUBLE:
 				return new DoubleValue(value.asDouble(), time);
+			case STRING:
+			default:
+				return new StringValue(value.asString(), time);
 			}
 		}
 		catch (ClassCastException e) {
@@ -328,8 +310,11 @@ public class ChannelWrapper implements Channel, RecordListener {
 					return new org.openmuc.framework.data.LongValue(value.longValue());
 				case FLOAT:
 					return new org.openmuc.framework.data.FloatValue(value.floatValue());
-				default:
+				case DOUBLE:
 					return new org.openmuc.framework.data.DoubleValue(value.doubleValue());
+				case STRING:
+				default:
+					return new org.openmuc.framework.data.StringValue(value.stringValue());
 				}
 			}
 			catch (ClassCastException e) {

@@ -384,19 +384,19 @@ public class ThermalEnergyStorage extends Component
 
 	@Override
 	public void onValueReceived(Value value) {
-		long timeMax = -1;
+		long timestampMax = -1;
 		try {
 			for (Channel channel : temperatures.values()) {
 				Value temperatureValue = channel.getLatestValue();
 				if (temperatureValue.getEpochMillis() <= timestampLast) {
 					return;
 				}
-				if (temperatureValue.getEpochMillis() > timeMax) {
-					timeMax = temperatureValue.getEpochMillis();
+				if (temperatureValue.getEpochMillis() > timestampMax) {
+					timestampMax = temperatureValue.getEpochMillis();
 				}
 			}
-			timestampLast = timeMax;
-			temperature.setLatestValue(new DoubleValue(getWeightedWaterTemperature(), timestampLast));
+			temperature.setLatestValue(new DoubleValue(getWeightedWaterTemperature(), timestampMax));
+			timestampLast = timestampMax;
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Unable to calculate weighted storage temperature: {}", e.getMessage());

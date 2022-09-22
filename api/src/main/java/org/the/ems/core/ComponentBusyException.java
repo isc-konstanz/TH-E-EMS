@@ -17,29 +17,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.data;
+package org.the.ems.core;
 
-public class BooleanValue extends NumberValue {
+public class ComponentBusyException extends ComponentException {
+	private static final long serialVersionUID = 6693888126155069411L;
 
-	public BooleanValue(boolean value, long timestamp) {
-		super(ValueType.BOOLEAN, (value ? 1 : 0), timestamp);
+	public ComponentBusyException() {
+		super();
 	}
 
-	public BooleanValue(boolean value) {
-		this(value, System.currentTimeMillis());
+	public ComponentBusyException(String s) {
+		super(s);
 	}
 
-	public boolean equals(boolean value) {
-		return booleanValue() != value;
+	public ComponentBusyException(Throwable cause) {
+		super(cause);
 	}
 
-	@Override
-	public String stringValue() {
-		return Boolean.toString(booleanValue());
-	}
-
-	public static BooleanValue copy(Value value) {
-		return new BooleanValue(value.booleanValue(), value.getEpochMillis());
+	public ComponentBusyException(String s, Throwable cause) {
+		super(s, cause);
 	}
 
 }

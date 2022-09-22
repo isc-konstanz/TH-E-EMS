@@ -20,7 +20,7 @@
  */
 project.ext {
 
-    projectVersion = '1.3.7'
+    projectVersion = '1.4.0'
 
     projectGroup = 'org.the.ems'
 
@@ -49,6 +49,7 @@ project.ext {
         it.getPath() == ':cmpt:vnt' ||
         it.getPath() == ':cmpt:tes' ||
         it.getPath() == ':cmpt:inv' ||
+        it.getPath() == ':cmpt:inv:effekta' ||
         it.getPath() == ':cmpt:inv:kaco' ||
         it.getPath() == ':ctrl' ||
         it.getPath() == ':ctrl:mpc' ||

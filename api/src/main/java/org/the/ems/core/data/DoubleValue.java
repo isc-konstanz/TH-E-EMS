@@ -19,7 +19,7 @@
  */
 package org.the.ems.core.data;
 
-public class DoubleValue extends Value {
+public class DoubleValue extends NumberValue {
 
 	public DoubleValue(double value, long timestamp) {
 		super(ValueType.DOUBLE, value, timestamp);

@@ -38,6 +38,21 @@ public class WriteContainer extends LinkedHashMap<Channel, ValueList> {
 		return get(channel).add(value);
 	}
 
+	public boolean addString(Channel channel, String value, long time) {
+		return add(channel, new StringValue(value, time));
+	}
+
+	public boolean addString(Channel channel, String value) {
+		return add(channel, new StringValue(value));
+	}
+
+	public boolean addStringIfChanged(Channel channel, String value) throws InvalidValueException {
+		if (channel.getLatestValue().stringValue().equals(value)) {
+			return true;
+		}
+		return add(channel, new StringValue(value));
+	}
+
 	public boolean addDouble(Channel channel, double value, long time) {
 		return add(channel, new DoubleValue(value, time));
 	}

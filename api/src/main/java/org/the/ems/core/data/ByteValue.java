@@ -19,7 +19,7 @@
  */
 package org.the.ems.core.data;
 
-public class ByteValue extends Value {
+public class ByteValue extends NumberValue {
 
 	public ByteValue(byte value, long timestamp) {
 		super(ValueType.BYTE, value, timestamp);

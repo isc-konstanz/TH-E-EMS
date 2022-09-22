@@ -250,15 +250,13 @@ public class WeiTrona extends HeatPump {
 		switch (getState()) {
 		case STOPPING:
 		case STANDBY:
-			if (temperature.doubleValue() < temperatureSetpoint.doubleValue() - handler.getTemperatureHysteresis() &&
-					isStartable(handler.type)) {
+			if (temperature.doubleValue() < temperatureSetpoint.doubleValue() - handler.getTemperatureHysteresis()) {
 				setState(RunState.STARTING);
 			}
 			break;
 		case STARTING:
 		case RUNNING:
-			if (temperature.doubleValue() >= temperatureSetpoint.doubleValue() &&
-					isStoppable(handler.type)) {
+			if (temperature.doubleValue() >= temperatureSetpoint.doubleValue()) {
 				setState(RunState.STOPPING);
 			}
 			break;

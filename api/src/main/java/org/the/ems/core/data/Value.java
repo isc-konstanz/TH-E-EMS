@@ -31,14 +31,12 @@ public abstract class Value implements TemporalValue {
 	// TODO: Make configurable
 	public final static ZoneId ZONE = ZoneId.systemDefault();
 
+	protected final Instant instant;
+
 	protected final ValueType type;
 
-	protected final Instant instant;
-	protected final Number value;
-
-	public Value(ValueType type, Number value, long timestamp) {
+	public Value(ValueType type, long timestamp) {
 		this.type = type;
-		this.value = value;
 		
 		// TODO: Add additional constructors and start refactoring to work with time library instead of timestamps
 		this.instant = Instant.ofEpochMilli(timestamp);
@@ -73,42 +71,30 @@ public abstract class Value implements TemporalValue {
 		return instant.toEpochMilli();
 	}
 
-	public double doubleValue() {
-		return this.value.doubleValue();
-	}
+	public abstract String stringValue();
 
-	public float floatValue() {
-		return this.value.floatValue();
-	}
+	public abstract double doubleValue();
 
-	public long longValue() {
-		return this.value.longValue();
-	}
+	public abstract float floatValue();
 
-	public int intValue() {
-		return this.value.intValue();
-	}
+	public abstract long longValue();
 
-	public short shortValue() {
-		return this.value.shortValue();
-	}
+	public abstract int intValue();
 
-	public byte byteValue() {
-		return this.value.byteValue();
-	}
+	public abstract short shortValue();
 
-	public boolean booleanValue() {
-		return this.value.intValue() != 0;
-	}
+	public abstract byte byteValue();
+
+	public abstract boolean booleanValue();
 
 	@Override
 	public String toString() {
-		return this.value.toString();
+        return stringValue();
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, instant, value);
+		return Objects.hash(type, instant);
 	}
 
 	@Override
@@ -120,8 +106,7 @@ public abstract class Value implements TemporalValue {
 		}
 		Value v = (Value) o;
 		return type == v.type &&
-				Objects.equals(instant, v.instant) &&
-				Objects.equals(value, v.value);
+				Objects.equals(instant, v.instant);
 	}
 
 }

@@ -49,6 +49,8 @@ public class ContentManager implements ContentManagementService {
 
 	private final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
 
+    private ChannelFactory factory;
+
 	@Reference
 	private DataAccessService access;
 

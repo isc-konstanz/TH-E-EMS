@@ -21,10 +21,7 @@ package org.openmuc.framework.app.the.ems;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import org.openmuc.framework.app.the.ems.ChannelWrapper.ChannelCallbacks;
 import org.openmuc.framework.dataaccess.DataAccessService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -37,25 +34,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
-import org.the.ems.core.schedule.NamedThreadFactory;
 
 @Component(
 	immediate = true,
 	service = ContentManagementService.class
 )
-public class ContentManager implements ContentManagementService, ChannelCallbacks {
+public class ContentManager implements ContentManagementService {
 	private final static Logger logger = LoggerFactory.getLogger(ContentManager.class);
 
 	private final Map<String, ChannelWrapper> channels = new HashMap<String, ChannelWrapper>();
-
-	private ExecutorService executor = null;
-
-	private ChannelFactory factory;
 
 	@Reference
 	private DataAccessService access;
@@ -63,16 +55,11 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 	@Activate
 	protected void activate(ComponentContext context) {
 		logger.info("Activating TH-E Content Management System");
-		
-		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E CMS Pool - thread-");
-		executor = Executors.newCachedThreadPool(namedThreadFactory);
 	}
 
 	@Deactivate
 	protected void deactivate(ComponentContext context) {
 		logger.info("Deactivating TH-E Content Management System");
-		
-		executor.shutdown();
 	}
 
 	@Override
@@ -87,7 +74,7 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 			if (!access.getAllIds().contains(id)) {
 				throw new UnknownChannelException("Unknown channel for id: " + id);
 			}
-			ChannelWrapper channel = new ChannelWrapper(this, access.getChannel(id));
+			ChannelWrapper channel = new ChannelWrapper(access.getChannel(id));
 			channels.put(id, channel);
 			
 			return channel;
@@ -143,11 +130,6 @@ public class ContentManager implements ContentManagementService, ChannelCallback
 	public void write(String id, ValueList values) throws UnknownChannelException {
 		logger.debug("Writing values for channel \"{}\": {}", id, values);
 		getChannel(id).write(values);
-	}
-
-	@Override
-	public void execute(Runnable task) {
-		executor.execute(task);
 	}
 
 }

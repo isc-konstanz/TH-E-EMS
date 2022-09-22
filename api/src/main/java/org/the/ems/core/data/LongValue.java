@@ -19,7 +19,7 @@
  */
 package org.the.ems.core.data;
 
-public class LongValue extends Value {
+public class LongValue extends NumberValue {
 
 	public LongValue(long value, long timestamp) {
 		super(ValueType.LONG, value, timestamp);

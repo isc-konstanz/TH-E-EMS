@@ -235,9 +235,9 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
     public double getMaxPower() {
         if (Double.isNaN(powerMax)) {
-            return powerMax;
+            return getMinPower();
         }
-        return getMinPower();
+        return powerMax;
     }
 
 	/**

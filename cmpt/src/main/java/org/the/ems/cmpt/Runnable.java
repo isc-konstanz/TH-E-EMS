@@ -22,10 +22,12 @@ package org.the.ems.cmpt;
 import java.text.MessageFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
+import org.the.ems.core.ComponentBusyException;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
@@ -38,6 +40,7 @@ import org.the.ems.core.data.BooleanValue;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
@@ -53,6 +56,11 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	@Configuration(mandatory=false, scale=6000) // Default idletime minimum of 1 minute
 	private int idletimeMin = 60000;
+
+	@Configuration(mandatory = false, scale = 1000)
+	private int runActionWritePause = 10000;
+
+	private volatile long runActionWriteTime = Long.MIN_VALUE;
 
 	@Configuration(mandatory=false, value="state_writable")
 	protected boolean stateIsWritable = true;
@@ -148,7 +156,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (startTimeLast > 0) {
 			return (int) (timestamp - startTimeLast);
 		}
-		return 0;
+		return getMinRuntime() + 1;
 	}
 
 	@Override
@@ -165,7 +173,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (stopTimeLast > 0) {
 			return (int) (timestamp - stopTimeLast);
 		}
-		return 0;
+		return getMinIdletime() + 1;
 	}
 
 	@Override
@@ -224,6 +232,20 @@ public abstract class Runnable extends Component implements RunnableService {
 		}
 	}
 
+	public boolean isReady() {
+		if (!isEnabled() || isMaintenance()) {
+			return false;
+		}
+		return isReady(System.currentTimeMillis());
+	}
+
+	protected boolean isReady(long timestamp) {
+		if (runActionWriteTime > 0 && timestamp - runActionWriteTime < runActionWritePause) {
+			return false;
+		}
+		return true;
+	}
+
 	@Override
 	public final void schedule(Schedule schedule)
 			throws UnsupportedOperationException, EnergyManagementException {
@@ -235,7 +257,7 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	void doSchedule(Schedule schedule) throws EnergyManagementException {
-		WriteContainer container = new WriteContainer();
+		WriteContainer writeContainer = new WriteContainer();
 		
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
@@ -245,18 +267,31 @@ public abstract class Runnable extends Component implements RunnableService {
 					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
 				}
-				onStop(container, value);
+				onStop(writeContainer, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() == 0) {
 				startTimeLast = value.getEpochMillis();
-				onStart(container, value);
+				onStart(writeContainer, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() != value.doubleValue()) {
-				onSet(container, value);
+				onSet(writeContainer, value);
 			}
 		}
-		onSchedule(container, schedule);
-		write(container);
+		onSchedule(writeContainer, schedule);
+        if (writeContainer.size() > 0) {
+    		logger.debug("Scheduling {} {} values", getType().getFullName(), getId());
+    		if (logger.isDebugEnabled()) {
+    			for (Entry<Channel, ValueList> channel : writeContainer.entrySet()) {
+    				for (Value value : channel.getValue()) {
+    					logger.debug("Writing value to channel \"{}\": {}", channel.getKey().getId(), value);
+    				}
+    			}
+    		}
+			runActionWriteTime = writeContainer.values()
+					.stream().skip(writeContainer.size() - 1)
+					.findFirst().get().getLast().getEpochMillis();
+        }
+		write(writeContainer);
 	}
 
 	protected void onSchedule(WriteContainer container, Schedule schedule) 
@@ -301,10 +336,27 @@ public abstract class Runnable extends Component implements RunnableService {
 		doSet(value);
 	}
 
-	void doSet(Value value) throws EnergyManagementException {
-		WriteContainer container = new WriteContainer();
-		onSet(container, value);
-		write(container);
+	void doSet(Value setpoint) throws EnergyManagementException {
+		if (!isReady(setpoint.getEpochMillis())) {
+			throw new ComponentBusyException(String.format("{} component {} already written to {}s ago", 
+					getType().getFullName(), getId(), (System.currentTimeMillis() - runActionWriteTime)/1000));
+		}
+		WriteContainer writeContainer = new WriteContainer();
+		onSet(writeContainer, setpoint);
+        if (writeContainer.size() > 0) {
+    		logger.debug("Writing {} {} setpoint: {}", getType().getFullName(), getId(), setpoint);
+    		if (logger.isDebugEnabled()) {
+    			for (Entry<Channel, ValueList> channel : writeContainer.entrySet()) {
+    				for (Value value : channel.getValue()) {
+    					logger.debug("Writing value to channel \"{}\": {}", channel.getKey().getId(), value);
+    				}
+    			}
+    		}
+			runActionWriteTime = writeContainer.values()
+					.stream().skip(writeContainer.size() - 1)
+					.findFirst().get().getLast().getEpochMillis();
+        }
+		write(writeContainer);
 	}
 
 	protected void onSet(WriteContainer container, Value value)
@@ -330,11 +382,28 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	void doStart(StartSettings settings) throws EnergyManagementException {
+		if (!isReady(settings.getEpochMillis())) {
+			throw new ComponentBusyException(String.format("{} component {} already written to {}s ago", 
+					getType().getFullName(), getId(), (System.currentTimeMillis() - runActionWriteTime)/1000));
+		}
 		WriteContainer writeContainer = new WriteContainer();
 		if (stateIsWritable && state != null) {
 			writeContainer.add(state, new BooleanValue(true, settings.getEpochMillis()));
 		}
 		doStart(writeContainer, settings);
+        if (writeContainer.size() > 0) {
+    		logger.debug("Starting {} {}", getType().getFullName(), getId());
+    		if (logger.isDebugEnabled()) {
+    			for (Entry<Channel, ValueList> channel : writeContainer.entrySet()) {
+    				for (Value value : channel.getValue()) {
+    					logger.debug("Writing value to channel \"{}\": {}", channel.getKey().getId(), value);
+    				}
+    			}
+    		}
+			runActionWriteTime = writeContainer.values()
+					.stream().skip(writeContainer.size() - 1)
+					.findFirst().get().getLast().getEpochMillis();
+        }
 		write(writeContainer);
 
 		// Set latest start time and state when writing was successful
@@ -378,7 +447,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		default:
 			break;
 		}
-		return true;
+		return isReady(time);
 	}
 
 	void doRunning() throws ComponentException {
@@ -418,11 +487,28 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	void doStop(StopSettings settings) throws EnergyManagementException {
+		if (!isReady(settings.getEpochMillis())) {
+			throw new ComponentBusyException(String.format("{} component {} already written to {}s ago", 
+					getType().getFullName(), getId(), (System.currentTimeMillis() - runActionWriteTime)/1000));
+		}
 		WriteContainer writeContainer = new WriteContainer();
 		if (stateIsWritable && state != null) {
 			writeContainer.add(state, new BooleanValue(false, settings.getEpochMillis()));
 		}
 		doStop(writeContainer, settings);
+        if (writeContainer.size() > 0) {
+			logger.debug("Stopping {} {}", getType().getFullName(), getId());
+			if (logger.isDebugEnabled()) {
+				for (Entry<Channel, ValueList> channel : writeContainer.entrySet()) {
+					for (Value value : channel.getValue()) {
+						logger.debug("Writing value to channel \"{}\": {}", channel.getKey().getId(), value);
+					}
+				}
+			}
+			runActionWriteTime = writeContainer.values()
+					.stream().skip(writeContainer.size() - 1)
+					.findFirst().get().getLast().getEpochMillis();
+        }
 		write(writeContainer);
 
 		// Set latest stop time and state when writing was successful
@@ -466,7 +552,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		default:
 			break;
 		}
-		return true;
+		return isReady(time);
 	}
 
 	void doStandby() throws ComponentException {

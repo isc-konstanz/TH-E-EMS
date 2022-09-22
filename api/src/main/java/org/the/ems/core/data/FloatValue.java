@@ -19,7 +19,7 @@
  */
 package org.the.ems.core.data;
 
-public class FloatValue extends Value {
+public class FloatValue extends NumberValue {
 
 	public FloatValue(float value, long timestamp) {
 		super(ValueType.FLOAT, value, timestamp);

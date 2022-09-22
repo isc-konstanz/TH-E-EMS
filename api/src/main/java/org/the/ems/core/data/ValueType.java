@@ -20,6 +20,7 @@
 package org.the.ems.core.data;
 
 public enum ValueType {
+	STRING,
 	DOUBLE,
 	FLOAT,
 	LONG,

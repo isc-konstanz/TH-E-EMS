@@ -5,10 +5,11 @@ import java.util.Map;
 
 public enum ChargingPointStatus {
 
-	AVAILABLE(0),
-	CONNECTED(1),
-	CHARGING(2),
-	CHARGING_COMPLETE(3);
+	STANDBY(0),
+	AVAILABLE(1),
+	CONNECTED(2),
+	CHARGING(3),
+	CHARGING_COMPLETE(4);
 
 	private final int code;
 

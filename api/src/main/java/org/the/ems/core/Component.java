@@ -19,15 +19,11 @@
  */
 package org.the.ems.core;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
@@ -44,10 +40,9 @@ import org.the.ems.core.data.WriteContainer;
 public abstract class Component extends Configurable implements ComponentService {
 	private final static Logger logger = LoggerFactory.getLogger(Component.class);
 
-	private final Map<String, ComponentRegistration> componentRegistrations = 
-			new HashMap<String, ComponentRegistration>();
+	private final static int TIMEOUT = 10;
 
-	private ContentManagementService content;
+    private ComponentContext componentContext = null;
 
 	private volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
 
@@ -93,20 +88,24 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
+	public final ComponentContext getContext() {
+		return componentContext;
 	}
 
 	@Reference(
 		cardinality = ReferenceCardinality.OPTIONAL,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
+	void bindContentManagementService(ContentManagementService service) {
+		if (componentContext != null) {
+			componentContext.setContentManagement(service);
+		}
 	}
 
-	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
+	void unbindContentManagementService(ContentManagementService service) {
+		if (componentContext != null) {
+			componentContext.setContentManagement(null);
+		}
 	}
 
 	@Activate
@@ -124,20 +123,21 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	void doActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
-		content = context.getService(context.getServiceReference(ContentManagementService.class));
+		componentContext = new ComponentContext(this, context);
+		componentContext.activate();
 		Configurations configs = Configurations.create(properties);
 		configure(configs);
-		onActivate(context, properties);
-		onActivate(context, configs);
+		onActivate(componentContext, properties);
+		onActivate(componentContext, configs);
 		onActivate(configs);
 		onActivate();
 	}
 
-	protected void onActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
+	protected void onActivate(ComponentContext context, Map<String, ?> properties) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
-	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		// Default implementation to be overridden
 	}
 
@@ -169,8 +169,8 @@ public abstract class Component extends Configurable implements ComponentService
 	protected void onModified(BundleContext context, Map<String, ?> properties) throws ComponentException {
 		Configurations configs = Configurations.create(properties);
 		doDeactivate();
-		onActivate(context, properties);
-		onActivate(context, configs);
+		onActivate(componentContext, properties);
+		onActivate(componentContext, configs);
 		onActivate(configs);
 	}
 
@@ -196,22 +196,34 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	void doDeactivate() throws ComponentException {
+		getContext().deactivate();
 		onDeactivate();
-		deregisterServices();
-		deregisterConfiguredValueListeners();
 	}
 
 	protected void onDeactivate() throws ComponentException {
 		// Default implementation to be overridden
 	}
 
+	final int getWriteTimeout() {
+		// TODO: Make write timeout configurable
+		return TIMEOUT;
+	}
+
 	protected void write(WriteContainer container) throws EnergyManagementException {
         if (container.size() < 1) {
             return;
         }
-		for (Channel channel : container.keySet()) {
-			channel.write(container.get(channel));
-		}
+        getContext().execute(() -> {
+			try {
+	    		for (Channel channel : container.keySet()) {
+					channel.write(container.get(channel));
+	    		}
+			} catch (Exception e) {
+				return e;
+			}
+			return null;
+			
+        }, getWriteTimeout(), TimeUnit.SECONDS);
 	}
 
 	void interrupt() throws EnergyManagementException {
@@ -228,89 +240,4 @@ public abstract class Component extends Configurable implements ComponentService
 		// Default implementation to be overridden
 	}
 
-	protected void registerService(String id, Configurations configs, 
-			Class<? extends Component> componentClass) throws ComponentException {
-		registerService(id, configs, componentClass, ComponentService.class);
-	}
-
-	protected void registerService(String id, Configurations configs, 
-			Component component) throws ComponentException {
-		registerService(id, configs, component, ComponentService.class);
-	}
-
-	protected <C extends ComponentService> void registerService(String id, Configurations configs, 
-			Class<? extends Component> componentClass, Class<C> service) throws ComponentException {
-		
-		try {
-			Constructor<? extends Component> constructor = componentClass.getDeclaredConstructor();
-			constructor.setAccessible(true);
-			Component component = constructor.newInstance();
-			
-			registerService(id, configs, component, service);
-			
-		} catch (InstantiationException | InvocationTargetException | IllegalAccessException | IllegalArgumentException | 
-				NoSuchMethodException | SecurityException  e) {
-			throw new ComponentException(e);
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	protected <C extends ComponentService> void registerService(String id, Configurations configs, 
-			Component component, Class<C> service) throws ComponentException {
-		Configurations componentConfigs = Configurations.create();
-		componentConfigs.put(Configurations.GENERAL, "id", id);
-		for (Entry<String, ?> entry : configs.entrySet()) {
-			if (entry.getKey().toLowerCase().equals("general.id") ||
-					entry.getKey().toLowerCase().startsWith("component") ||
-					entry.getKey().toLowerCase().startsWith("bundle") ||
-					entry.getKey().toLowerCase().startsWith("service")) {
-				
-				continue;
-			}
-			componentConfigs.put(entry.getKey(), entry.getValue());
-		}
-		BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
-		
-		component.activate(context, componentConfigs);
-		
-		ServiceRegistration<C> serviceRegistration = context.registerService(service, (C) component, componentConfigs);
-		ComponentRegistration componentRegistration = new ComponentRegistration(serviceRegistration, component);
-		componentRegistrations.put(id, componentRegistration);
-	}
-
-	protected void deregisterService(String id) 
-			throws org.osgi.service.component.ComponentException, ComponentException {
-		if (componentRegistrations.containsKey(id)) {
-			componentRegistrations.get(id).deregister();
-		}
-		else {
-			logger.warn("Unable to unregister service for id: {}", id);
-		}
-	}
-
-	protected void deregisterServices() 
-			throws org.osgi.service.component.ComponentException, ComponentException {
-		
-		for (ComponentRegistration componentRegistration : componentRegistrations.values()) {
-			componentRegistration.deregister();
-		}
-	}
-
-	private class ComponentRegistration {
-
-		private final Component component;
-		private final ServiceRegistration<? extends ComponentService> registration;
-
-		private ComponentRegistration(ServiceRegistration<? extends ComponentService> registration,
-				Component component) {
-			
-			this.registration = registration;
-			this.component = component;
-		}
-
-		public void deregister() throws org.osgi.service.component.ComponentException, ComponentException {
-			component.deactivate();
-			registration.unregister();
-		}
-	}
 }

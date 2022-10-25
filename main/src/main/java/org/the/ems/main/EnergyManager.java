@@ -43,6 +43,7 @@ import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentStatus;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.Configurable;
+import org.the.ems.core.ConfigurableContext;
 import org.the.ems.core.ContentManagementService;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.EnergyManagementService;
@@ -95,11 +96,10 @@ public final class EnergyManager extends Configurable
 	private volatile boolean maintenance = false;
 	private volatile boolean deactivate;
 
-	@Reference
-	ConfigurationService configs;
+	ConfigurableContext context;
 
 	@Reference
-	ContentManagementService content;
+	ConfigurationService configs;
 
 	@Activate
 	protected final void activate(Map<String, ?> properties) {
@@ -145,16 +145,16 @@ public final class EnergyManager extends Configurable
 		policy = ReferencePolicy.DYNAMIC
 	)
 	protected void bindContentManagementService(ContentManagementService service) {
-		content = service;
+		context = new ConfigurableContext(this, service);
 	}
 
 	protected void unbindContentManagementService(ContentManagementService service) {
-		content = null;
+		context = null;
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
+	protected final ConfigurableContext getContext() {
+		return context;
 	}
 
 	@Override

@@ -19,7 +19,9 @@
  */
 package org.the.ems.core.config;
 
-public class TestMandatory extends TestHandler {
+import org.the.ems.core.TestConfigurable;
+
+public class TestMandatory extends TestConfigurable {
 
 	@Configuration(value="test1")
 	private String testString;

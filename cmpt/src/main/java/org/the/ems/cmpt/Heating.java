@@ -22,7 +22,6 @@ package org.the.ems.cmpt;
 import java.text.MessageFormat;
 import java.time.Instant;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
@@ -30,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation;
 import org.the.ems.cmpt.circ.CirculationPump;
+import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentType;
@@ -90,10 +90,10 @@ public abstract class Heating extends Runnable implements HeatingService {
 		return storage;
 	}
 
-	protected void bindEnergyStorage(BundleContext context, Configurations configs) 
+	protected void bindEnergyStorage(ComponentContext context, Configurations configs) 
 			throws ComponentException {
 		ThermalEnergyStorageService storage = null;
-		EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
+		EnergyManagementService manager = context.getEnergyManager();
 		for (ComponentService component : manager.getComponents(ComponentType.THERMAL_ENERGY_STORAGE)) {
 			// TODO: implement configurations to filter TES, if more than one is available
 			storage = (ThermalEnergyStorageService) component;
@@ -115,19 +115,19 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)
 	public Value getElectricalEnergy() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE);
+		return getContext().getChannel(ELECTRICAL_ENERGY_VALUE).getLatestValue();
 	}
 
 	public Value getElectricalEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ELECTRICAL_ENERGY_VALUE, listener);
+		return getContext().getChannel(ELECTRICAL_ENERGY_VALUE).getLatestValue(listener);
 	}
 
 	public void registerElectricalEnergyListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(ELECTRICAL_ENERGY_VALUE, listener);
+		getContext().getChannel(ELECTRICAL_ENERGY_VALUE).registerValueListener(listener);
 	}
 
 	public void deregisterElectricalEnergyListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(ELECTRICAL_ENERGY_VALUE, listener);
+		getContext().getChannel(ELECTRICAL_ENERGY_VALUE).deregisterValueListener(listener);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	@Configuration(value=THERMAL_ENERGY_VALUE, mandatory=false)
 	public Value getThermalEnergy() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(THERMAL_ENERGY_VALUE);
+		return getContext().getChannel(THERMAL_ENERGY_VALUE).getLatestValue();
 	}
 
 	/**
@@ -144,7 +144,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
 	public Value getThermalEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(THERMAL_ENERGY_VALUE, listener);
+		return getContext().getChannel(THERMAL_ENERGY_VALUE).getLatestValue(listener);
 	}
 
 	/**
@@ -152,7 +152,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
 	public void registerThermalEnergyListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(THERMAL_ENERGY_VALUE, listener);
+		getContext().getChannel(THERMAL_ENERGY_VALUE).registerValueListener(listener);
 	}
 
 	/**
@@ -160,24 +160,24 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
 	public void deregisterThermalEnergyListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(THERMAL_ENERGY_VALUE, listener);
+		getContext().getChannel(THERMAL_ENERGY_VALUE).deregisterValueListener(listener);
 	}
 
 	@Configuration(value=ELECTRICAL_POWER_VALUE, mandatory=false)
 	public Value getElectricalPower() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ELECTRICAL_POWER_VALUE);
+		return getContext().getChannel(ELECTRICAL_POWER_VALUE).getLatestValue();
 	}
 
 	public Value getElectricalPower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ELECTRICAL_POWER_VALUE, listener);
+		return getContext().getChannel(ELECTRICAL_POWER_VALUE).getLatestValue(listener);
 	}
 
 	public void registerElectricalPowerListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(ELECTRICAL_POWER_VALUE, listener);
+		getContext().getChannel(ELECTRICAL_POWER_VALUE).registerValueListener(listener);
 	}
 
 	public void deregisterElectricalPowerListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(ELECTRICAL_POWER_VALUE, listener);
+		getContext().getChannel(ELECTRICAL_POWER_VALUE).deregisterValueListener(listener);
 	}
 
 	/**
@@ -186,7 +186,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	@Configuration(value=THERMAL_POWER_VALUE, mandatory=false)
 	public Value getThermalPower() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(THERMAL_POWER_VALUE);
+		return getContext().getChannel(THERMAL_POWER_VALUE).getLatestValue();
 	}
 
 	/**
@@ -194,7 +194,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
 	public Value getThermalPower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(THERMAL_POWER_VALUE, listener);
+		return getContext().getChannel(THERMAL_POWER_VALUE).getLatestValue(listener);
 	}
 
 	/**
@@ -202,7 +202,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
 	public void registerThermalPowerListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(THERMAL_POWER_VALUE, listener);
+		getContext().getChannel(THERMAL_POWER_VALUE).registerValueListener(listener);
 	}
 
 	/**
@@ -210,7 +210,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 */
 	@Override
 	public void deregisterThermalPowerListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(THERMAL_POWER_VALUE, listener);
+		getContext().getChannel(THERMAL_POWER_VALUE).deregisterValueListener(listener);
 	}
 
 	/**
@@ -249,7 +249,7 @@ public abstract class Heating extends Runnable implements HeatingService {
     }
 
 	@Override
-	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
 		bindEnergyStorage(context, configs);
 	}
@@ -257,8 +257,8 @@ public abstract class Heating extends Runnable implements HeatingService {
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		registerService(getId().concat("_").concat("circ"), configs, circulation);
-		registerService(getId().concat("_").concat("circ_pump"), configs, circulationPump);
+		getContext().registerService(getId().concat("_").concat("circ"), configs, circulation);
+		getContext().registerService(getId().concat("_").concat("circ_pump"), configs, circulationPump);
 	}
 
 	@Override

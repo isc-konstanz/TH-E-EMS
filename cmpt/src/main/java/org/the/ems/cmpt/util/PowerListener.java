@@ -27,7 +27,7 @@ import org.the.ems.core.data.ValueListener;
 public class PowerListener implements ValueListener {
 
 	protected Channel energy;
-	protected Value energyLast = null;
+	protected Value energyLatest = null;
 
 	public PowerListener() {
 	}
@@ -37,28 +37,28 @@ public class PowerListener implements ValueListener {
 	}
 
 	public Value getEnergyValue() {
-		return energyLast;
+		return energyLatest;
 	}
 
 	protected void onEnergyReceived(Value energyValue) {
-		if (energyLast == null) {
-			energyLast = energyValue;
+		if (energyLatest == null) {
+			energyLatest = energyValue;
 		}
 		else {
-			energyLast = new DoubleValue(energyLast.doubleValue() + energyValue.doubleValue(),
-										energyValue.getEpochMillis());
+			energyLatest = new DoubleValue(energyLatest.doubleValue() + energyValue.doubleValue(),
+											energyValue.getEpochMillis());
 		}
 		if (energy != null) {
-			energy.setLatestValue(energyLast);
+			energy.setLatestValue(energyLatest);
 		}
 	}
 
 	protected void onPowerReceived(Value powerValue) {
-		if (energyLast == null) {
-			energyLast = new DoubleValue(0, powerValue.getEpochMillis());
+		if (energyLatest == null) {
+			energyLatest = new DoubleValue(0, powerValue.getEpochMillis());
 			return;
 		}
-		long deltaSeconds = (powerValue.getEpochMillis() - energyLast.getEpochMillis())/1000;
+		long deltaSeconds = (powerValue.getEpochMillis() - energyLatest.getEpochMillis())/1000;
 		double deltaHours = (double) deltaSeconds/3600;
 		Value deltaEnergy = new DoubleValue(powerValue.doubleValue()/1000*deltaHours);
 		this.onEnergyReceived(deltaEnergy);

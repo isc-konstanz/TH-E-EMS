@@ -87,11 +87,47 @@ public class Circulation extends Component implements CirculationTemperatureCall
 
 	private List<Value> flowTempDeltaValues = new ArrayList<Value>();
 
-	private Value flowTempInLast = DoubleValue.zeroValue();
-	private Value flowTempOutLast = DoubleValue.zeroValue();
+	private DoubleValue flowTempInLast = DoubleValue.emptyValue();
+	private DoubleValue flowTempOutLast = DoubleValue.emptyValue();
 
 	public Circulation() {
 		super(SECTION);
+	}
+
+	public Value getFlowInletTemperature() throws InvalidValueException {
+		if (!flowTempInLast.isNaN()) {
+			return flowTempInLast;
+		}
+		return flowTempIn.getLatestValue();
+	}
+
+	private void setFlowInletTemperature(Value temperature) {
+		if (temperature instanceof DoubleValue) {
+			flowTempInLast = (DoubleValue) temperature;
+		}
+		else {
+			flowTempInLast = DoubleValue.copy(temperature);
+		}
+	}
+
+	public Value getFlowOutletTemperature() throws InvalidValueException {
+		if (!flowTempOutLast.isNaN()) {
+			return flowTempOutLast;
+		}
+		return flowTempOut.getLatestValue();
+	}
+
+	private void setFlowOutletTemperature(Value temperature) {
+		if (temperature instanceof DoubleValue) {
+			flowTempOutLast = (DoubleValue) temperature;
+		}
+		else {
+			flowTempOutLast = DoubleValue.copy(temperature);
+		}
+	}
+
+	public Value getFlowDeltaTemperature() throws InvalidValueException {
+		return flowTempDelta.getLatestValue();
 	}
 
 	@Override
@@ -122,22 +158,18 @@ public class Circulation extends Component implements CirculationTemperatureCall
 	}
 
 	@Override
-	protected void onDeactivate() throws ComponentException {
-		super.onDeactivate();
-		this.deregisterConfiguredValueListeners();
-	}
-
-	@Override
 	public synchronized void onTemperatureReceived(FlowTemperature type, Value temperature) {
 		switch(type) {
 		case IN:
-			flowTempInLast = temperature;
+			setFlowInletTemperature(temperature);
 			break;
 		case OUT:
-			flowTempOutLast = temperature;
+			setFlowOutletTemperature(temperature);
 			break;
+		default:
+			return;
 		}
-		if ((type == FlowTemperature.OUT || type == FlowTemperature.IN) &&
+		if (!flowTempInLast.isNaN() && !flowTempOutLast.isNaN() && 
 				Math.abs(flowTempOutLast.getEpochMillis() - flowTempInLast.getEpochMillis()) < 1000) {
 			double delta = flowTempOutLast.doubleValue() - flowTempInLast.doubleValue();
 			Value value = new DoubleValue(delta, System.currentTimeMillis());
@@ -193,9 +225,9 @@ public class Circulation extends Component implements CirculationTemperatureCall
 						String.format("%.2f", flowTempDeltaValue), 
 						String.format("%.2f", flowEnergyValue));
 			}
-			if (energyLast != null) {
+			if (energyLatest != null) {
 				// Calculate average power since last counter tick
-				long timeDelta = (timestamp - energyLast.getEpochMillis())/1000;
+				long timeDelta = (timestamp - energyLatest.getEpochMillis())/1000;
 				double flowPowerValue = flowEnergyValue/timeDelta;
 				flowPower.setLatestValue(new DoubleValue(flowPowerValue*1000, timestamp));
 

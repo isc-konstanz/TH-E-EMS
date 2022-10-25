@@ -2,6 +2,7 @@ package org.the.ems.cmpt.hp.weider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -9,6 +10,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.hp.HeatPump;
+import org.the.ems.cmpt.util.PowerListener;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.HeatingType;
@@ -19,6 +21,7 @@ import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.WriteContainer;
@@ -35,6 +38,13 @@ import org.the.ems.core.settings.ValueSettings;
 public class WeiTrona extends HeatPump {
 	private static final Logger logger = LoggerFactory.getLogger(WeiTrona.class);
 
+	// TODO: Make this type specific configurable
+	private static final double OPERATION_HIGH_TEMP = 50;
+	private static final double OPERATION_HIGH_COP = 3;
+
+	private static final double OPERATION_LOW_TEMP = 25;
+	private static final double OPERATION_LOW_COP = 5;
+
 	@Configuration
 	private double cop;
 
@@ -43,6 +53,24 @@ public class WeiTrona extends HeatPump {
 
 	@Configuration(mandatory = false)
 	private Channel vacation;
+
+	@Configuration(value=THERMAL_ENERGY_VALUE, mandatory=false)
+	private Channel thermalEnergy;
+
+	@Configuration(value=THERMAL_POWER_VALUE)
+	private Channel thermalPower;
+
+	private ThermalPowerListener thermalPowerListener;
+
+	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)
+	private Channel electricalEnergy;
+
+	@Configuration(value=ELECTRICAL_POWER_VALUE, mandatory=false)
+	private Channel electricalPower;
+
+	@Configuration(value="el_power_estimate", mandatory=false)
+	private boolean electricalPowerEstimate = true;
+	private ElectricalPowerListener electricalPowerListener;
 
 	private final Map<HeatingType, HeatingHandler> heatings = new HashMap<HeatingType, HeatingHandler>();
 
@@ -71,6 +99,18 @@ public class WeiTrona extends HeatPump {
 		return getSeason() == season;
 	}
 
+	private Stream<HeatingHandler> getHeatings() {
+		return heatings.values().stream().filter(h -> h.isEnabled());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Value getElectricalPower() {
+		return electricalPowerListener.getLatestValue();
+	}
+
 	@Override
 	protected void onConfigure(Configurations configs) throws ConfigurationException {
 		// WeiTrone compressor state is not writable
@@ -82,6 +122,12 @@ public class WeiTrona extends HeatPump {
 		super.onActivate(configs);
 		this.onActivate(configs, HeatingType.HEATING_WATER);
 		this.onActivate(configs, HeatingType.DOMESTIC_WATER);
+		
+		electricalPowerListener = new ElectricalPowerListener();
+		electricalPower.registerValueListener(electricalPowerListener);
+		
+		thermalPowerListener = new ThermalPowerListener();
+		thermalPower.registerValueListener(thermalPowerListener);
 	}
 
 	protected void onActivate(Configurations configs, HeatingType type) throws ComponentException {
@@ -129,8 +175,7 @@ public class WeiTrona extends HeatPump {
 
 	public boolean isStartable(HeatingType type) {
 		try {
-			if (type == HeatingType.HEATING_WATER && 
-					getSeason() == Season.SUMMER) {
+			if (isSeason(Season.SUMMER) && type == HeatingType.HEATING_WATER) {
 				return false;
 			}
 		} catch (InvalidValueException e) {
@@ -142,7 +187,7 @@ public class WeiTrona extends HeatPump {
 
 	@Override
 	public boolean isStartable(long time) {
-		if (!heatings.values().stream().anyMatch(c -> c.isStartable())) {
+		if (!getHeatings().anyMatch(c -> c.isStartable())) {
 			return false;
 		}
 		return super.isStartable(time);
@@ -152,7 +197,7 @@ public class WeiTrona extends HeatPump {
 	public boolean isRunning(HeatingType type) throws ComponentException {
 		if (isRunning()) {
 			try {
-				if (type == HeatingType.HEATING_WATER && isSeason(Season.SUMMER)) {
+				if (isSeason(Season.SUMMER) && type == HeatingType.HEATING_WATER) {
 					return false;
 				}
 				else {
@@ -199,7 +244,7 @@ public class WeiTrona extends HeatPump {
 
 	public boolean isStoppable(HeatingType type) {
 		try {
-			if (type == HeatingType.HEATING_WATER && isSeason(Season.SUMMER)) {
+			if (isSeason(Season.SUMMER) && type == HeatingType.HEATING_WATER) {
 				return false;
 			}
 		} catch (InvalidValueException e) {
@@ -211,7 +256,7 @@ public class WeiTrona extends HeatPump {
 
 	@Override
 	public boolean isStoppable(long time) {
-		if (!heatings.values().stream().anyMatch(c -> c.isStoppable())) {
+		if (!getHeatings().anyMatch(c -> c.isStoppable())) {
 			return false;
 		}
 		return super.isStoppable(time);
@@ -262,6 +307,65 @@ public class WeiTrona extends HeatPump {
 			break;
 		default:
 			break;
+		}
+	}
+
+	private class ElectricalPowerListener extends PowerListener {
+
+		private volatile Value powerValue = DoubleValue.emptyValue();
+
+		private ElectricalPowerListener() {
+			super(electricalEnergy);
+		}
+
+		public Value getLatestValue() {
+			return powerValue;
+		}
+
+		public void setLatestValue(Value thermalPowerValue) throws ComponentException {
+			try {
+				double electricalPowerValue = 0;
+				if (isRunning()) {
+					double temperatureFlow = circulation.getFlowInletTemperature().doubleValue();
+					double temperatureFactor = 
+							(temperatureFlow - OPERATION_LOW_TEMP) / 
+							(OPERATION_HIGH_TEMP - OPERATION_LOW_TEMP);
+					
+					double performanceFactor = OPERATION_LOW_COP + (OPERATION_HIGH_COP - OPERATION_LOW_COP)*temperatureFactor;
+					double performancePowerValue = thermalPowerValue.doubleValue()/performanceFactor;
+					double staticPowerValue = getMinPower() + (getMaxPower() - getMinPower())*temperatureFactor;
+					
+					electricalPowerValue = (performancePowerValue + staticPowerValue)/2;
+				}
+				electricalPower.setLatestValue(new DoubleValue(electricalPowerValue, thermalPowerValue.getEpochMillis()));
+				
+			} catch (InvalidValueException e) {
+				// Do nothing
+			}
+		}
+
+		@Override
+		protected void onPowerReceived(Value powerValue) {
+			super.onPowerReceived(powerValue);
+			this.powerValue = powerValue;
+		}
+	}
+
+	private class ThermalPowerListener extends PowerListener {
+
+		private ThermalPowerListener() {
+			super(thermalEnergy);
+		}
+
+		@Override
+		protected void onPowerReceived(Value powerValue) {
+			super.onPowerReceived(powerValue);
+			try {
+				electricalPowerListener.setLatestValue(powerValue);
+				
+			} catch (ComponentException e) {
+				logger.warn("Error calculationg power estimate: {}", e.getMessage());
+			}
 		}
 	}
 

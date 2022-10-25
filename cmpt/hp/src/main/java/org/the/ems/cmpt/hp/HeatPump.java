@@ -47,12 +47,12 @@ import org.the.ems.core.settings.ValueSettings;
 public class HeatPump extends Heating implements HeatPumpService {
 	private static final Logger logger = LoggerFactory.getLogger(HeatPump.class);
 
-	@Configuration("temp_in_max")
-	protected double temperatureInMax;
+	@Configuration("flow_temp_max")
+	protected double temperatureFlowMax;
 
-	@Configuration("temp_in")
-	protected Channel temperatureInput;
-	protected Value temperatureInputValue = DoubleValue.zeroValue();
+	@Configuration("flow_temp")
+	protected Channel temperatureFlow;
+	protected Value temperatureFlowValue = DoubleValue.zeroValue();
 
 	@Configuration
 	protected double cop;
@@ -65,13 +65,7 @@ public class HeatPump extends Heating implements HeatPumpService {
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		temperatureInput.registerValueListener(new TemperatureListener());
-	}
-
-	@Override
-	public void onDeactivate() throws ComponentException {
-		super.onDeactivate();
-		temperatureInput.deregisterValueListeners();
+		temperatureFlow.registerValueListener(new TemperatureListener());
 	}
 
 	@Override
@@ -89,9 +83,9 @@ public class HeatPump extends Heating implements HeatPumpService {
 
 	@Override
 	protected void onStateChanged(Value value) {
-		if (value.booleanValue() && temperatureInputValue.doubleValue() > temperatureInMax) {
+		if (value.booleanValue() && temperatureFlowValue.doubleValue() > temperatureFlowMax) {
 			logger.warn("Unable to switch on heat pump: Heating flow input temperature above threshold: {}", 
-					temperatureInputValue.doubleValue());
+					temperatureFlowValue.doubleValue());
 
 			// TODO: implement virtual start signal that does not affect relay
 			try {
@@ -110,8 +104,8 @@ public class HeatPump extends Heating implements HeatPumpService {
 
 		@Override
 		public void onValueReceived(Value value) {
-			temperatureInputValue = value;
-			if (temperatureInputValue.doubleValue() >= temperatureInMax) {
+			temperatureFlowValue = value;
+			if (temperatureFlowValue.doubleValue() >= temperatureFlowMax) {
 				try {
 					ValueSettings stopSettings = ValueSettings.ofBoolean(false, value.getEpochMillis());
 					stopSettings.setEnforced(true);

@@ -218,7 +218,7 @@
             "device": "_<node>",
             "configs": {"valueType":"DOUBLE", "unit": "W"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
-                "feed": {"name": "Power", "tag": "<name>"}
+                "feed": {"name": "Power thermal", "tag": "<name>"}
             }
         },
         {
@@ -256,6 +256,15 @@
             "description": "Flow setpoint temperature",
             "address": "<unitId>:HOLDING_REGISTERS:726:INT16",
             "configs": {"samplingInterval": "<refresh>", "samplingTimeOffset": "<offset>", "scalingFactor": 0.1, "valueType": "DOUBLE", "unit": "°C"}
+        },
+        {
+            "name": "<node>*power",
+            "description": "Compressor power estimate",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power estimate", "tag": "<name>"}
+            }
         },
         {
             "name": "<node>*state",
@@ -361,6 +370,13 @@
             "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>*flow*power",
+            "unit": "W"
+        },
+        {
+            "name": "Power estimate",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>*power",
             "unit": "W"
         },
         {

@@ -87,7 +87,16 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	public void onStart(WriteContainer container, long time) {
-		container.addDouble(waterTempSetpoint, getStartSetpoint(), time);
+		double temperatureSetpoint = getStartSetpoint();
+		try {
+			container.addDoubleIfChanged(waterTempSetpoint, temperatureSetpoint);
+			return;
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving {} temperature setpoint: {}", type.toString().toLowerCase(),  
+					e.getMessage());
+		}
+		container.addDouble(waterTempSetpoint, temperatureSetpoint, time);
 	}
 
 	private double getStartSetpoint() {
@@ -106,8 +115,11 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	public boolean isStartable() {
+		if (!isEnabled()) {
+			return false;
+		}
 		try {
-			return waterTemp.getLatestValue().doubleValue() < waterTempMax;
+			return waterTemp.getLatestValue().doubleValue() < waterTempMax - getTemperatureHysteresis();
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
@@ -129,7 +141,16 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	public void onStop(WriteContainer container, long time) {
-		container.addDouble(waterTempSetpoint, getStopSetpoint(), time);
+		double temperatureSetpoint = getStopSetpoint();
+		try {
+			container.addDoubleIfChanged(waterTempSetpoint, temperatureSetpoint);
+			return;
+			
+		} catch (InvalidValueException e) {
+			logger.debug("Error retrieving {} temperature setpoint: {}", type.toString().toLowerCase(),  
+					e.getMessage());
+		}
+		container.addDouble(waterTempSetpoint, temperatureSetpoint, time);
 	}
 
 	private double getStopSetpoint() {
@@ -148,6 +169,9 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	public boolean isStoppable() {
+		if (!isEnabled()) {
+			return false;
+		}
 		try {
 			return waterTemp.getLatestValue().doubleValue() > waterTempMin;
 			
@@ -160,6 +184,18 @@ public class HeatingHandler extends Component implements ValueListener {
 
 	public boolean isStandby() {
 		return !isRunning();
+	}
+
+	Value getTemperature() throws InvalidValueException {
+		return waterTemp.getLatestValue();
+	}
+
+	double getTemperatureMaximum() {
+		return waterTempMax;
+	}
+
+	double getTemperatureMinimum() {
+		return waterTempMin;
 	}
 
 	double getTemperatureHysteresis() {

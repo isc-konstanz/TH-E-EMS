@@ -62,6 +62,13 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	private volatile long runActionWriteTime = Long.MIN_VALUE;
 
+	@Configuration(mandatory = false, scale = 1000)
+	private int runStateValidationInterval = 10000;
+
+	private volatile long runStateValidationTime = 0;
+
+	private volatile RunState runState = RunState.DEFAULT;
+
 	@Configuration(mandatory=false, value="state_writable")
 	protected boolean stateIsWritable = true;
 
@@ -71,8 +78,6 @@ public abstract class Runnable extends Component implements RunnableService {
 	private volatile Value stateValue = null;
 	private volatile long startTimeLast = Long.MIN_VALUE;
 	private volatile long stopTimeLast = Long.MIN_VALUE;
-
-	private volatile RunState runState = RunState.DEFAULT;
 
 	private final List<RunStateListener> runStateListeners = new LinkedList<RunStateListener>();
 
@@ -216,19 +221,25 @@ public abstract class Runnable extends Component implements RunnableService {
 	@Override
 	protected void onInterrupt() throws ComponentException {
 		super.onInterrupt();
-		switch(getState()) {
-		case STOPPING:
-			if (isStandby()) {
-				doStandby();
+		long timestamp = System.currentTimeMillis();
+		if (timestamp - runStateValidationTime > runStateValidationInterval) {
+			switch(getState()) {
+			case STARTING:
+			case STANDBY:
+				if (isRunning()) {
+					doRunning();
+				}
+				break;
+			case STOPPING:
+			case RUNNING:
+				if (isStandby()) {
+					doStandby();
+				}
+				break;
+			default:
+				break;
 			}
-			break;
-		case STARTING:
-			if (isRunning()) {
-				doRunning();
-			}
-			break;
-		default:
-			break;
+			runStateValidationTime = timestamp;
 		}
 	}
 

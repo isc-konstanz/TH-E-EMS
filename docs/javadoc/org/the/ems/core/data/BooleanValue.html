@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":10};
+var data = {"i0":9,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,7 +109,12 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li><a href="Value.html" title="class in org.the.ems.core.data">org.the.ems.core.data.Value</a></li>
 <li>
 <ul class="inheritance">
+<li><a href="NumberValue.html" title="class in org.the.ems.core.data">org.the.ems.core.data.NumberValue</a></li>
+<li>
+<ul class="inheritance">
 <li>org.the.ems.core.data.BooleanValue</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -124,7 +129,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <hr>
 <pre>public class <span class="typeNameLabel">BooleanValue</span>
-extends <a href="Value.html" title="class in org.the.ems.core.data">Value</a></pre>
+extends <a href="NumberValue.html" title="class in org.the.ems.core.data">NumberValue</a></pre>
 </li>
 </ul>
 </div>
@@ -139,11 +144,18 @@ extends <a href="Value.html" title="class in org.the.ems.core.data">Value</a></p
 </a>
 <h3>Field Summary</h3>
 <ul class="blockList">
+<li class="blockList"><a id="fields.inherited.from.class.org.the.ems.core.data.NumberValue">
+<!--   -->
+</a>
+<h3>Fields inherited from class&nbsp;org.the.ems.core.data.<a href="NumberValue.html" title="class in org.the.ems.core.data">NumberValue</a></h3>
+<code><a href="NumberValue.html#value">value</a></code></li>
+</ul>
+<ul class="blockList">
 <li class="blockList"><a id="fields.inherited.from.class.org.the.ems.core.data.Value">
 <!--   -->
 </a>
 <h3>Fields inherited from class&nbsp;org.the.ems.core.data.<a href="Value.html" title="class in org.the.ems.core.data">Value</a></h3>
-<code><a href="Value.html#instant">instant</a>, <a href="Value.html#type">type</a>, <a href="Value.html#value">value</a>, <a href="Value.html#ZONE">ZONE</a></code></li>
+<code><a href="Value.html#instant">instant</a>, <a href="Value.html#type">type</a>, <a href="Value.html#ZONE">ZONE</a></code></li>
 </ul>
 </li>
 </ul>
@@ -201,8 +213,13 @@ extends <a href="Value.html" title="class in org.the.ems.core.data">Value</a></p
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor" id="i1">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#equals(boolean)">equals</a></span>&#8203;(boolean&nbsp;value)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i2">
 <td class="colFirst"><code>java.lang.String</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#stringValue()">stringValue</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </tbody>
@@ -210,11 +227,18 @@ extends <a href="Value.html" title="class in org.the.ems.core.data">Value</a></p
 </div>
 </div>
 <ul class="blockList">
+<li class="blockList"><a id="methods.inherited.from.class.org.the.ems.core.data.NumberValue">
+<!--   -->
+</a>
+<h3>Methods inherited from class&nbsp;org.the.ems.core.data.<a href="NumberValue.html" title="class in org.the.ems.core.data">NumberValue</a></h3>
+<code><a href="NumberValue.html#booleanValue()">booleanValue</a>, <a href="NumberValue.html#byteValue()">byteValue</a>, <a href="NumberValue.html#doubleValue()">doubleValue</a>, <a href="NumberValue.html#equals(java.lang.Object)">equals</a>, <a href="NumberValue.html#floatValue()">floatValue</a>, <a href="NumberValue.html#hashCode()">hashCode</a>, <a href="NumberValue.html#intValue()">intValue</a>, <a href="NumberValue.html#longValue()">longValue</a>, <a href="NumberValue.html#shortValue()">shortValue</a></code></li>
+</ul>
+<ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.the.ems.core.data.Value">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.data.<a href="Value.html" title="class in org.the.ems.core.data">Value</a></h3>
-<code><a href="Value.html#booleanValue()">booleanValue</a>, <a href="Value.html#byteValue()">byteValue</a>, <a href="Value.html#doubleValue()">doubleValue</a>, <a href="Value.html#equals(java.lang.Object)">equals</a>, <a href="Value.html#floatValue()">floatValue</a>, <a href="Value.html#getDate()">getDate</a>, <a href="Value.html#getDateTime()">getDateTime</a>, <a href="Value.html#getEpochMillis()">getEpochMillis</a>, <a href="Value.html#getEpochSeconds()">getEpochSeconds</a>, <a href="Value.html#getTime()">getTime</a>, <a href="Value.html#getType()">getType</a>, <a href="Value.html#hashCode()">hashCode</a>, <a href="Value.html#intValue()">intValue</a>, <a href="Value.html#longValue()">longValue</a>, <a href="Value.html#shortValue()">shortValue</a></code></li>
+<code><a href="Value.html#getDate()">getDate</a>, <a href="Value.html#getDateTime()">getDateTime</a>, <a href="Value.html#getEpochMillis()">getEpochMillis</a>, <a href="Value.html#getEpochSeconds()">getEpochSeconds</a>, <a href="Value.html#getTime()">getTime</a>, <a href="Value.html#getType()">getType</a>, <a href="Value.html#toString()">toString</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -268,16 +292,25 @@ extends <a href="Value.html" title="class in org.the.ems.core.data">Value</a></p
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="toString()">
+<a id="equals(boolean)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>toString</h4>
-<pre class="methodSignature">public&nbsp;java.lang.String&nbsp;toString()</pre>
+<h4>equals</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;equals&#8203;(boolean&nbsp;value)</pre>
+</li>
+</ul>
+<a id="stringValue()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>stringValue</h4>
+<pre class="methodSignature">public&nbsp;java.lang.String&nbsp;stringValue()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="Value.html#toString()">toString</a></code>&nbsp;in class&nbsp;<code><a href="Value.html" title="class in org.the.ems.core.data">Value</a></code></dd>
+<dd><code><a href="NumberValue.html#stringValue()">stringValue</a></code>&nbsp;in class&nbsp;<code><a href="NumberValue.html" title="class in org.the.ems.core.data">NumberValue</a></code></dd>
 </dl>
 </li>
 </ul>

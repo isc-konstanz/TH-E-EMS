@@ -40,8 +40,8 @@ public interface ContentManagementService {
 
 	public void setLatestValue(String id, Value value) throws UnknownChannelException;
 
-	public void write(String id, Value value) throws UnknownChannelException;
+	public void write(String id, Value value) throws UnknownChannelException, EnergyManagementException;
 
-	public void write(String id, ValueList values) throws UnknownChannelException;
+	public void write(String id, ValueList values) throws UnknownChannelException, EnergyManagementException;
 
 }

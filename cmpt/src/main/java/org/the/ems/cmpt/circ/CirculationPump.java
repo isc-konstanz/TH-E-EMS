@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.circ.Circulation.CirculationCallbacks;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
@@ -106,13 +107,13 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 		return System.currentTimeMillis() - startTimeLast >= runtimeMin;
 	}
 
-	public void start() {
+	public void start() throws EnergyManagementException {
 		if (!stateValueLast.booleanValue()) {
 			state.write(new BooleanValue(true));
 		}
 	}
 
-	public void stop() {
+	public void stop() throws EnergyManagementException {
 		if (stateValueLast.booleanValue()) {
 			state.write(new BooleanValue(false));
 		}
@@ -121,7 +122,12 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 	@Override
 	public void onTemperatureDeltaUpdated(Value delta) {
 		if (isRunning() && hasRunMinimum() && delta.doubleValue() <= flowTempDeltaMin) {
-			stop();
+			try {
+				stop();
+				
+			} catch (EnergyManagementException e) {
+				logger.warn("Error stopping circulation pump: {}", e.getMessage());
+			}
 		}
 	}
 

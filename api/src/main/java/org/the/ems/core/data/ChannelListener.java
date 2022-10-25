@@ -22,6 +22,8 @@ package org.the.ems.core.data;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.the.ems.core.EnergyManagementException;
+
 public class ChannelListener implements Channel {
 
     private final List<ValueListener> listeners = new LinkedList<ValueListener>();
@@ -84,12 +86,12 @@ public class ChannelListener implements Channel {
     }
 
     @Override
-    public void write(Value value) {
+    public void write(Value value) throws EnergyManagementException {
         channel.write(value);
     }
 
     @Override
-    public void write(ValueList value) {
+    public void write(ValueList value) throws EnergyManagementException {
         channel.write(value);
     }
 

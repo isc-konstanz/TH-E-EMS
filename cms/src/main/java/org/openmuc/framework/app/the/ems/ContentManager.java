@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.UnknownChannelException;
@@ -104,13 +105,13 @@ public class ContentManager implements ContentManagementService {
 	}
 
 	@Override
-	public void write(String id, Value value) throws UnknownChannelException {
+	public void write(String id, Value value) throws UnknownChannelException, EnergyManagementException {
 		logger.debug("Writing value for channel \"{}\": {}", id, value);
 		getChannel(id).write(value);
 	}
 
 	@Override
-	public void write(String id, ValueList values) throws UnknownChannelException {
+	public void write(String id, ValueList values) throws UnknownChannelException, EnergyManagementException {
 		logger.debug("Writing values for channel \"{}\": {}", id, values);
 		getChannel(id).write(values);
 	}

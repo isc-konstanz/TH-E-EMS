@@ -24,15 +24,18 @@ import java.util.List;
 
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.vnt.TemperatureListener.TemperatureCallbacks;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.VentilationService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.BooleanValue;
-import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.Channel;
+import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
@@ -43,6 +46,7 @@ import org.the.ems.core.data.ValueListener;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class CabinetVentilation extends Component implements VentilationService, TemperatureCallbacks {
+	private static final Logger logger = LoggerFactory.getLogger(CabinetVentilation.class);
 
 	@Configuration(mandatory=false, scale=60000) // Default interval minimum of 10 minutes
 	protected int runtimeMin = 600000;
@@ -61,7 +65,7 @@ public class CabinetVentilation extends Component implements VentilationService,
 	@Configuration
 	protected Channel state;
 
-	protected Value stateValueLast = null;
+	protected Value stateValueLast = new BooleanValue(false);
 	protected volatile long startTimeLast = 0;
 
 	@Override
@@ -80,11 +84,11 @@ public class CabinetVentilation extends Component implements VentilationService,
 		state.deregisterValueListeners();
 	}
 
-	public void start() {
+	public void start() throws EnergyManagementException {
 		state.write(new BooleanValue(true));
 	}
 
-	public void stop() {
+	public void stop() throws EnergyManagementException {
 		state.write(new BooleanValue(false));
 	}
 
@@ -93,15 +97,25 @@ public class CabinetVentilation extends Component implements VentilationService,
 		if (!isMaintenance()) {
 			if (temperature > temperatureMax + temperatureTolerance && !temperatureHighFlags.contains(type)) {
 				temperatureHighFlags.add(type);
-				start();
+				try {
+					start();
+					
+				} catch (EnergyManagementException e) {
+					logger.warn("Error starting ventilation after temperature threshold violation: {}", e.getMessage());
+				}
 			}
 			else if (temperature < temperatureMax - temperatureTolerance &&
 					System.currentTimeMillis() - startTimeLast >= runtimeMin) {
 				
-				if (stateValueLast != null && stateValueLast.booleanValue()) {
+				if (stateValueLast.booleanValue()) {
 					temperatureHighFlags.remove(type);
 					if (temperatureHighFlags.size() == 0) {
-						stop();
+						try {
+							stop();
+						
+						} catch (EnergyManagementException e) {
+							logger.warn("Error stopping ventilation for solved temperature threshold violations: {}", e.getMessage());
+						}
 					}
 				}
 			}
@@ -112,14 +126,12 @@ public class CabinetVentilation extends Component implements VentilationService,
 
 		@Override
 		public void onValueReceived(Value value) {
-			if (stateValueLast != null) {
-				boolean state = value.booleanValue();
-				if (state && !stateValueLast.booleanValue()) {
-					startTimeLast = value.getEpochMillis();
-				}
-				else if (!state && temperatureHighFlags.size() > 0) {
-					temperatureHighFlags.clear();
-				}
+			boolean state = value.booleanValue();
+			if (state && !stateValueLast.booleanValue()) {
+				startTimeLast = value.getEpochMillis();
+			}
+			else if (!state && temperatureHighFlags.size() > 0) {
+				temperatureHighFlags.clear();
 			}
 			stateValueLast = value;
 		}

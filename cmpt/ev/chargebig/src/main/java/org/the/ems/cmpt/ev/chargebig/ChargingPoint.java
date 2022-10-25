@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.ComponentContext;
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
@@ -98,7 +98,7 @@ public class ChargingPoint {
 		}
 	}
 
-	public static List<ChargingPoint> newCollection(ContentManagementService content, Configurations configs) 
+	public static List<ChargingPoint> newCollection(ComponentContext context, Configurations configs) 
 			throws ConfigurationException {
 		
 		Integer count = configs.getInteger(SECTION, "count");
@@ -118,8 +118,8 @@ public class ChargingPoint {
 		for (int i=1; i<=count; i++) {
 			ChargingPoint chargePoint = null;
 			try {
-				Channel limit = getConfiguredChannel(content, configs, i, "current_limit");
-				Channel state = getConfiguredChannel(content, configs, i, "state");
+				Channel limit = getConfiguredChannel(context, configs, i, "current_limit");
+				Channel state = getConfiguredChannel(context, configs, i, "state");
 				
 				chargePoint = new ChargingPoint(limitMin, limitMax, limit, state);
 				logger.debug("Registered charge point #{}", i);
@@ -132,7 +132,7 @@ public class ChargingPoint {
 		return Collections.unmodifiableList(chargePoints);
 	}
 
-	private static Channel getConfiguredChannel(ContentManagementService content, Configurations configs, 
+	private static Channel getConfiguredChannel(ComponentContext context, Configurations configs, 
 			int number, String key) throws ConfigurationException, UnknownChannelException {
 		
 		String format = configs.get(SECTION, key+"_format");
@@ -144,7 +144,7 @@ public class ChargingPoint {
 		}
 		String id = format.replace("#", String.valueOf(number));
 		try {
-			return content.getChannel(id);
+			return context.getChannel(id);
 			
 		} catch (NullPointerException e) {
 			throw new ConfigurationException(e);

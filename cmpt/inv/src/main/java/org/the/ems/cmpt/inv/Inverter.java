@@ -24,15 +24,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.text.MessageFormat;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
 import org.the.ems.cmpt.inv.ext.ConsumptionPower;
 import org.the.ems.cmpt.inv.ext.ExternalPower;
 import org.the.ems.core.Component;
+import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.MaintenanceException;
@@ -49,35 +47,37 @@ import org.the.ems.core.data.WriteContainer;
 import org.the.ems.core.schedule.Schedule;
 
 
-@org.osgi.service.component.annotations.Component(
-	scope = ServiceScope.BUNDLE,
-	service = InverterService.class,
-	configurationPid = InverterService.PID,
-	configurationPolicy = ConfigurationPolicy.REQUIRE
-)
-public class Inverter<S extends ElectricalEnergyStorage> extends Component 
+public abstract class Inverter<S extends ElectricalEnergyStorage> extends Component 
 		implements InverterService, InverterCallbacks {
 
 	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
 
-	protected static final String IMPORT_ENERGY_VALUE = "import_energy";
-	protected static final String IMPORT_POWER_VALUE = "import_power";
+	protected static final String IMPORT_ENERGY_VALUE = "energy_import";
+	protected static final String IMPORT_POWER_VALUE = "power_import";
 
-	protected static final String EXPORT_ENERGY_VALUE = "export_energy";
-	protected static final String EXPORT_POWER_VALUE = "export_power";
+	protected static final String EXPORT_ENERGY_VALUE = "energy_export";
+	protected static final String EXPORT_POWER_VALUE = "power_export";
 
-	protected static final String DC_ENERGY_VALUE = "dc_energy";
-	protected static final String DC_POWER_VALUE = "ac_power";
+	protected static final String INPUT_ENERGY_VALUE = "energy_input";
+	protected static final String INPUT_POWER_VALUE = "power_input";
 
-	protected static final String ACTIVE_POWER_VALUE = "active_power";
-	protected static final String ACTIVE_POWER_L1_VALUE = "active_power_l1";
-	protected static final String ACTIVE_POWER_L2_VALUE = "active_power_l2";
-	protected static final String ACTIVE_POWER_L3_VALUE = "active_power_l3";
+	protected static final String DC_ENERGY_VALUE = "energy_dc";
+	protected static final String DC_POWER_VALUE = "power_dc";
 
-	protected static final String REACTIVE_POWER_VALUE = "reactive_power";
-	protected static final String REACTIVE_POWER_L1_VALUE = "reactive_power_l1";
-	protected static final String REACTIVE_POWER_L2_VALUE = "reactive_power_l2";
-	protected static final String REACTIVE_POWER_L3_VALUE = "reactive_power_l3";
+	protected static final String AC_POWER_VALUE = "power_ac";
+	protected static final String AC_POWER_L1_VALUE = "power_ac_l1";
+	protected static final String AC_POWER_L2_VALUE = "power_ac_l2";
+	protected static final String AC_POWER_L3_VALUE = "power_ac_l3";
+
+	protected static final String ACTIVE_POWER_VALUE = "power_active";
+	protected static final String ACTIVE_POWER_L1_VALUE = "power_active_l1";
+	protected static final String ACTIVE_POWER_L2_VALUE = "power_active_l2";
+	protected static final String ACTIVE_POWER_L3_VALUE = "power_active_l3";
+
+	protected static final String REACTIVE_POWER_VALUE = "power_reactive";
+	protected static final String REACTIVE_POWER_L1_VALUE = "power_reactive_l1";
+	protected static final String REACTIVE_POWER_L2_VALUE = "power_reactive_l2";
+	protected static final String REACTIVE_POWER_L3_VALUE = "power_reactive_l3";
 
 	protected static final String VOLTAGE_VALUE = "voltage";
 	protected static final String VOLTAGE_L1_VALUE = "voltage_l1";
@@ -158,223 +158,223 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 	@Override
 	@Configuration(value=IMPORT_ENERGY_VALUE, mandatory=false)
 	public Value getImportEnergy() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(IMPORT_ENERGY_VALUE);
+		return getContext().getChannel(IMPORT_ENERGY_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getImportEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(IMPORT_ENERGY_VALUE, listener);
+		return getContext().getChannel(IMPORT_ENERGY_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerImportEnergyListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(IMPORT_ENERGY_VALUE, listener);
+		getContext().getChannel(IMPORT_ENERGY_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterImportEnergyListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(IMPORT_ENERGY_VALUE, listener);
+		getContext().getChannel(IMPORT_ENERGY_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
 	@Configuration(value=EXPORT_ENERGY_VALUE, mandatory=false)
 	public Value getExportEnergy() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(EXPORT_ENERGY_VALUE);
+		return getContext().getChannel(EXPORT_ENERGY_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getExportEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(EXPORT_ENERGY_VALUE, listener);
+		return getContext().getChannel(EXPORT_ENERGY_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerExportEnergyListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(EXPORT_ENERGY_VALUE, listener);
+		getContext().getChannel(EXPORT_ENERGY_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterExportEnergyListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(EXPORT_ENERGY_VALUE, listener);
+		getContext().getChannel(EXPORT_ENERGY_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
-	@Configuration(value=DC_ENERGY_VALUE, mandatory=false)
+	@Configuration(value= {INPUT_ENERGY_VALUE, DC_ENERGY_VALUE}, mandatory=false)
 	public Value getInputEnergy() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(DC_ENERGY_VALUE);
+		return getContext().getChannel(INPUT_ENERGY_VALUE, DC_ENERGY_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getInputEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(DC_ENERGY_VALUE, listener);
+		return getContext().getChannel(INPUT_ENERGY_VALUE, DC_ENERGY_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerInputEnergyListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(DC_ENERGY_VALUE, listener);
+		getContext().getChannel(INPUT_ENERGY_VALUE, DC_ENERGY_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterInputEnergyListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(DC_ENERGY_VALUE, listener);
+		getContext().getChannel(INPUT_ENERGY_VALUE, DC_ENERGY_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
-	@Configuration(value=DC_POWER_VALUE, mandatory=false)
+	@Configuration(value={INPUT_POWER_VALUE, DC_POWER_VALUE}, mandatory=false)
 	public Value getInputPower() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(DC_POWER_VALUE);
+		return getContext().getChannel(INPUT_POWER_VALUE, DC_POWER_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getInputPower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(DC_POWER_VALUE, listener);
+		return getContext().getChannel(INPUT_POWER_VALUE, DC_POWER_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerInputPowerListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(DC_POWER_VALUE, listener);
+		getContext().getChannel(INPUT_POWER_VALUE, DC_POWER_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterInputPowerListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(DC_POWER_VALUE, listener);
+		getContext().getChannel(INPUT_POWER_VALUE, DC_POWER_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
-	@Configuration(value=ACTIVE_POWER_VALUE, mandatory=false)
+	@Configuration(value= {ACTIVE_POWER_VALUE, AC_POWER_VALUE}, mandatory=false)
 	public Value getActivePower() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ACTIVE_POWER_VALUE);
+		return getContext().getChannel(ACTIVE_POWER_VALUE, AC_POWER_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getActivePower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ACTIVE_POWER_VALUE, listener);
+		return getContext().getChannel(ACTIVE_POWER_VALUE, AC_POWER_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerActivePowerListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(ACTIVE_POWER_VALUE, listener);
+		getContext().getChannel(ACTIVE_POWER_VALUE, AC_POWER_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterActivePowerListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(ACTIVE_POWER_VALUE, listener);
+		getContext().getChannel(ACTIVE_POWER_VALUE, AC_POWER_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
-	@Configuration(value=ACTIVE_POWER_L1_VALUE, mandatory=false)
+	@Configuration(value= {ACTIVE_POWER_L1_VALUE, AC_POWER_L1_VALUE}, mandatory=false)
 	public Value getActivePowerL1() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ACTIVE_POWER_L1_VALUE);
+		return getContext().getChannel(ACTIVE_POWER_L1_VALUE, AC_POWER_L1_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=ACTIVE_POWER_L2_VALUE, mandatory=false)
 	public Value getActivePowerL2() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ACTIVE_POWER_L2_VALUE);
+		return getContext().getChannel(ACTIVE_POWER_L2_VALUE, AC_POWER_L2_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=ACTIVE_POWER_L3_VALUE, mandatory=false)
 	public Value getActivePowerL3() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(ACTIVE_POWER_L3_VALUE);
+		return getContext().getChannel(ACTIVE_POWER_L3_VALUE, AC_POWER_L3_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=REACTIVE_POWER_VALUE, mandatory=false)
 	public Value getReactivePower() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(REACTIVE_POWER_VALUE);
+		return getContext().getChannel(REACTIVE_POWER_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getReactivePower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(REACTIVE_POWER_VALUE, listener);
+		return getContext().getChannel(REACTIVE_POWER_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerReactivePowerListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(REACTIVE_POWER_VALUE, listener);
+		getContext().getChannel(REACTIVE_POWER_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterReactivePowerListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(REACTIVE_POWER_VALUE, listener);
+		getContext().getChannel(REACTIVE_POWER_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
 	@Configuration(value=REACTIVE_POWER_L1_VALUE, mandatory=false)
 	public Value getReactivePowerL1() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(REACTIVE_POWER_L1_VALUE);
+		return getContext().getChannel(REACTIVE_POWER_L1_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=REACTIVE_POWER_L2_VALUE, mandatory=false)
 	public Value getReactivePowerL2() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(REACTIVE_POWER_L2_VALUE);
+		return getContext().getChannel(REACTIVE_POWER_L2_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=REACTIVE_POWER_L3_VALUE, mandatory=false)
 	public Value getReactivePowerL3() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(REACTIVE_POWER_L3_VALUE);
+		return getContext().getChannel(REACTIVE_POWER_L3_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=VOLTAGE_VALUE, mandatory=false)
 	public Value getVoltage() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(VOLTAGE_VALUE);
+		return getContext().getChannel(VOLTAGE_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getVoltage(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(VOLTAGE_VALUE, listener);
+		return getContext().getChannel(VOLTAGE_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerVoltageListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(VOLTAGE_VALUE, listener);
+		getContext().getChannel(VOLTAGE_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(VOLTAGE_VALUE, listener);
+		getContext().getChannel(VOLTAGE_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
 	@Configuration(value=VOLTAGE_L1_VALUE, mandatory=false)
 	public Value getVoltageL1() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(VOLTAGE_L1_VALUE);
+		return getContext().getChannel(VOLTAGE_L1_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=VOLTAGE_L2_VALUE, mandatory=false)
 	public Value getVoltageL2() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(VOLTAGE_L2_VALUE);
+		return getContext().getChannel(VOLTAGE_L2_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=VOLTAGE_L3_VALUE, mandatory=false)
 	public Value getVoltageL3() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(VOLTAGE_L3_VALUE);
+		return getContext().getChannel(VOLTAGE_L3_VALUE).getLatestValue();
 	}
 
 	@Override
 	@Configuration(value=FREQUENCY_VALUE, mandatory=false)
 	public Value getFrequency() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(FREQUENCY_VALUE);
+		return getContext().getChannel(FREQUENCY_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getFrequency(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getConfiguredValue(FREQUENCY_VALUE, listener);
+		return getContext().getChannel(FREQUENCY_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerFrequencyListener(ValueListener listener) throws ComponentException {
-		registerConfiguredValueListener(FREQUENCY_VALUE, listener);
+		getContext().getChannel(FREQUENCY_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterFrequencyListener(ValueListener listener) throws ComponentException {
-		deregisterConfiguredValueListener(FREQUENCY_VALUE, listener);
+		getContext().getChannel(FREQUENCY_VALUE).deregisterValueListener(listener);
 	}
 
 	public S getElectricalEnergyStorage() {
@@ -383,7 +383,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 
 	@Override
     @SuppressWarnings("unchecked")
-	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
 		
 		Class<S> storageClass;
@@ -415,27 +415,27 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 		String id = getId().startsWith(getType().getKey()) ? 
 					getId().replace(getType().getKey(), "ees") : "ees";
 		
-		registerService(id, configs, storage, ElectricalEnergyStorageService.class);
+		getContext().registerService(id, configs, storage, ElectricalEnergyStorageService.class);
 	}
 
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
-		registerService(getId().concat("_").concat("ext"), configs, external);
-		registerService(getId().concat("_").concat("cons"), configs, conssumption);
+		getContext().registerService(getId().concat("_").concat("ext"), configs, external);
+		getContext().registerService(getId().concat("_").concat("cons"), configs, consumption);
 		setpoint.registerValueListener(new SetpointListener());
 	}
 
 	@Override
 	public void onResume() throws ComponentException {
 		external.resume();
-		conssumption.resume();
+		consumption.resume();
 	}
 
 	@Override
 	public void onPause() throws ComponentException {
 		external.pause();
-		conssumption.pause();
+		consumption.pause();
 	}
 
 	@Override
@@ -502,7 +502,7 @@ public class Inverter<S extends ElectricalEnergyStorage> extends Component
 			return;
 		}
 		if (external.isRunning()) {
-			setpoint += external.getSolar().doubleValue();
+			setpoint -= external.getExternalPower();
 		}
 		
 		if (setpoint > getMaxPower()) {

@@ -86,7 +86,7 @@ public class WeiTrona extends HeatPump {
 
 	protected void onActivate(Configurations configs, HeatingType type) throws ComponentException {
 		HeatingHandler handler = new HeatingHandler(this, type);
-		registerService(getId().concat("_").concat(type.name().toLowerCase()), configs, handler);
+		getContext().registerService(getId().concat("_").concat(type.name().toLowerCase()), configs, handler);
 		heatings.put(type, handler);
 	}
 

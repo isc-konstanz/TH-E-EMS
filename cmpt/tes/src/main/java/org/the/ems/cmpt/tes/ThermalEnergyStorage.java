@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -20,6 +19,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
+import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.EnergyManagementService;
@@ -163,10 +163,10 @@ public class ThermalEnergyStorage extends Component
 	}
 
 	@Override
-	protected void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
 		try {
-			EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
+			EnergyManagementService manager = context.getEnergyManager();
 			for (String heating : heatingIds) {
 				ComponentService component = manager.getComponent(heating);
 				if (component instanceof HeatingService) {
@@ -316,12 +316,12 @@ public class ThermalEnergyStorage extends Component
 
 	@Configuration(value=TEMP_WATER_DOM_VALUE, mandatory=false)
 	protected Channel getDomesticWaterTemperature() throws ComponentException {
-		return getConfiguredChannel(TEMP_WATER_DOM_VALUE);
+		return getContext().getChannel(TEMP_WATER_DOM_VALUE);
 	}
 
 	@Configuration(value=TEMP_WATER_HT_VALUE, mandatory=false)
 	protected Channel getHeatingWaterTemperature() throws ComponentException {
-		return getConfiguredChannel(TEMP_WATER_HT_VALUE);
+		return getContext().getChannel(TEMP_WATER_HT_VALUE);
 	}
 
 	@Override

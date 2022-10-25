@@ -83,17 +83,17 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration(value=CHARGE_POWER_L1_VALUE)
 	public Value getChargePowerL1() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_POWER_L1_VALUE);
+		return getContext().getChannel(CHARGE_POWER_L1_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_POWER_L2_VALUE)
 	public Value getChargePowerL2() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_POWER_L2_VALUE);
+		return getContext().getChannel(CHARGE_POWER_L2_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_POWER_L3_VALUE)
 	public Value getChargePowerL3() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_POWER_L3_VALUE);
+		return getContext().getChannel(CHARGE_POWER_L3_VALUE).getLatestValue();
 	}
 
 	public Value getChargeCurrent() throws ComponentException, InvalidValueException {
@@ -102,17 +102,17 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration(value=CHARGE_CURRENT_L1_VALUE)
 	public Value getChargeCurrentL1() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_CURRENT_L1_VALUE);
+		return getContext().getChannel(CHARGE_CURRENT_L1_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_CURRENT_L2_VALUE)
 	public Value getChargeCurrentL2() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_CURRENT_L2_VALUE);
+		return getContext().getChannel(CHARGE_CURRENT_L2_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_CURRENT_L3_VALUE)
 	public Value getChargeCurrentL3() throws ComponentException, InvalidValueException {
-		return getConfiguredValue(CHARGE_CURRENT_L3_VALUE);
+		return getContext().getChannel(CHARGE_CURRENT_L3_VALUE).getLatestValue();
 	}
 
 	public double getSetpointPowerMaximum() {
@@ -191,7 +191,7 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 	}
 
 	private void onConfigureChargePoints(Configurations configs) throws ConfigurationException {
-		chargePoints = ChargingPoint.newCollection(getContentManagement(), configs);
+		chargePoints = ChargingPoint.newCollection(getContext(), configs);
 	}
 
 	@Override
@@ -239,8 +239,13 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	private void enable() {
 		logger.info("Enabling chargeBIG setpoint");
-		setpointEnabled.write(new BooleanValue(true));
-		setpointCurrent.write(new DoubleValue(getSetpointCurrentMaximum()));
+		try {
+			setpointEnabled.write(new BooleanValue(true));
+			setpointCurrent.write(new DoubleValue(getSetpointCurrentMaximum()));
+			
+		} catch (EnergyManagementException e) {
+			logger.warn("Error enabling chargeBIG setpoint: {}", e.getMessage());
+		}
 	}
 
 	@SuppressWarnings("serial")

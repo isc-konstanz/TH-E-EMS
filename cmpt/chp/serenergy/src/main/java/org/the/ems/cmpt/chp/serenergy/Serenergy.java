@@ -100,20 +100,24 @@ public class Serenergy extends Cogenerator {
 		@Override
 		public void onValueReceived(Value temp) {
 			if (!isMaintenance()) {
-				if (temp.doubleValue() > stackTempMax) {
-					circulationPump.start();
-				}
-				else if (temp.doubleValue() < stackTempMin) {
-					if (circulationPump.hasRunMinimum()) {
-						circulationPump.stop();
+				try {
+					if (temp.doubleValue() > stackTempMax) {
+						circulationPump.start();
 					}
-					try {
-						if (State.decode(state.getLatestValue()) == State.STANDBY) {
-							enable.write(Request.DISABLE.encode());
+					else if (temp.doubleValue() < stackTempMin) {
+						if (circulationPump.hasRunMinimum()) {
+							circulationPump.stop();
 						}
-					} catch (InvalidValueException e) {
-						logger.debug("Error while checking standby state: {}", e.getMessage());
+						try {
+							if (State.decode(state.getLatestValue()) == State.STANDBY) {
+								enable.write(Request.DISABLE.encode());
+							}
+						} catch (InvalidValueException e) {
+							logger.debug("Error while checking standby state: {}", e.getMessage());
+						}
 					}
+				} catch (EnergyManagementException e) {
+					logger.warn("Error monitoring stack temperature: {}", e.getMessage());
 				}
 			}
 		}

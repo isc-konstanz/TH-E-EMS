@@ -17,17 +17,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.config;
+package org.the.ems.core;
 
 import java.util.List;
 
-import org.the.ems.core.Configurable;
-import org.the.ems.core.ContentManagementService;
+import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
 import org.the.ems.core.data.ValueType;
 
-public class TestHandler extends Configurable {
+public class TestConfigurable extends Configurable {
 
 	@Configuration
 	private String test;
@@ -65,10 +66,10 @@ public class TestHandler extends Configurable {
 	@Configuration(value="test_channel*")
 	private ChannelCollection testWildcard;
 
-	private ContentManagementService content;
+	private ConfigurableContext context;
 
-	public TestHandler(Configurations configs) throws ConfigurationException {
-		content = new TestManager();
+	public TestConfigurable(Configurations configs) throws ConfigurationException {
+		context = new ConfigurableContext(this, new TestManager());
 		configure(configs);
 	}
 
@@ -117,8 +118,8 @@ public class TestHandler extends Configurable {
 	}
 
 	@Override
-	protected final ContentManagementService getContentManagement() {
-		return content;
+	protected ConfigurableContext getContext() {
+		return context;
 	}
 
 }

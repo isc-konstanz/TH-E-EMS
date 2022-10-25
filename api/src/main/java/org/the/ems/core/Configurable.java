@@ -26,10 +26,8 @@ import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.ConfigurationCollection;
@@ -37,15 +35,8 @@ import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.ChannelCollection;
-import org.the.ems.core.data.ChannelListener;
-import org.the.ems.core.data.InvalidValueException;
-import org.the.ems.core.data.UnknownChannelException;
-import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
 
 public abstract class Configurable {
-
-	private final Map<String, Channel> channels = new HashMap<String, Channel>();
 
 	private Configurations configs;
 
@@ -126,7 +117,7 @@ public abstract class Configurable {
 		
 		String key = parseKey(keys, method);
 		if (configs.containsKey(section, key)) {
-			configureChannel(section, key);
+			getContext().newChannel(key, section);
 			
 			return true;
 		}
@@ -201,7 +192,7 @@ public abstract class Configurable {
 
 		try {
 			if (Channel.class.isAssignableFrom(type)) {
-				Channel channel = configureChannel(section, key);
+				Channel channel = getContext().newChannel(key, section);
 				
 				return channel;
 			}
@@ -278,94 +269,19 @@ public abstract class Configurable {
 			}
 			else if (key.contains("?") || key.contains("*")) {
 				for (String k : configs.search(section, key)) {
-					Channel channel = configureChannel(section, k);
+					Channel channel = getContext().newChannel(k, section);
 					channels.put(k, channel);
 				}
 			}
 			else if (configs.containsKey(section, key)) {
-				Channel channel = configureChannel(section, key);
+				Channel channel = getContext().newChannel(key, section);
 				channels.put(key, channel);
 			}
 		}
 		return channels;
 	}
 
-	private Channel configureChannel(String section, String key) throws ConfigurationException {
-
-		String channelId = configs.get(section, key);
-		if (channels.containsKey(channelId)) {
-			return channels.get(channelId);
-		}
-		try {
-			Channel channel = new ChannelListener(getContentManagement().getChannel(channelId));
-			channels.put(channelId, channel);
-			
-			return channel;
-			
-		} catch (UnknownChannelException e) {
-			throw new ConfigurationException(MessageFormat.format("Unknown channel \"{0}\" for in section {1}", 
-					channelId, section));
-			
-		} catch (UnsupportedOperationException | NullPointerException e) {
-			throw new ConfigurationException(MessageFormat.format("Unable to configure channel \"{0}\" in section {1}", 
-					channelId, section));
-		}
-	}
-
-	protected ContentManagementService getContentManagement() {
-		// Default implementation to be overridden
-		throw new UnsupportedOperationException();
-	}
-
-	protected Channel getConfiguredChannel(String key, String section) throws ConfigurationException {
-		String channelId = configs.get(section, key);
-		Channel channel = channels.get(channelId);
-		if (channel == null) {
-			channel = configureChannel(section, key);
-		}
-		return channel;
-	}
-
-	protected Channel getConfiguredChannel(String key) throws ConfigurationException {
-		return getConfiguredChannel(key, 
-				getConfiguredSection());
-	}
-
-	protected Channel getConfiguredChannel(String key, ValueListener listener) throws ConfigurationException {
-		Channel channel =  getConfiguredChannel(key);
-		channel.registerValueListener(listener);
-		return channel;
-	}
-
-	protected void registerConfiguredValueListener(String key, ValueListener listener) throws ConfigurationException {
-		Channel channel =  getConfiguredChannel(key);
-		channel.registerValueListener(listener);
-	}
-
-	protected void deregisterConfiguredValueListener(String key, ValueListener listener) throws ConfigurationException {
-		Channel channel =  getConfiguredChannel(key);
-		channel.deregisterValueListener(listener);
-	}
-
-	protected void deregisterConfiguredValueListeners(String key) throws ConfigurationException {
-		Channel channel =  getConfiguredChannel(key);
-		channel.deregisterValueListeners();
-	}
-
-	protected void deregisterConfiguredValueListeners() {
-		channels.values().stream().forEach(c -> c.deregisterValueListeners());
-	}
-
-	protected Value getConfiguredValue(String key, ValueListener listener) throws ComponentException, InvalidValueException {
-		Channel channel =  getConfiguredChannel(key);
-		channel.registerValueListener(listener);
-		return channel.getLatestValue();
-	}
-
-	protected Value getConfiguredValue(String key) throws ComponentException, InvalidValueException {
-		Channel channel =  getConfiguredChannel(key);
-		return channel.getLatestValue();
-	}
+	protected ConfigurableContext getContext() throws UnsupportedOperationException { throw new UnsupportedOperationException(); }
 
 	public Configurations getConfigurations() {
 		return configs;

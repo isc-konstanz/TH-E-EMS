@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.the.ems.core.TestConfigurable;
 import org.the.ems.core.data.ValueType;
 
 public class TestConfiguration {
@@ -49,20 +50,20 @@ public class TestConfiguration {
 	}
 
 	@Test
-	public void testHandler() throws Exception {
-		TestHandler handler = new TestHandler(configs);
+	public void testConfigurable() throws Exception {
+		TestConfigurable configurable = new TestConfigurable(configs);
 
-		assertEquals(ValueType.BOOLEAN, handler.getTestValueType());
-		assertEquals(10.0f, handler.getTestFloat(), 0.0f);
-		assertEquals(1, handler.getTestInteger());
-		assertEquals("1", handler.getTestString());
-		assertEquals("Test", handler.getTest());
-		assertEquals("Test", handler.getTestSelection());
-		assertEquals("Test", handler.getTestCollection("test").getId());
-		assertEquals("Section", handler.getTestSection());
-		assertEquals("Channel1", handler.getTestCollection("test_channel1").getId());
-		assertEquals("Channel1", handler.getTestWildcard("test_channel1").getId());
-		assertEquals("Channel2", handler.getTestWildcard("test_channel2").getId());
+		assertEquals(ValueType.BOOLEAN, configurable.getTestValueType());
+		assertEquals(10.0f, configurable.getTestFloat(), 0.0f);
+		assertEquals(1, configurable.getTestInteger());
+		assertEquals("1", configurable.getTestString());
+		assertEquals("Test", configurable.getTest());
+		assertEquals("Test", configurable.getTestSelection());
+		assertEquals("Test", configurable.getTestCollection("test").getId());
+		assertEquals("Section", configurable.getTestSection());
+		assertEquals("Channel1", configurable.getTestCollection("test_channel1").getId());
+		assertEquals("Channel1", configurable.getTestWildcard("test_channel1").getId());
+		assertEquals("Channel2", configurable.getTestWildcard("test_channel2").getId());
 	}
 
 	@Test

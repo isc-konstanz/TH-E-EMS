@@ -19,6 +19,8 @@
  */
 package org.the.ems.core.data;
 
+import org.the.ems.core.EnergyManagementException;
+
 public interface Channel {
 
 	public String getId();
@@ -35,8 +37,8 @@ public interface Channel {
 
 	public void setLatestValue(Value value);
 
-	public void write(ValueList value);
+	public void write(ValueList value) throws EnergyManagementException;
 
-	public void write(Value value);
+	public void write(Value value) throws EnergyManagementException;
 
 }

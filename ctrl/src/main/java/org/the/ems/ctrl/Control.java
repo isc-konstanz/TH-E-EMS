@@ -1,9 +1,9 @@
 package org.the.ems.ctrl;
 
-import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.Component;
+import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
 import org.the.ems.core.ComponentType;
@@ -47,11 +47,11 @@ public abstract class Control extends Component implements InverterCallbacks, He
 	}
 
 	@Override
-	public void onActivate(BundleContext context, Configurations configs) throws ComponentException {
+	public void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
 		logger.info("Activating TH-E EMS {}: {}", this.getClass().getSimpleName(), getId());
 		
-		EnergyManagementService manager = context.getService(context.getServiceReference(EnergyManagementService.class));
+		EnergyManagementService manager = context.getEnergyManager();
 		for (ComponentService component : manager.getComponents(
 				ComponentType.INVERTER)) {
 			if (isEnabled(component)) {

@@ -66,7 +66,7 @@
 
     "items": [
         {
-            "id": "dc",
+            "id": "pv",
             "type": "Text",
             "label": "Generated power",
             "format": "%.1f kW",
@@ -86,7 +86,7 @@
     "channels": [
         {
             "name": "<node>*pv*power",
-            "description": "Inverter generated power",
+            "description": "<name> generated power",
             "address": "1:HOLDING_REGISTERS:40067:INT32:SWAP",
             "configs": {"samplingInterval": "<refresh>", "samplingGroup":"POWER", "valueType":"INTEGER", "unit":"W"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
@@ -95,7 +95,7 @@
         },
         {
             "name": "<node>*cons*power",
-            "description": "Inverter consumed power",
+            "description": "<name> consumed power",
             "address": "1:HOLDING_REGISTERS:40071:INT32:SWAP",
             "configs": {"samplingInterval": "<refresh>", "samplingGroup":"POWER", "valueType":"INTEGER", "unit":"W"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
@@ -104,7 +104,7 @@
         },
         {
             "name": "<node>*grid*power",
-            "description": "Inverter grid power",
+            "description": "<name> grid power",
             "address": "1:HOLDING_REGISTERS:40073:INT32:SWAP",
             "configs": {"samplingInterval": "<refresh>", "samplingGroup":"POWER", "valueType":"INTEGER", "unit":"W"},
             "logging": {"loggingInterval": "<refresh>", "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",

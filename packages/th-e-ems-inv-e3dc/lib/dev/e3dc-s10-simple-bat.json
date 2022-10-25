@@ -73,7 +73,7 @@
     "channels": [
         {
             "name": "<node>*power",
-            "description": "Battery charge power",
+            "description": "<name> charge power",
             "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:40069:INT32:SWAP",
@@ -84,7 +84,7 @@
         },
         {
             "name": "<node>*soc",
-            "description": "Battery state of charge",
+            "description": "<name> state of charge",
             "driver": "modbus",
             "device": "<inverter>",
             "address": "1:HOLDING_REGISTERS:40082:UINT16",

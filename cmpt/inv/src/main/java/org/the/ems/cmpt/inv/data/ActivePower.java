@@ -17,54 +17,53 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.cmpt.inv.ext;
+package org.the.ems.cmpt.inv.data;
 
 import org.the.ems.cmpt.inv.InverterCallbacks;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentException;
+import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
+import org.the.ems.core.data.ValueList;
 import org.the.ems.core.data.ValueListener;
 
-public class ExternalPower extends Component implements ValueListener {
+public class ActivePower extends Component implements Channel, ValueListener {
 
 	private final static String SECTION = "External";
 
 	private volatile InverterCallbacks callbacks = null;
 
-	@Configuration
-	private Channel virtualPower;
-
-	@Configuration
+	@Configuration(value="power_active", section=Configurations.GENERAL)
 	private Channel activePower;
 
-	@Configuration
-	private Channel solarPower;
+	@Configuration(value="power_source")
+	private Channel sourcePower;
 
-	@Configuration(mandatory=false)
-	private Channel solarEnergy;
-	private Value solarEnergyLast = null;
+	@Configuration(value="power_extern")
+	private Channel externalPower;
+
+	@Configuration(value="scaling_external", mandatory=false)
+	private double externalScaling = -1;
 
 	private volatile boolean running = false;
 
-	public ExternalPower() {
+	public ActivePower() {
 		super(SECTION);
 	}
 
 	@Override
 	protected void onActivate() throws ComponentException {
 		super.onActivate();
-		if (!isEnabled()) {
-			return;
+		if (isEnabled()) {
+			sourcePower.registerValueListener(new ActivePowerListener());
 		}
-		activePower.registerValueListener(new ActivePowerListener());
-		solarPower.registerValueListener(this);
-		if (solarEnergy != null) {
-			solarEnergy.registerValueListener(new SolarEnergyListener());
-		}
+		activePower.registerValueListener(this);
+		
 		running = true;
 	}
 
@@ -90,23 +89,63 @@ public class ExternalPower extends Component implements ValueListener {
 		this.running = false;
 	}
 
+	public Value getLatestValue() throws InvalidValueException {
+		return activePower.getLatestValue();
+	}
+
+	@Override
+	public Value getLatestValue(ValueListener listener) throws InvalidValueException {
+		return activePower.getLatestValue(listener);
+	}
+
+	@Override
+	public void registerValueListener(ValueListener listener) {
+		activePower.registerValueListener(listener);
+	}
+
+	@Override
+	public void deregisterValueListener(ValueListener listener) {
+		activePower.deregisterValueListener(listener);
+	}
+
+	@Override
+	public void deregisterValueListeners() {
+		activePower.deregisterValueListeners();
+	}
+
+	@Override
+	public void setLatestValue(Value value) {
+		activePower.setLatestValue(value);
+	}
+
+	@Override
+	public void write(ValueList values) throws EnergyManagementException {
+		activePower.write(values);
+	}
+
+	@Override
+	public void write(Value value) throws EnergyManagementException {
+		activePower.write(value);
+	}
+
 	public boolean isRunning() {
 		return isEnabled() && running;
 	}
 
-	public Value getSolar() {
+	public double getExternalPower() {
 		Value value;
 		try {
-			value = solarPower.getLatestValue();
+			value = externalPower.getLatestValue();
 			
 		} catch (InvalidValueException e) {
 			value = DoubleValue.zeroValue();
 		}
-		return value;
+		return externalScaling*value.doubleValue();
 	}
 
 	@Override
 	public void onValueReceived(Value value) {
+		// Always notify callback of received consumption values, as consumption may be a generic sampled channel
 		if (callbacks != null) {
 			callbacks.onSetpointUpdate();
 		}
@@ -117,24 +156,9 @@ public class ExternalPower extends Component implements ValueListener {
 		@Override
 		public void onValueReceived(Value value) {
 			if (isRunning()) {
-				DoubleValue virtualValue = new DoubleValue(value.doubleValue() - getSolar().doubleValue(), value.getEpochMillis());
-				virtualPower.setLatestValue(virtualValue);
+				double activePowerValue = value.doubleValue() + getExternalPower();
+				activePower.setLatestValue(new DoubleValue(activePowerValue, value.getEpochMillis()));
 			}
-		}
-	}
-
-	private class SolarEnergyListener implements ValueListener {
-
-		@Override
-		public void onValueReceived(Value value) {
-			if (solarEnergyLast != null) {
-				double hours = ((double) value.getEpochMillis() - (double) solarEnergyLast.getEpochMillis())/3600000;
-				if (hours > 0) {
-					Value power = new DoubleValue((value.doubleValue() - solarEnergyLast.doubleValue())*1000/hours, value.getEpochMillis());
-					solarPower.setLatestValue(power);
-				}
-			}
-			solarEnergyLast = value;
 		}
 	}
 

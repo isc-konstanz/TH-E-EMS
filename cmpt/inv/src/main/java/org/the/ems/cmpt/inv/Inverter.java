@@ -27,8 +27,8 @@ import java.text.MessageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.ees.ElectricalEnergyStorage;
-import org.the.ems.cmpt.inv.ext.ConsumptionPower;
-import org.the.ems.cmpt.inv.ext.ExternalPower;
+import org.the.ems.cmpt.inv.data.ConsumptionPower;
+import org.the.ems.cmpt.inv.data.ActivePower;
 import org.the.ems.core.Component;
 import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
@@ -98,13 +98,13 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	protected Channel setpoint;
 	protected volatile Value setpointValue = DoubleValue.zeroValue();
 
-	protected final ExternalPower external;
-	protected final ConsumptionPower conssumption;
+	protected final ActivePower external;
+	protected final ConsumptionPower consumption;
 
 	public Inverter() {
 		super();
-		external = new ExternalPower();
-		conssumption = new ConsumptionPower();
+		external = new ActivePower();
+		consumption = new ConsumptionPower(this);
 	}
 
 	@Override

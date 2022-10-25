@@ -17,12 +17,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.cmpt.inv.ext;
+package org.the.ems.cmpt.inv.data;
 
+import org.the.ems.cmpt.util.PowerListener;
+import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.Value;
-import org.the.ems.core.data.ValueListener;
 
-public class PowerListener implements ValueListener {
+public class PowerTypeListener extends PowerListener {
 
 	/**
 	 * Interface used to notify the {@link ConsumptionPower} 
@@ -39,7 +40,14 @@ public class PowerListener implements ValueListener {
 
 	private final PowerType type;
 
-	public PowerListener(PowerCallbacks callbacks, PowerType type) {
+	public PowerTypeListener(PowerCallbacks callbacks, PowerType type, Channel energy) {
+		super(energy);
+		this.callbacks = callbacks;
+		this.type = type;
+	}
+
+	public PowerTypeListener(PowerCallbacks callbacks, PowerType type) {
+		super();
 		this.callbacks = callbacks;
 		this.type = type;
 	}

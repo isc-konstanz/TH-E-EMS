@@ -243,7 +243,7 @@ implements <a href="InverterControl.InverterCallbacks.html" title="interface in 
 </tr>
 <tr class="altColor" id="i4">
 <td class="colFirst"><code>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.osgi.framework.BundleContext,org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(<a href="../core/ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
           <a href="../core/config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
@@ -305,14 +305,14 @@ implements <a href="InverterControl.InverterCallbacks.html" title="interface in 
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../core/Component.html" title="class in org.the.ems.core">Component</a></h3>
-<code><a href="../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../core/Component.html#bindContentManagementService(org.the.ems.core.ContentManagementService)">bindContentManagementService</a>, <a href="../core/Component.html#deactivate()">deactivate</a>, <a href="../core/Component.html#deregisterService(java.lang.String)">deregisterService</a>, <a href="../core/Component.html#deregisterServices()">deregisterServices</a>, <a href="../core/Component.html#getContentManagement()">getContentManagement</a>, <a href="../core/Component.html#getId()">getId</a>, <a href="../core/Component.html#getStatus()">getStatus</a>, <a href="../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../core/Component.html#onActivate()">onActivate</a>, <a href="../core/Component.html#onActivate(org.osgi.framework.BundleContext,java.util.Map)">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.config.Configurations)">onActivate</a>, <a href="../core/Component.html#onDeactivate()">onDeactivate</a>, <a href="../core/Component.html#onInterrupt()">onInterrupt</a>, <a href="../core/Component.html#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a>, <a href="../core/Component.html#onPause()">onPause</a>, <a href="../core/Component.html#onResume()">onResume</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class)">registerService</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class,java.lang.Class)">registerService</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component)">registerService</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component,java.lang.Class)">registerService</a>, <a href="../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../core/Component.html#unbindContentManagementService(org.the.ems.core.ContentManagementService)">unbindContentManagementService</a>, <a href="../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
+<code><a href="../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../core/Component.html#deactivate()">deactivate</a>, <a href="../core/Component.html#getContext()">getContext</a>, <a href="../core/Component.html#getId()">getId</a>, <a href="../core/Component.html#getStatus()">getStatus</a>, <a href="../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../core/Component.html#onActivate()">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.config.Configurations)">onActivate</a>, <a href="../core/Component.html#onDeactivate()">onDeactivate</a>, <a href="../core/Component.html#onInterrupt()">onInterrupt</a>, <a href="../core/Component.html#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a>, <a href="../core/Component.html#onPause()">onPause</a>, <a href="../core/Component.html#onResume()">onResume</a>, <a href="../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.the.ems.core.Configurable">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../core/Configurable.html" title="class in org.the.ems.core">Configurable</a></h3>
-<code><a href="../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../core/Configurable.html#deregisterConfiguredValueListener(java.lang.String,org.the.ems.core.data.ValueListener)">deregisterConfiguredValueListener</a>, <a href="../core/Configurable.html#deregisterConfiguredValueListeners()">deregisterConfiguredValueListeners</a>, <a href="../core/Configurable.html#deregisterConfiguredValueListeners(java.lang.String)">deregisterConfiguredValueListeners</a>, <a href="../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../core/Configurable.html#getConfiguredChannel(java.lang.String)">getConfiguredChannel</a>, <a href="../core/Configurable.html#getConfiguredChannel(java.lang.String,java.lang.String)">getConfiguredChannel</a>, <a href="../core/Configurable.html#getConfiguredChannel(java.lang.String,org.the.ems.core.data.ValueListener)">getConfiguredChannel</a>, <a href="../core/Configurable.html#getConfiguredSection()">getConfiguredSection</a>, <a href="../core/Configurable.html#getConfiguredValue(java.lang.String)">getConfiguredValue</a>, <a href="../core/Configurable.html#getConfiguredValue(java.lang.String,org.the.ems.core.data.ValueListener)">getConfiguredValue</a>, <a href="../core/Configurable.html#isEnabled()">isEnabled</a>, <a href="../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../core/Configurable.html#registerConfiguredValueListener(java.lang.String,org.the.ems.core.data.ValueListener)">registerConfiguredValueListener</a>, <a href="../core/Configurable.html#setConfiguredSection(java.lang.String)">setConfiguredSection</a></code></li>
+<code><a href="../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../core/Configurable.html#getConfiguredSection()">getConfiguredSection</a>, <a href="../core/Configurable.html#isEnabled()">isEnabled</a>, <a href="../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../core/Configurable.html#setConfiguredSection(java.lang.String)">setConfiguredSection</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -430,18 +430,18 @@ protected&nbsp;<a href="ControlMode.html" title="enum in org.the.ems.ctrl">Contr
 </dl>
 </li>
 </ul>
-<a id="onActivate(org.osgi.framework.BundleContext,org.the.ems.core.config.Configurations)">
+<a id="onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>onActivate</h4>
-<pre class="methodSignature">public&nbsp;void&nbsp;onActivate&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<pre class="methodSignature">public&nbsp;void&nbsp;onActivate&#8203;(<a href="../core/ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
                        <a href="../core/config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)
                 throws <a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../core/Component.html#onActivate(org.osgi.framework.BundleContext,org.the.ems.core.config.Configurations)">onActivate</a></code>&nbsp;in class&nbsp;<code><a href="../core/Component.html" title="class in org.the.ems.core">Component</a></code></dd>
+<dd><code><a href="../core/Component.html#onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onActivate</a></code>&nbsp;in class&nbsp;<code><a href="../core/Component.html" title="class in org.the.ems.core">Component</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
 </dl>

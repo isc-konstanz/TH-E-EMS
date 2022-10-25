@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":10,"i25":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -210,138 +210,88 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 </tr>
 <tr class="rowColor" id="i1">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#bindContentManagementService(org.the.ems.core.ContentManagementService)">bindContentManagementService</a></span>&#8203;(<a href="ContentManagementService.html" title="interface in org.the.ems.core">ContentManagementService</a>&nbsp;service)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i2">
-<td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deactivate()">deactivate</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getContext()">getContext</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 <tr class="rowColor" id="i3">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deregisterService(java.lang.String)">deregisterService</a></span>&#8203;(java.lang.String&nbsp;id)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i4">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deregisterServices()">deregisterServices</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor" id="i5">
-<td class="colFirst"><code>protected <a href="ContentManagementService.html" title="interface in org.the.ems.core">ContentManagementService</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getContentManagement()">getContentManagement</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i6">
 <td class="colFirst"><code>java.lang.String</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getId()">getId</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i7">
+<tr class="altColor" id="i4">
 <td class="colFirst"><code><a href="ComponentStatus.html" title="enum in org.the.ems.core">ComponentStatus</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getStatus()">getStatus</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i8">
+<tr class="rowColor" id="i5">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isMaintenance()">isMaintenance</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i9">
+<tr class="altColor" id="i6">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#modified(java.util.Map)">modified</a></span>&#8203;(java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i10">
+<tr class="rowColor" id="i7">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate()">onActivate</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i11">
+<tr class="altColor" id="i8">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.osgi.framework.BundleContext,java.util.Map)">onActivate</a></span>&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a></span>&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
           java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i12">
+<tr class="rowColor" id="i9">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.osgi.framework.BundleContext,org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
           <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i13">
+<tr class="altColor" id="i10">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(<a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i14">
+<tr class="rowColor" id="i11">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onDeactivate()">onDeactivate</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i15">
+<tr class="altColor" id="i12">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onInterrupt()">onInterrupt</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i16">
+<tr class="rowColor" id="i13">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a></span>&#8203;(org.osgi.framework.BundleContext&nbsp;context,
           java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i17">
+<tr class="altColor" id="i14">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onPause()">onPause</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i18">
+<tr class="rowColor" id="i15">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onResume()">onResume</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i19">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class)">registerService</a></span>&#8203;(java.lang.String&nbsp;id,
-               <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-               java.lang.Class&lt;? extends <a href="Component.html" title="class in org.the.ems.core">Component</a>&gt;&nbsp;componentClass)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i20">
-<td class="colFirst"><code>protected &lt;C extends <a href="ComponentService.html" title="interface in org.the.ems.core">ComponentService</a>&gt;<br>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class,java.lang.Class)">registerService</a></span>&#8203;(java.lang.String&nbsp;id,
-               <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-               java.lang.Class&lt;? extends <a href="Component.html" title="class in org.the.ems.core">Component</a>&gt;&nbsp;componentClass,
-               java.lang.Class&lt;C&gt;&nbsp;service)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor" id="i21">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component)">registerService</a></span>&#8203;(java.lang.String&nbsp;id,
-               <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-               <a href="Component.html" title="class in org.the.ems.core">Component</a>&nbsp;component)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i22">
-<td class="colFirst"><code>protected &lt;C extends <a href="ComponentService.html" title="interface in org.the.ems.core">ComponentService</a>&gt;<br>void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component,java.lang.Class)">registerService</a></span>&#8203;(java.lang.String&nbsp;id,
-               <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-               <a href="Component.html" title="class in org.the.ems.core">Component</a>&nbsp;component,
-               java.lang.Class&lt;C&gt;&nbsp;service)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor" id="i23">
+<tr class="altColor" id="i16">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a></span>&#8203;(<a href="ComponentStatus.html" title="enum in org.the.ems.core">ComponentStatus</a>&nbsp;status)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i24">
-<td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#unbindContentManagementService(org.the.ems.core.ContentManagementService)">unbindContentManagementService</a></span>&#8203;(<a href="ContentManagementService.html" title="interface in org.the.ems.core">ContentManagementService</a>&nbsp;service)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor" id="i25">
+<tr class="rowColor" id="i17">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#write(org.the.ems.core.data.WriteContainer)">write</a></span>&#8203;(<a href="data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container)</code></th>
 <td class="colLast">&nbsp;</td>
@@ -355,7 +305,7 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="Configurable.html" title="class in org.the.ems.core">Configurable</a></h3>
-<code><a href="Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="Configurable.html#deregisterConfiguredValueListener(java.lang.String,org.the.ems.core.data.ValueListener)">deregisterConfiguredValueListener</a>, <a href="Configurable.html#deregisterConfiguredValueListeners()">deregisterConfiguredValueListeners</a>, <a href="Configurable.html#deregisterConfiguredValueListeners(java.lang.String)">deregisterConfiguredValueListeners</a>, <a href="Configurable.html#getConfigurations()">getConfigurations</a>, <a href="Configurable.html#getConfiguredChannel(java.lang.String)">getConfiguredChannel</a>, <a href="Configurable.html#getConfiguredChannel(java.lang.String,java.lang.String)">getConfiguredChannel</a>, <a href="Configurable.html#getConfiguredChannel(java.lang.String,org.the.ems.core.data.ValueListener)">getConfiguredChannel</a>, <a href="Configurable.html#getConfiguredSection()">getConfiguredSection</a>, <a href="Configurable.html#getConfiguredValue(java.lang.String)">getConfiguredValue</a>, <a href="Configurable.html#getConfiguredValue(java.lang.String,org.the.ems.core.data.ValueListener)">getConfiguredValue</a>, <a href="Configurable.html#isEnabled()">isEnabled</a>, <a href="Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="Configurable.html#registerConfiguredValueListener(java.lang.String,org.the.ems.core.data.ValueListener)">registerConfiguredValueListener</a>, <a href="Configurable.html#setConfiguredSection(java.lang.String)">setConfiguredSection</a></code></li>
+<code><a href="Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="Configurable.html#getConfigurations()">getConfigurations</a>, <a href="Configurable.html#getConfiguredSection()">getConfiguredSection</a>, <a href="Configurable.html#isEnabled()">isEnabled</a>, <a href="Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="Configurable.html#setConfiguredSection(java.lang.String)">setConfiguredSection</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -464,35 +414,17 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <pre class="methodSignature">public final&nbsp;boolean&nbsp;isMaintenance()</pre>
 </li>
 </ul>
-<a id="getContentManagement()">
+<a id="getContext()">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getContentManagement</h4>
-<pre class="methodSignature">protected final&nbsp;<a href="ContentManagementService.html" title="interface in org.the.ems.core">ContentManagementService</a>&nbsp;getContentManagement()</pre>
+<h4>getContext</h4>
+<pre class="methodSignature">public final&nbsp;<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;getContext()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="Configurable.html#getContentManagement()">getContentManagement</a></code>&nbsp;in class&nbsp;<code><a href="Configurable.html" title="class in org.the.ems.core">Configurable</a></code></dd>
+<dd><code><a href="Configurable.html#getContext()">getContext</a></code>&nbsp;in class&nbsp;<code><a href="Configurable.html" title="class in org.the.ems.core">Configurable</a></code></dd>
 </dl>
-</li>
-</ul>
-<a id="bindContentManagementService(org.the.ems.core.ContentManagementService)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>bindContentManagementService</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;bindContentManagementService&#8203;(<a href="ContentManagementService.html" title="interface in org.the.ems.core">ContentManagementService</a>&nbsp;service)</pre>
-</li>
-</ul>
-<a id="unbindContentManagementService(org.the.ems.core.ContentManagementService)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>unbindContentManagementService</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;unbindContentManagementService&#8203;(<a href="ContentManagementService.html" title="interface in org.the.ems.core">ContentManagementService</a>&nbsp;service)</pre>
 </li>
 </ul>
 <a id="activate(org.osgi.framework.BundleContext,java.util.Map)">
@@ -511,13 +443,13 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 </dl>
 </li>
 </ul>
-<a id="onActivate(org.osgi.framework.BundleContext,java.util.Map)">
+<a id="onActivate(org.the.ems.core.ComponentContext,java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>onActivate</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;onActivate&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<pre class="methodSignature">protected&nbsp;void&nbsp;onActivate&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
                           java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)
                    throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
 <dl>
@@ -526,13 +458,13 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 </dl>
 </li>
 </ul>
-<a id="onActivate(org.osgi.framework.BundleContext,org.the.ems.core.config.Configurations)">
+<a id="onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>onActivate</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;onActivate&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<pre class="methodSignature">protected&nbsp;void&nbsp;onActivate&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
                           <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)
                    throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
 <dl>
@@ -667,7 +599,7 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <a id="onInterrupt()">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>onInterrupt</h4>
 <pre class="methodSignature">protected&nbsp;void&nbsp;onInterrupt()
@@ -675,102 +607,6 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a id="registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>registerService</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;registerService&#8203;(java.lang.String&nbsp;id,
-                               <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-                               java.lang.Class&lt;? extends <a href="Component.html" title="class in org.the.ems.core">Component</a>&gt;&nbsp;componentClass)
-                        throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a id="registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>registerService</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;registerService&#8203;(java.lang.String&nbsp;id,
-                               <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-                               <a href="Component.html" title="class in org.the.ems.core">Component</a>&nbsp;component)
-                        throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a id="registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class,java.lang.Class)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>registerService</h4>
-<pre class="methodSignature">protected&nbsp;&lt;C extends <a href="ComponentService.html" title="interface in org.the.ems.core">ComponentService</a>&gt;&nbsp;void&nbsp;registerService&#8203;(java.lang.String&nbsp;id,
-                                                            <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-                                                            java.lang.Class&lt;? extends <a href="Component.html" title="class in org.the.ems.core">Component</a>&gt;&nbsp;componentClass,
-                                                            java.lang.Class&lt;C&gt;&nbsp;service)
-                                                     throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a id="registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component,java.lang.Class)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>registerService</h4>
-<pre class="methodSignature">protected&nbsp;&lt;C extends <a href="ComponentService.html" title="interface in org.the.ems.core">ComponentService</a>&gt;&nbsp;void&nbsp;registerService&#8203;(java.lang.String&nbsp;id,
-                                                            <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs,
-                                                            <a href="Component.html" title="class in org.the.ems.core">Component</a>&nbsp;component,
-                                                            java.lang.Class&lt;C&gt;&nbsp;service)
-                                                     throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a id="deregisterService(java.lang.String)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>deregisterService</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;deregisterService&#8203;(java.lang.String&nbsp;id)
-                          throws org.osgi.service.component.ComponentException,
-                                 <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>org.osgi.service.component.ComponentException</code></dd>
-</dl>
-</li>
-</ul>
-<a id="deregisterServices()">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>deregisterServices</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;deregisterServices()
-                           throws org.osgi.service.component.ComponentException,
-                                  <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>org.osgi.service.component.ComponentException</code></dd>
 </dl>
 </li>
 </ul>

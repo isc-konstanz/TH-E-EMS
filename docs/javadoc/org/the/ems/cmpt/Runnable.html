@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":10,"i25":10,"i26":10,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10,"i33":10,"i34":10,"i35":10,"i36":10,"i37":10,"i38":10,"i39":10,"i40":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10,"i24":10,"i25":10,"i26":10,"i27":10,"i28":10,"i29":10,"i30":10,"i31":10,"i32":10,"i33":10,"i34":10,"i35":10,"i36":10,"i37":10,"i38":10,"i39":10,"i40":10,"i41":10,"i42":10,"i43":10,"i44":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -189,6 +189,11 @@ implements <a href="../core/RunnableService.html" title="interface in org.the.em
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#state">state</a></span></code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr class="rowColor">
+<td class="colFirst"><code>protected boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#stateIsWritable">stateIsWritable</a></span></code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -266,193 +271,213 @@ implements <a href="../core/RunnableService.html" title="interface in org.the.em
 </tr>
 <tr class="altColor" id="i4">
 <td class="colFirst"><code>int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinIdletime()">getMinIdletime</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getIdletime(long)">getIdletime</a></span>&#8203;(long&nbsp;timestamp)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor" id="i5">
 <td class="colFirst"><code>int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinRuntime()">getMinRuntime</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinIdletime()">getMinIdletime</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor" id="i6">
 <td class="colFirst"><code>int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRuntime()">getRuntime</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinRuntime()">getMinRuntime</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor" id="i7">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRuntime()">getRuntime</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRuntime(long)">getRuntime</a></span>&#8203;(long&nbsp;timestamp)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor" id="i9">
 <td class="colFirst"><code><a href="../core/settings/StartSettings.html" title="interface in org.the.ems.core.settings">StartSettings</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getStartSettings(long)">getStartSettings</a></span>&#8203;(long&nbsp;timestamp)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i8">
+<tr class="altColor" id="i10">
 <td class="colFirst"><code><a href="../core/RunState.html" title="enum in org.the.ems.core">RunState</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getState()">getState</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i9">
+<tr class="rowColor" id="i11">
 <td class="colFirst"><code><a href="../core/RunState.html" title="enum in org.the.ems.core">RunState</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getState(org.the.ems.core.RunStateListener)">getState</a></span>&#8203;(<a href="../core/RunStateListener.html" title="interface in org.the.ems.core">RunStateListener</a>&nbsp;listener)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i10">
+<tr class="altColor" id="i12">
 <td class="colFirst"><code><a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getStateValue()">getStateValue</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i11">
+<tr class="rowColor" id="i13">
 <td class="colFirst"><code><a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getStateValue(org.the.ems.core.data.ValueListener)">getStateValue</a></span>&#8203;(<a href="../core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i12">
+<tr class="altColor" id="i14">
 <td class="colFirst"><code><a href="../core/settings/StopSettings.html" title="interface in org.the.ems.core.settings">StopSettings</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getStopSettings(long)">getStopSettings</a></span>&#8203;(long&nbsp;timestamp)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i13">
+<tr class="rowColor" id="i15">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isReady()">isReady</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>protected boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isReady(long)">isReady</a></span>&#8203;(long&nbsp;timestamp)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor" id="i17">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isRunning()">isRunning</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i14">
+<tr class="altColor" id="i18">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isStandby()">isStandby</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i15">
+<tr class="rowColor" id="i19">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isStartable(long)">isStartable</a></span>&#8203;(long&nbsp;time)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i16">
+<tr class="altColor" id="i20">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isStoppable(long)">isStoppable</a></span>&#8203;(long&nbsp;time)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i17">
+<tr class="rowColor" id="i21">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(<a href="../core/config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i18">
+<tr class="altColor" id="i22">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onDeactivate()">onDeactivate</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i19">
+<tr class="rowColor" id="i23">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onInterrupt()">onInterrupt</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i20">
+<tr class="altColor" id="i24">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onRunning()">onRunning</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i21">
+<tr class="rowColor" id="i25">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onSchedule(org.the.ems.core.data.WriteContainer,org.the.ems.core.schedule.Schedule)">onSchedule</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
           <a href="../core/schedule/Schedule.html" title="class in org.the.ems.core.schedule">Schedule</a>&nbsp;schedule)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i22">
+<tr class="altColor" id="i26">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onSet(org.the.ems.core.data.WriteContainer,org.the.ems.core.data.Value)">onSet</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
      <a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;value)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i23">
+<tr class="rowColor" id="i27">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStandby()">onStandby</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i24">
+<tr class="altColor" id="i28">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStart(org.the.ems.core.data.WriteContainer,org.the.ems.core.data.Value)">onStart</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
        <a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;value)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i25">
+<tr class="rowColor" id="i29">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStart(org.the.ems.core.data.WriteContainer,org.the.ems.core.settings.StartSettings)">onStart</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
        <a href="../core/settings/StartSettings.html" title="interface in org.the.ems.core.settings">StartSettings</a>&nbsp;settings)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i26">
+<tr class="altColor" id="i30">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStart(org.the.ems.core.data.WriteContainer,org.the.ems.core.settings.ValueSettings)">onStart</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
        <a href="../core/settings/ValueSettings.html" title="class in org.the.ems.core.settings">ValueSettings</a>&nbsp;settings)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i27">
+<tr class="rowColor" id="i31">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStateChanged(org.the.ems.core.data.Value)">onStateChanged</a></span>&#8203;(<a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;state)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i28">
+<tr class="altColor" id="i32">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStateChanged(org.the.ems.core.RunState)">onStateChanged</a></span>&#8203;(<a href="../core/RunState.html" title="enum in org.the.ems.core">RunState</a>&nbsp;state)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i29">
+<tr class="rowColor" id="i33">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStop(org.the.ems.core.data.WriteContainer,org.the.ems.core.data.Value)">onStop</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
       <a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;value)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i30">
+<tr class="altColor" id="i34">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStop(org.the.ems.core.data.WriteContainer,org.the.ems.core.settings.StopSettings)">onStop</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
       <a href="../core/settings/StopSettings.html" title="interface in org.the.ems.core.settings">StopSettings</a>&nbsp;settings)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i31">
+<tr class="rowColor" id="i35">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onStop(org.the.ems.core.data.WriteContainer,org.the.ems.core.settings.ValueSettings)">onStop</a></span>&#8203;(<a href="../core/data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container,
       <a href="../core/settings/ValueSettings.html" title="class in org.the.ems.core.settings">ValueSettings</a>&nbsp;settings)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i32">
+<tr class="altColor" id="i36">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerStateListener(org.the.ems.core.RunStateListener)">registerStateListener</a></span>&#8203;(<a href="../core/RunStateListener.html" title="interface in org.the.ems.core">RunStateListener</a>&nbsp;listener)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i33">
+<tr class="rowColor" id="i37">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#registerStateValueListener(org.the.ems.core.data.ValueListener)">registerStateValueListener</a></span>&#8203;(<a href="../core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i34">
+<tr class="altColor" id="i38">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#schedule(org.the.ems.core.schedule.Schedule)">schedule</a></span>&#8203;(<a href="../core/schedule/Schedule.html" title="class in org.the.ems.core.schedule">Schedule</a>&nbsp;schedule)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i35">
+<tr class="rowColor" id="i39">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#set(org.the.ems.core.data.Value)">set</a></span>&#8203;(<a href="../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;value)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i36">
+<tr class="altColor" id="i40">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#setState(org.the.ems.core.RunState)">setState</a></span>&#8203;(<a href="../core/RunState.html" title="enum in org.the.ems.core">RunState</a>&nbsp;state)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i37">
+<tr class="rowColor" id="i41">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#start(long)">start</a></span>&#8203;(long&nbsp;timestamp)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i38">
+<tr class="altColor" id="i42">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#start(org.the.ems.core.settings.StartSettings)">start</a></span>&#8203;(<a href="../core/settings/StartSettings.html" title="interface in org.the.ems.core.settings">StartSettings</a>&nbsp;settings)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i39">
+<tr class="rowColor" id="i43">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#stop(long)">stop</a></span>&#8203;(long&nbsp;timestamp)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i40">
+<tr class="altColor" id="i44">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#stop(org.the.ems.core.settings.StopSettings)">stop</a></span>&#8203;(<a href="../core/settings/StopSettings.html" title="interface in org.the.ems.core.settings">StopSettings</a>&nbsp;settings)</code></th>
 <td class="colLast">&nbsp;</td>
@@ -466,14 +491,14 @@ implements <a href="../core/RunnableService.html" title="interface in org.the.em
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../core/Component.html" title="class in org.the.ems.core">Component</a></h3>
-<code><a href="../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../core/Component.html#bindContentManagementService(org.the.ems.core.ContentManagementService)">bindContentManagementService</a>, <a href="../core/Component.html#deactivate()">deactivate</a>, <a href="../core/Component.html#deregisterService(java.lang.String)">deregisterService</a>, <a href="../core/Component.html#deregisterServices()">deregisterServices</a>, <a href="../core/Component.html#getContentManagement()">getContentManagement</a>, <a href="../core/Component.html#getId()">getId</a>, <a href="../core/Component.html#getStatus()">getStatus</a>, <a href="../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../core/Component.html#onActivate()">onActivate</a>, <a href="../core/Component.html#onActivate(org.osgi.framework.BundleContext,java.util.Map)">onActivate</a>, <a href="../core/Component.html#onActivate(org.osgi.framework.BundleContext,org.the.ems.core.config.Configurations)">onActivate</a>, <a href="../core/Component.html#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a>, <a href="../core/Component.html#onPause()">onPause</a>, <a href="../core/Component.html#onResume()">onResume</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class)">registerService</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,java.lang.Class,java.lang.Class)">registerService</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component)">registerService</a>, <a href="../core/Component.html#registerService(java.lang.String,org.the.ems.core.config.Configurations,org.the.ems.core.Component,java.lang.Class)">registerService</a>, <a href="../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../core/Component.html#unbindContentManagementService(org.the.ems.core.ContentManagementService)">unbindContentManagementService</a>, <a href="../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
+<code><a href="../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../core/Component.html#deactivate()">deactivate</a>, <a href="../core/Component.html#getContext()">getContext</a>, <a href="../core/Component.html#getId()">getId</a>, <a href="../core/Component.html#getStatus()">getStatus</a>, <a href="../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../core/Component.html#onActivate()">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onActivate</a>, <a href="../core/Component.html#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a>, <a href="../core/Component.html#onPause()">onPause</a>, <a href="../core/Component.html#onResume()">onResume</a>, <a href="../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.the.ems.core.Configurable">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../core/Configurable.html" title="class in org.the.ems.core">Configurable</a></h3>
-<code><a href="../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../core/Configurable.html#deregisterConfiguredValueListener(java.lang.String,org.the.ems.core.data.ValueListener)">deregisterConfiguredValueListener</a>, <a href="../core/Configurable.html#deregisterConfiguredValueListeners()">deregisterConfiguredValueListeners</a>, <a href="../core/Configurable.html#deregisterConfiguredValueListeners(java.lang.String)">deregisterConfiguredValueListeners</a>, <a href="../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../core/Configurable.html#getConfiguredChannel(java.lang.String)">getConfiguredChannel</a>, <a href="../core/Configurable.html#getConfiguredChannel(java.lang.String,java.lang.String)">getConfiguredChannel</a>, <a href="../core/Configurable.html#getConfiguredChannel(java.lang.String,org.the.ems.core.data.ValueListener)">getConfiguredChannel</a>, <a href="../core/Configurable.html#getConfiguredSection()">getConfiguredSection</a>, <a href="../core/Configurable.html#getConfiguredValue(java.lang.String)">getConfiguredValue</a>, <a href="../core/Configurable.html#getConfiguredValue(java.lang.String,org.the.ems.core.data.ValueListener)">getConfiguredValue</a>, <a href="../core/Configurable.html#isEnabled()">isEnabled</a>, <a href="../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../core/Configurable.html#registerConfiguredValueListener(java.lang.String,org.the.ems.core.data.ValueListener)">registerConfiguredValueListener</a>, <a href="../core/Configurable.html#setConfiguredSection(java.lang.String)">setConfiguredSection</a></code></li>
+<code><a href="../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../core/Configurable.html#getConfiguredSection()">getConfiguredSection</a>, <a href="../core/Configurable.html#isEnabled()">isEnabled</a>, <a href="../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../core/Configurable.html#setConfiguredSection(java.lang.String)">setConfiguredSection</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -512,6 +537,17 @@ implements <a href="../core/RunnableService.html" title="interface in org.the.em
 <!--   -->
 </a>
 <h3>Field Detail</h3>
+<a id="stateIsWritable">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>stateIsWritable</h4>
+<pre><a href="../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../core/config/Configuration.html#mandatory()">mandatory</a>=false,
+               <a href="../core/config/Configuration.html#value()">value</a>="state_writable")
+protected&nbsp;boolean stateIsWritable</pre>
+</li>
+</ul>
 <a id="state">
 <!--   -->
 </a>
@@ -713,6 +749,15 @@ protected&nbsp;<a href="../core/data/Channel.html" title="interface in org.the.e
 </dl>
 </li>
 </ul>
+<a id="getRuntime(long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getRuntime</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;getRuntime&#8203;(long&nbsp;timestamp)</pre>
+</li>
+</ul>
 <a id="getMinRuntime()">
 <!--   -->
 </a>
@@ -737,6 +782,15 @@ protected&nbsp;<a href="../core/data/Channel.html" title="interface in org.the.e
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../core/RunnableService.html#getIdletime()">getIdletime</a></code>&nbsp;in interface&nbsp;<code><a href="../core/RunnableService.html" title="interface in org.the.ems.core">RunnableService</a></code></dd>
 </dl>
+</li>
+</ul>
+<a id="getIdletime(long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getIdletime</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;getIdletime&#8203;(long&nbsp;timestamp)</pre>
 </li>
 </ul>
 <a id="getMinIdletime()">
@@ -834,6 +888,24 @@ protected&nbsp;<a href="../core/data/Channel.html" title="interface in org.the.e
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
 </dl>
+</li>
+</ul>
+<a id="isReady()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isReady</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;isReady()</pre>
+</li>
+</ul>
+<a id="isReady(long)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isReady</h4>
+<pre class="methodSignature">protected&nbsp;boolean&nbsp;isReady&#8203;(long&nbsp;timestamp)</pre>
 </li>
 </ul>
 <a id="schedule(org.the.ems.core.schedule.Schedule)">

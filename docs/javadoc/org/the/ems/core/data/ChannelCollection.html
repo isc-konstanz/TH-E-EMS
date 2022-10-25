@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -228,6 +228,11 @@ extends java.util.HashMap&lt;java.lang.String,&#8203;<a href="Channel.html" titl
                      <a href="ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>java.util.stream.Stream&lt;<a href="Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#stream()">stream</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -331,10 +336,19 @@ extends java.util.HashMap&lt;java.lang.String,&#8203;<a href="Channel.html" titl
 <a id="deregisterValueListeners()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>deregisterValueListeners</h4>
 <pre class="methodSignature">public&nbsp;void&nbsp;deregisterValueListeners()</pre>
+</li>
+</ul>
+<a id="stream()">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>stream</h4>
+<pre class="methodSignature">public&nbsp;java.util.stream.Stream&lt;<a href="Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;&nbsp;stream()</pre>
 </li>
 </ul>
 </li>

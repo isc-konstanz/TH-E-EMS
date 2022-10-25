@@ -196,7 +196,22 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 	}
 
 	@Override
+	public boolean isStartable(long timestamp) {
+		if (!isConnected()) {
+			return false;
+		}
+		return super.isStartable(timestamp);
+	}
+
+	public boolean isConnected() {
+		return statusValue == ChargingPointStatus.CONNECTED;
+	}
+
+	@Override
 	protected void onSet(WriteContainer container, Value setpointPower) throws ComponentException {
+		if (!isCharging()) {
+			throw new ComponentException("Unable to update charging setpoint for charging point state: " + statusValue);
+		}
 		double currentValue = 0;
     	try {
     		currentValue = current.getLatestValue().doubleValue();
@@ -220,6 +235,18 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 			logger.debug("Stopping Flotteladen {} charging", getId());
 		}
 		container.add(currentSetpoint, new DoubleValue(0, settings.getEpochMillis()));
+	}
+
+	@Override
+	public boolean isStoppable(long timestamp) {
+		if (!isCharging()) {
+			return false;
+		}
+		return super.isStoppable(timestamp);
+	}
+
+	public boolean isCharging() {
+		return statusValue == ChargingPointStatus.CHARGING;
 	}
 
 	@Override

@@ -18,17 +18,17 @@
  * along with TH-E EMS.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-rootProject.name = 'TH-E-EMS'
+project.ext {
+    projectKey = 'th-e-ems-inv-fronius'
+    projectName = 'TH-E-EMS-Inverter-Fronius'
+    projectFullName = 'TH-E EMS Components - Fronius Inverter'
+    projectDescription = 'Fronius SunSpec inverter component for TH-E EMS framework.'
+}
 
-include 'api',
-        'main',
-        'cmpt',
-        'cmpt:ev', 'cmpt:ev:chargebig', 'cmpt:ev:flotteladen',
-        'cmpt:chp', 'cmpt:chp:energiewerkstatt', 'cmpt:chp:ice', 'cmpt:chp:serenergy',
-        'cmpt:hp', 'cmpt:hp:weider',
-        'cmpt:hr',
-        'cmpt:vnt',
-        'cmpt:tes',
-        'cmpt:inv', 'cmpt:inv:effekta', 'cmpt:inv:fronius', 'cmpt:inv:kaco',
-        'ctrl', 'ctrl:tp', 'ctrl:ps', 'ctrl:mpc',
-        'cms', 'cms:mockup'
+dependencies {
+    implementation project(':cmpt:inv')
+}
+
+jar {
+    bnd('Export-Package': '')
+}

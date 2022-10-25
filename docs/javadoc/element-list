@@ -1,5 +1,13 @@
 org.the.ems.cmpt
+org.the.ems.cmpt.chp
 org.the.ems.cmpt.circ
+org.the.ems.cmpt.ees
+org.the.ems.cmpt.ev
+org.the.ems.cmpt.hp
+org.the.ems.cmpt.hr
+org.the.ems.cmpt.inv
+org.the.ems.cmpt.inv.data
+org.the.ems.cmpt.tes
 org.the.ems.cmpt.util
 org.the.ems.core
 org.the.ems.core.cmpt

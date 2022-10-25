@@ -80,7 +80,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <span class="packageHierarchyLabel">Package Hierarchies:</span>
 <ul class="horizontal">
 <li><a href="org/the/ems/cmpt/package-tree.html">org.the.ems.cmpt</a>, </li>
+<li><a href="org/the/ems/cmpt/chp/package-tree.html">org.the.ems.cmpt.chp</a>, </li>
 <li><a href="org/the/ems/cmpt/circ/package-tree.html">org.the.ems.cmpt.circ</a>, </li>
+<li><a href="org/the/ems/cmpt/ees/package-tree.html">org.the.ems.cmpt.ees</a>, </li>
+<li><a href="org/the/ems/cmpt/ev/package-tree.html">org.the.ems.cmpt.ev</a>, </li>
+<li><a href="org/the/ems/cmpt/hp/package-tree.html">org.the.ems.cmpt.hp</a>, </li>
+<li><a href="org/the/ems/cmpt/hr/package-tree.html">org.the.ems.cmpt.hr</a>, </li>
+<li><a href="org/the/ems/cmpt/inv/package-tree.html">org.the.ems.cmpt.inv</a>, </li>
+<li><a href="org/the/ems/cmpt/inv/data/package-tree.html">org.the.ems.cmpt.inv.data</a>, </li>
+<li><a href="org/the/ems/cmpt/tes/package-tree.html">org.the.ems.cmpt.tes</a>, </li>
 <li><a href="org/the/ems/cmpt/util/package-tree.html">org.the.ems.cmpt.util</a>, </li>
 <li><a href="org/the/ems/core/package-tree.html">org.the.ems.core</a>, </li>
 <li><a href="org/the/ems/core/cmpt/package-tree.html">org.the.ems.core.cmpt</a>, </li>
@@ -142,14 +150,26 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul>
 <li class="circle">org.the.ems.core.<a href="org/the/ems/core/Component.html" title="class in org.the.ems.core"><span class="typeNameLink">Component</span></a> (implements org.the.ems.core.<a href="org/the/ems/core/ComponentService.html" title="interface in org.the.ems.core">ComponentService</a>)
 <ul>
+<li class="circle">org.the.ems.cmpt.inv.data.<a href="org/the/ems/cmpt/inv/data/ActivePower.html" title="class in org.the.ems.cmpt.inv.data"><span class="typeNameLink">ActivePower</span></a> (implements org.the.ems.core.data.<a href="org/the/ems/core/data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>, org.the.ems.core.data.<a href="org/the/ems/core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>)</li>
 <li class="circle">org.the.ems.cmpt.circ.<a href="org/the/ems/cmpt/circ/Circulation.html" title="class in org.the.ems.cmpt.circ"><span class="typeNameLink">Circulation</span></a> (implements org.the.ems.cmpt.circ.<a href="org/the/ems/cmpt/circ/FlowTemperatureListener.CirculationTemperatureCallbacks.html" title="interface in org.the.ems.cmpt.circ">FlowTemperatureListener.CirculationTemperatureCallbacks</a>)</li>
 <li class="circle">org.the.ems.cmpt.circ.<a href="org/the/ems/cmpt/circ/CirculationPump.html" title="class in org.the.ems.cmpt.circ"><span class="typeNameLink">CirculationPump</span></a> (implements org.the.ems.cmpt.circ.<a href="org/the/ems/cmpt/circ/Circulation.CirculationCallbacks.html" title="interface in org.the.ems.cmpt.circ">Circulation.CirculationCallbacks</a>)</li>
+<li class="circle">org.the.ems.cmpt.inv.data.<a href="org/the/ems/cmpt/inv/data/ConsumptionPower.html" title="class in org.the.ems.cmpt.inv.data"><span class="typeNameLink">ConsumptionPower</span></a> (implements org.the.ems.core.data.<a href="org/the/ems/core/data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>, org.the.ems.cmpt.inv.data.<a href="org/the/ems/cmpt/inv/data/PowerTypeListener.PowerCallbacks.html" title="interface in org.the.ems.cmpt.inv.data">PowerTypeListener.PowerCallbacks</a>, org.the.ems.core.data.<a href="org/the/ems/core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>)</li>
 <li class="circle">org.the.ems.ctrl.<a href="org/the/ems/ctrl/Control.html" title="class in org.the.ems.ctrl"><span class="typeNameLink">Control</span></a> (implements org.the.ems.ctrl.<a href="org/the/ems/ctrl/HeatingControl.HeatingCallbacks.html" title="interface in org.the.ems.ctrl">HeatingControl.HeatingCallbacks</a>, org.the.ems.ctrl.<a href="org/the/ems/ctrl/InverterControl.InverterCallbacks.html" title="interface in org.the.ems.ctrl">InverterControl.InverterCallbacks</a>)</li>
+<li class="circle">org.the.ems.cmpt.ees.<a href="org/the/ems/cmpt/ees/ElectricalEnergyStorage.html" title="class in org.the.ems.cmpt.ees"><span class="typeNameLink">ElectricalEnergyStorage</span></a> (implements org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/ElectricalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ElectricalEnergyStorageService</a>)</li>
+<li class="circle">org.the.ems.cmpt.inv.<a href="org/the/ems/cmpt/inv/Inverter.html" title="class in org.the.ems.cmpt.inv"><span class="typeNameLink">Inverter</span></a>&lt;S&gt; (implements org.the.ems.cmpt.inv.<a href="org/the/ems/cmpt/inv/InverterCallbacks.html" title="interface in org.the.ems.cmpt.inv">InverterCallbacks</a>, org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/InverterService.html" title="interface in org.the.ems.core.cmpt">InverterService</a>)</li>
 <li class="circle">org.the.ems.cmpt.<a href="org/the/ems/cmpt/Runnable.html" title="class in org.the.ems.cmpt"><span class="typeNameLink">Runnable</span></a> (implements org.the.ems.core.<a href="org/the/ems/core/RunnableService.html" title="interface in org.the.ems.core">RunnableService</a>)
 <ul>
-<li class="circle">org.the.ems.cmpt.<a href="org/the/ems/cmpt/Heating.html" title="class in org.the.ems.cmpt"><span class="typeNameLink">Heating</span></a> (implements org.the.ems.core.<a href="org/the/ems/core/HeatingService.html" title="interface in org.the.ems.core">HeatingService</a>)</li>
+<li class="circle">org.the.ems.cmpt.ev.<a href="org/the/ems/cmpt/ev/ElectricVehicle.html" title="class in org.the.ems.cmpt.ev"><span class="typeNameLink">ElectricVehicle</span></a> (implements org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/ElectricVehicleService.html" title="interface in org.the.ems.core.cmpt">ElectricVehicleService</a>)</li>
+<li class="circle">org.the.ems.cmpt.<a href="org/the/ems/cmpt/Heating.html" title="class in org.the.ems.cmpt"><span class="typeNameLink">Heating</span></a> (implements org.the.ems.core.<a href="org/the/ems/core/HeatingService.html" title="interface in org.the.ems.core">HeatingService</a>)
+<ul>
+<li class="circle">org.the.ems.cmpt.chp.<a href="org/the/ems/cmpt/chp/Cogenerator.html" title="class in org.the.ems.cmpt.chp"><span class="typeNameLink">Cogenerator</span></a> (implements org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/CogeneratorService.html" title="interface in org.the.ems.core.cmpt">CogeneratorService</a>)</li>
+<li class="circle">org.the.ems.cmpt.hr.<a href="org/the/ems/cmpt/hr/HeatingRod.html" title="class in org.the.ems.cmpt.hr"><span class="typeNameLink">HeatingRod</span></a> (implements org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/HeatingRodService.html" title="interface in org.the.ems.core.cmpt">HeatingRodService</a>)</li>
+<li class="circle">org.the.ems.cmpt.hp.<a href="org/the/ems/cmpt/hp/HeatPump.html" title="class in org.the.ems.cmpt.hp"><span class="typeNameLink">HeatPump</span></a> (implements org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/HeatPumpService.html" title="interface in org.the.ems.core.cmpt">HeatPumpService</a>)</li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="circle">org.the.ems.cmpt.tes.<a href="org/the/ems/cmpt/tes/ThermalEnergyStorage.html" title="class in org.the.ems.cmpt.tes"><span class="typeNameLink">ThermalEnergyStorage</span></a> (implements java.lang.Runnable, org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/StratifiedChargeStorage.html" title="interface in org.the.ems.core.cmpt">StratifiedChargeStorage</a>, org.the.ems.core.cmpt.<a href="org/the/ems/core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>, org.the.ems.core.data.<a href="org/the/ems/core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>)</li>
 </ul>
 </li>
 </ul>
@@ -192,8 +212,13 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li class="circle">org.the.ems.core.settings.<a href="org/the/ems/core/settings/HeatingSettings.html" title="class in org.the.ems.core.settings"><span class="typeNameLink">HeatingSettings</span></a></li>
 <li class="circle">org.the.ems.ctrl.<a href="org/the/ems/ctrl/InverterControl.html" title="class in org.the.ems.ctrl"><span class="typeNameLink">InverterControl</span></a></li>
 <li class="circle">org.the.ems.core.schedule.<a href="org/the/ems/core/schedule/NamedThreadFactory.html" title="class in org.the.ems.core.schedule"><span class="typeNameLink">NamedThreadFactory</span></a> (implements java.util.concurrent.ThreadFactory)</li>
-<li class="circle">org.the.ems.cmpt.util.<a href="org/the/ems/cmpt/util/PowerListener.html" title="class in org.the.ems.cmpt.util"><span class="typeNameLink">PowerListener</span></a> (implements org.the.ems.core.data.<a href="org/the/ems/core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>)</li>
+<li class="circle">org.the.ems.cmpt.util.<a href="org/the/ems/cmpt/util/PowerListener.html" title="class in org.the.ems.cmpt.util"><span class="typeNameLink">PowerListener</span></a> (implements org.the.ems.core.data.<a href="org/the/ems/core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>)
+<ul>
+<li class="circle">org.the.ems.cmpt.inv.data.<a href="org/the/ems/cmpt/inv/data/PowerTypeListener.html" title="class in org.the.ems.cmpt.inv.data"><span class="typeNameLink">PowerTypeListener</span></a></li>
+</ul>
+</li>
 <li class="circle">org.the.ems.cmpt.<a href="org/the/ems/cmpt/Runnable.StateListener.html" title="class in org.the.ems.cmpt"><span class="typeNameLink">Runnable.StateListener</span></a> (implements org.the.ems.core.data.<a href="org/the/ems/core/data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>)</li>
+<li class="circle">org.the.ems.cmpt.tes.<a href="org/the/ems/cmpt/tes/ThermalEnergy.html" title="class in org.the.ems.cmpt.tes"><span class="typeNameLink">ThermalEnergy</span></a></li>
 <li class="circle">java.lang.Throwable (implements java.io.Serializable)
 <ul>
 <li class="circle">java.lang.Exception
@@ -285,6 +310,8 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </ul>
 </li>
 <li class="circle">org.the.ems.cmpt.circ.<a href="org/the/ems/cmpt/circ/FlowTemperatureListener.CirculationTemperatureCallbacks.html" title="interface in org.the.ems.cmpt.circ"><span class="typeNameLink">FlowTemperatureListener.CirculationTemperatureCallbacks</span></a></li>
+<li class="circle">org.the.ems.cmpt.inv.<a href="org/the/ems/cmpt/inv/InverterCallbacks.html" title="interface in org.the.ems.cmpt.inv"><span class="typeNameLink">InverterCallbacks</span></a></li>
+<li class="circle">org.the.ems.cmpt.inv.data.<a href="org/the/ems/cmpt/inv/data/PowerTypeListener.PowerCallbacks.html" title="interface in org.the.ems.cmpt.inv.data"><span class="typeNameLink">PowerTypeListener.PowerCallbacks</span></a></li>
 <li class="circle">org.the.ems.core.<a href="org/the/ems/core/RunStateListener.html" title="interface in org.the.ems.core"><span class="typeNameLink">RunStateListener</span></a></li>
 <li class="circle">org.the.ems.core.schedule.<a href="org/the/ems/core/schedule/ScheduleListener.html" title="interface in org.the.ems.core.schedule"><span class="typeNameLink">ScheduleListener</span></a></li>
 <li class="circle">org.the.ems.core.schedule.<a href="org/the/ems/core/schedule/ScheduleService.html" title="interface in org.the.ems.core.schedule"><span class="typeNameLink">ScheduleService</span></a></li>
@@ -316,6 +343,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <li class="circle">org.the.ems.cmpt.circ.<a href="org/the/ems/cmpt/circ/FlowTemperature.html" title="enum in org.the.ems.cmpt.circ"><span class="typeNameLink">FlowTemperature</span></a></li>
 <li class="circle">org.the.ems.core.<a href="org/the/ems/core/HeatingType.html" title="enum in org.the.ems.core"><span class="typeNameLink">HeatingType</span></a></li>
 <li class="circle">org.the.ems.core.data.<a href="org/the/ems/core/data/InvalidValueException.Severity.html" title="enum in org.the.ems.core.data"><span class="typeNameLink">InvalidValueException.Severity</span></a></li>
+<li class="circle">org.the.ems.cmpt.inv.data.<a href="org/the/ems/cmpt/inv/data/PowerType.html" title="enum in org.the.ems.cmpt.inv.data"><span class="typeNameLink">PowerType</span></a></li>
 <li class="circle">org.the.ems.core.<a href="org/the/ems/core/RunState.html" title="enum in org.the.ems.core"><span class="typeNameLink">RunState</span></a></li>
 <li class="circle">org.the.ems.core.<a href="org/the/ems/core/Season.html" title="enum in org.the.ems.core"><span class="typeNameLink">Season</span></a></li>
 <li class="circle">org.the.ems.core.data.<a href="org/the/ems/core/data/ValueType.html" title="enum in org.the.ems.core.data"><span class="typeNameLink">ValueType</span></a></li>

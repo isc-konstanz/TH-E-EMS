@@ -1,11 +1,23 @@
 <package> (<version>) stable; urgency=medium
 
+  * Add Flotteladen ElectricVehicle Component
+  * Add Fronius Inverter component
+  * Add WeiTrona power consumption estimate
+  * Add runStateValidationTime interval
+  * Add EnergyManagementException to channel write methods
+  * Rework ASV setpoint handling
+  * Implement ComponentContext structure
+
+ -- <maintainer>  <date>
+
+th-e-ems (1.3.7) stable; urgency=medium
+
   * Fix Component RunState observer
   * Fix WeiTrona summer heating mode
   * Add WeiTrona temperature setpoint run state observer
   * Add WeiTrona vacation mode
 
- -- <maintainer>  <date>
+ -- Adrian Minde <adrian.minde@isc-konstanz.de>  Tue, 14 Jun 2022 10:53:25 +0200
 
 <package> (1.3.6) stable; urgency=medium
 

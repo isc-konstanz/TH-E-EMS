@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -207,35 +207,45 @@ extends java.lang.Object</pre>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor" id="i1">
-<td class="colFirst"><code><a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getChannel(java.lang.String...)">getChannel</a></span>&#8203;(java.lang.String...&nbsp;keys)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i2">
-<td class="colFirst"><code><a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getChannel(java.lang.String,org.the.ems.core.data.ValueListener)">getChannel</a></span>&#8203;(java.lang.String&nbsp;key,
-          <a href="data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="rowColor" id="i3">
-<td class="colFirst"><code>java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getChannels()">getChannels</a></span>()</code></th>
-<td class="colLast">&nbsp;</td>
-</tr>
-<tr class="altColor" id="i4">
 <td class="colFirst"><code><a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getConfigurations()">getConfigurations</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
+<tr class="altColor" id="i2">
+<td class="colFirst"><code><a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getConfiguredChannel(java.lang.String,java.lang.String...)">getConfiguredChannel</a></span>&#8203;(java.lang.String&nbsp;section,
+                    java.lang.String...&nbsp;keys)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor" id="i3">
+<td class="colFirst"><code>protected java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getConfiguredChannels()">getConfiguredChannels</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i4">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getConfiguredChannels(java.lang.String)">getConfiguredChannels</a></span>&#8203;(java.lang.String&nbsp;section)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
 <tr class="rowColor" id="i5">
-<td class="colFirst"><code>protected java.lang.String</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getConfiguredSection()">getConfiguredSection</a></span>()</code></th>
+<td class="colFirst"><code><a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDefaultChannel(java.lang.String...)">getDefaultChannel</a></span>&#8203;(java.lang.String...&nbsp;keys)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor" id="i6">
-<td class="colFirst"><code>protected <a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a></code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newChannel(java.lang.String,java.lang.String)">newChannel</a></span>&#8203;(java.lang.String&nbsp;key,
-          java.lang.String&nbsp;section)</code></th>
+<td class="colFirst"><code><a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDefaultChannel(java.lang.String,org.the.ems.core.data.ValueListener)">getDefaultChannel</a></span>&#8203;(java.lang.String&nbsp;key,
+                 <a href="data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDefaultChannels()">getDefaultChannels</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i8">
+<td class="colFirst"><code>java.lang.String</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getDefaultSection()">getDefaultSection</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </tbody>
@@ -322,66 +332,84 @@ extends java.lang.Object</pre>
 <pre class="methodSignature">public&nbsp;<a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;getConfigurations()</pre>
 </li>
 </ul>
-<a id="getConfiguredSection()">
+<a id="getConfiguredChannels(java.lang.String)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getConfiguredSection</h4>
-<pre class="methodSignature">protected&nbsp;java.lang.String&nbsp;getConfiguredSection()</pre>
+<h4>getConfiguredChannels</h4>
+<pre class="methodSignature">public&nbsp;java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;&nbsp;getConfiguredChannels&#8203;(java.lang.String&nbsp;section)</pre>
 </li>
 </ul>
-<a id="newChannel(java.lang.String,java.lang.String)">
+<a id="getConfiguredChannels()">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>newChannel</h4>
-<pre class="methodSignature">protected&nbsp;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&nbsp;newChannel&#8203;(java.lang.String&nbsp;key,
-                             java.lang.String&nbsp;section)
-                      throws <a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></pre>
+<h4>getConfiguredChannels</h4>
+<pre class="methodSignature">protected&nbsp;java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;&nbsp;getConfiguredChannels()</pre>
+</li>
+</ul>
+<a id="getConfiguredChannel(java.lang.String,java.lang.String...)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getConfiguredChannel</h4>
+<pre class="methodSignature">public&nbsp;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&nbsp;getConfiguredChannel&#8203;(java.lang.String&nbsp;section,
+                                    java.lang.String...&nbsp;keys)
+                             throws <a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></code></dd>
 </dl>
 </li>
 </ul>
-<a id="getChannel(java.lang.String...)">
+<a id="getDefaultChannel(java.lang.String,org.the.ems.core.data.ValueListener)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getChannel</h4>
-<pre class="methodSignature">public&nbsp;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&nbsp;getChannel&#8203;(java.lang.String...&nbsp;keys)
-                   throws <a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></pre>
+<h4>getDefaultChannel</h4>
+<pre class="methodSignature">public&nbsp;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&nbsp;getDefaultChannel&#8203;(java.lang.String&nbsp;key,
+                                 <a href="data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)
+                          throws <a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></code></dd>
 </dl>
 </li>
 </ul>
-<a id="getChannel(java.lang.String,org.the.ems.core.data.ValueListener)">
+<a id="getDefaultChannel(java.lang.String...)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getChannel</h4>
-<pre class="methodSignature">public&nbsp;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&nbsp;getChannel&#8203;(java.lang.String&nbsp;key,
-                          <a href="data/ValueListener.html" title="interface in org.the.ems.core.data">ValueListener</a>&nbsp;listener)
-                   throws <a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></pre>
+<h4>getDefaultChannel</h4>
+<pre class="methodSignature">public&nbsp;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&nbsp;getDefaultChannel&#8203;(java.lang.String...&nbsp;keys)
+                          throws <a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="config/ConfigurationException.html" title="class in org.the.ems.core.config">ConfigurationException</a></code></dd>
 </dl>
 </li>
 </ul>
-<a id="getChannels()">
+<a id="getDefaultChannels()">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getChannels</h4>
-<pre class="methodSignature">public&nbsp;java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;&nbsp;getChannels()</pre>
+<h4>getDefaultChannels</h4>
+<pre class="methodSignature">public&nbsp;java.util.Collection&lt;<a href="data/Channel.html" title="interface in org.the.ems.core.data">Channel</a>&gt;&nbsp;getDefaultChannels()</pre>
+</li>
+</ul>
+<a id="getDefaultSection()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDefaultSection</h4>
+<pre class="methodSignature">public&nbsp;java.lang.String&nbsp;getDefaultSection()</pre>
 </li>
 </ul>
 <a id="deregisterValueListeners()">

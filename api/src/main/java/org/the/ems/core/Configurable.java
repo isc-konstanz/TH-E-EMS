@@ -82,7 +82,7 @@ public abstract class Configurable {
 			
 			String section = config.section();
 			if (section.isEmpty() || section.equals(Configuration.SECTION_DEFAULT)) {
-				section = getConfiguredSection();
+				section = getDefaultSection();
 			}
 			if (!configs.isEnabled(section)) {
 				continue;
@@ -117,7 +117,7 @@ public abstract class Configurable {
 		
 		String key = parseKey(keys, method);
 		if (configs.containsKey(section, key)) {
-			getContext().newChannel(key, section);
+			getContext().getConfiguredChannel(section, key);
 			
 			return true;
 		}
@@ -192,7 +192,7 @@ public abstract class Configurable {
 
 		try {
 			if (Channel.class.isAssignableFrom(type)) {
-				Channel channel = getContext().newChannel(key, section);
+				Channel channel = getContext().getConfiguredChannel(section, key);
 				
 				return channel;
 			}
@@ -269,12 +269,12 @@ public abstract class Configurable {
 			}
 			else if (key.contains("?") || key.contains("*")) {
 				for (String k : configs.search(section, key)) {
-					Channel channel = getContext().newChannel(k, section);
+					Channel channel = getContext().getConfiguredChannel(section, k);
 					channels.put(k, channel);
 				}
 			}
 			else if (configs.containsKey(section, key)) {
-				Channel channel = getContext().newChannel(key, section);
+				Channel channel = getContext().getConfiguredChannel(section, key);
 				channels.put(key, channel);
 			}
 		}
@@ -287,12 +287,12 @@ public abstract class Configurable {
 		return configs;
 	}
 
-	protected String getConfiguredSection() {
+	public String getDefaultSection() {
 		return section;
 	}
 
 	@SuppressWarnings("unchecked")
-	protected <C extends Configurable> C setConfiguredSection(String section) {
+	protected <C extends Configurable> C setDefaultSection(String section) {
 		this.section = section;
 		return (C) this;
 	}

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Configurations extends Hashtable<String, Object> {
 	private static final long serialVersionUID = 7726428276708545480L;
@@ -73,7 +74,17 @@ public class Configurations extends Hashtable<String, Object> {
 
 	public boolean containsSection(String section) {
 		String parsedSection = parseSection(section);
-		return keySet().stream().anyMatch(s -> s.startsWith(parsedSection));
+		return keySet().stream().anyMatch(k -> k.startsWith(parsedSection));
+	}
+
+	public Configurations getSection(String section) {
+		String parsedSection = parseSection(section);
+		return new Configurations(
+				entrySet().stream()
+						.filter(e -> e.getKey().startsWith(parsedSection))
+						.collect(Collectors.toMap(
+								e -> e.getKey(), 
+								e -> e.getValue())));
 	}
 
 	public String get(String section, String key) {
@@ -210,7 +221,7 @@ public class Configurations extends Hashtable<String, Object> {
 				key, type));
 	}
 
-	private static String parseSection(String section) {
+	static String parseSection(String section) {
 		//String packageName = Configurations.class.getPackage().getName().replace(".core.config", "").toLowerCase();
 		StringBuilder result = new StringBuilder()
 				//.append(packageName).append(".")
@@ -219,7 +230,7 @@ public class Configurations extends Hashtable<String, Object> {
 		return result.toString();
 	}
 
-	private static String parseSectionKey(String section, String key) {
+	static String parseSectionKey(String section, String key) {
 		StringBuilder result = new StringBuilder()
 				.append(parseSection(section)).append(".")
 				.append(key.toLowerCase());

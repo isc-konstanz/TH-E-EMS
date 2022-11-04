@@ -83,17 +83,17 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration(value=CHARGE_POWER_L1_VALUE)
 	public Value getChargePowerL1() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_POWER_L1_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_POWER_L1_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_POWER_L2_VALUE)
 	public Value getChargePowerL2() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_POWER_L2_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_POWER_L2_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_POWER_L3_VALUE)
 	public Value getChargePowerL3() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_POWER_L3_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_POWER_L3_VALUE).getLatestValue();
 	}
 
 	public Value getChargeCurrent() throws ComponentException, InvalidValueException {
@@ -102,17 +102,17 @@ public class ChargeBig extends ElectricVehicle implements ValueListener {
 
 	@Configuration(value=CHARGE_CURRENT_L1_VALUE)
 	public Value getChargeCurrentL1() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_CURRENT_L1_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_CURRENT_L1_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_CURRENT_L2_VALUE)
 	public Value getChargeCurrentL2() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_CURRENT_L2_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_CURRENT_L2_VALUE).getLatestValue();
 	}
 
 	@Configuration(value=CHARGE_CURRENT_L3_VALUE)
 	public Value getChargeCurrentL3() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_CURRENT_L3_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_CURRENT_L3_VALUE).getLatestValue();
 	}
 
 	public double getSetpointPowerMaximum() {

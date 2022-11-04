@@ -144,7 +144,7 @@ public class ChargingPoint {
 		}
 		String id = format.replace("#", String.valueOf(number));
 		try {
-			return context.getChannel(id);
+			return context.getDefaultChannel(id);
 			
 		} catch (NullPointerException e) {
 			throw new ConfigurationException(e);

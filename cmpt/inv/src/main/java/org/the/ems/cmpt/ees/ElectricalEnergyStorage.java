@@ -94,22 +94,22 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	@Configuration(value=STATE_VALUE)
 	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(STATE_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(STATE_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getContext().getChannel(STATE_VALUE).getLatestValue(listener);
+		return getContext().getDefaultChannel(STATE_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(STATE_VALUE).registerValueListener(listener);
+		getContext().getDefaultChannel(STATE_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(STATE_VALUE).deregisterValueListener(listener);
+		getContext().getDefaultChannel(STATE_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
@@ -141,43 +141,43 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	@Configuration(value=POWER_VALUE, mandatory=false)
 	public Value getPower() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(POWER_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(POWER_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getPower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getContext().getChannel(POWER_VALUE).getLatestValue(listener);
+		return getContext().getDefaultChannel(POWER_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerPowerListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(POWER_VALUE).registerValueListener(listener);
+		getContext().getDefaultChannel(POWER_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterPowerListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(POWER_VALUE).deregisterValueListener(listener);
+		getContext().getDefaultChannel(POWER_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
 	@Configuration(value=VOLTAGE_VALUE, mandatory=false)
 	public Value getVoltage() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(VOLTAGE_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(VOLTAGE_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getVoltage(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getContext().getChannel(VOLTAGE_VALUE).getLatestValue(listener);
+		return getContext().getDefaultChannel(VOLTAGE_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerVoltageListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(VOLTAGE_VALUE).registerValueListener(listener);
+		getContext().getDefaultChannel(VOLTAGE_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterVoltageListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(VOLTAGE_VALUE).deregisterValueListener(listener);
+		getContext().getDefaultChannel(VOLTAGE_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override

@@ -14,5 +14,4 @@ import org.the.ems.core.cmpt.InverterService;
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
 public class FroniusInverter extends Inverter<FroniusBattery> {
-
 }

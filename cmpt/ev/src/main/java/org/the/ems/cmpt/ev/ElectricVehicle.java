@@ -84,64 +84,64 @@ public class ElectricVehicle extends Runnable implements ElectricVehicleService 
 	@Override
 	@Configuration(value=CHARGE_STATE_VALUE, mandatory=false)
 	public Value getStateOfCharge() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_STATE_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_STATE_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getStateOfCharge(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_STATE_VALUE).getLatestValue(listener);
+		return getContext().getDefaultChannel(CHARGE_STATE_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerStateOfChargeListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(CHARGE_STATE_VALUE).registerValueListener(listener);
+		getContext().getDefaultChannel(CHARGE_STATE_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterStateOfChargeListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(CHARGE_STATE_VALUE).deregisterValueListener(listener);
+		getContext().getDefaultChannel(CHARGE_STATE_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
 	@Configuration(value=CHARGE_ENERGY_VALUE, mandatory=false)
 	public Value getChargedEnergy() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_ENERGY_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_ENERGY_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getChargedEnergy(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_ENERGY_VALUE).getLatestValue(listener);
+		return getContext().getDefaultChannel(CHARGE_ENERGY_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerChargedEnergyListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(CHARGE_ENERGY_VALUE).registerValueListener(listener);
+		getContext().getDefaultChannel(CHARGE_ENERGY_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterChargedEnergyListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(CHARGE_ENERGY_VALUE).deregisterValueListener(listener);
+		getContext().getDefaultChannel(CHARGE_ENERGY_VALUE).deregisterValueListener(listener);
 	}
 
 	@Override
 	@Configuration(value=CHARGE_POWER_VALUE, mandatory=false)
 	public Value getChargePower() throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_POWER_VALUE).getLatestValue();
+		return getContext().getDefaultChannel(CHARGE_POWER_VALUE).getLatestValue();
 	}
 
 	@Override
 	public Value getChargePower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return getContext().getChannel(CHARGE_POWER_VALUE).getLatestValue(listener);
+		return getContext().getDefaultChannel(CHARGE_POWER_VALUE).getLatestValue(listener);
 	}
 
 	@Override
 	public void registerChargePowerListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(CHARGE_POWER_VALUE).registerValueListener(listener);
+		getContext().getDefaultChannel(CHARGE_POWER_VALUE).registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterChargePowerListener(ValueListener listener) throws ComponentException {
-		getContext().getChannel(CHARGE_POWER_VALUE).deregisterValueListener(listener);
+		getContext().getDefaultChannel(CHARGE_POWER_VALUE).deregisterValueListener(listener);
 	}
 
 }

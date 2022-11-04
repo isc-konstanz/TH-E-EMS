@@ -23,6 +23,7 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
@@ -57,11 +58,18 @@ public class ConfigurableContext {
 		return configurable.getConfigurations();
 	}
 
-	protected String getConfiguredSection() {
-		return configurable.getConfiguredSection();
+	public Collection<Channel> getConfiguredChannels(String section) {
+		Collection<Object> sectionValues = getConfigurations().getSection(section).values();
+		return getConfiguredChannels().stream()
+				.filter(c -> sectionValues.contains(c.getId()))
+				.collect(Collectors.toList());
 	}
 
-	protected Channel newChannel(String key, String section) throws ConfigurationException {
+	protected Collection<Channel> getConfiguredChannels() {
+		return channels.values();
+	}
+
+	private Channel getConfiguredChannel(String section, String key) throws ConfigurationException {
 		String channelId = getConfigurations().get(section, key);
 		if (channels.containsKey(channelId)) {
 			return channels.get(channelId);
@@ -82,35 +90,37 @@ public class ConfigurableContext {
 		}
 	}
 
-	public Channel getChannel(String... keys) throws ConfigurationException {
-		String section = getConfiguredSection();
+	public Channel getConfiguredChannel(String section, String... keys) throws ConfigurationException {
 		for (String key : keys) {
 			if (!getConfigurations().containsKey(section, key)) {
 				continue;
 			}
-			String channelId = getConfigurations().get(section, key);
-			Channel channel = channels.get(channelId);
-			if (channel == null) {
-				channel = newChannel(key, section);
-			}
-			return channel;
+			return getConfiguredChannel(section, key);
 		}
-		throw new ConfigurationException(MessageFormat.format("Unknown configurations {0} in section: {1}", 
-				keys, section));
+		throw new ConfigurationException(MessageFormat.format("Unknown channel configurations {0} for section: {1}", 
+				String.join(", ", keys), section));
 	}
 
-	public Channel getChannel(String key, ValueListener listener) throws ConfigurationException {
-		Channel channel =  getChannel(key);
+	public Channel getDefaultChannel(String key, ValueListener listener) throws ConfigurationException {
+		Channel channel =  getDefaultChannel(key);
 		channel.registerValueListener(listener);
 		return channel;
 	}
 
-	public Collection<Channel> getChannels() {
-		return channels.values();
+	public Channel getDefaultChannel(String... keys) throws ConfigurationException {
+		return getConfiguredChannel(getDefaultSection(), keys);
+	}
+
+	public Collection<Channel> getDefaultChannels() {
+		return getConfiguredChannels(getDefaultSection());
+	}
+
+	public String getDefaultSection() {
+		return configurable.getDefaultSection();
 	}
 
 	protected void deregisterValueListeners() {
-		getChannels().stream().forEach(c -> c.deregisterValueListeners());
+		getConfiguredChannels().stream().forEach(c -> c.deregisterValueListeners());
 	}
 
 }

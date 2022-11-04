@@ -316,12 +316,12 @@ public class ThermalEnergyStorage extends Component
 
 	@Configuration(value=TEMP_WATER_DOM_VALUE, mandatory=false)
 	protected Channel getDomesticWaterTemperature() throws ComponentException {
-		return getContext().getChannel(TEMP_WATER_DOM_VALUE);
+		return getContext().getDefaultChannel(TEMP_WATER_DOM_VALUE);
 	}
 
 	@Configuration(value=TEMP_WATER_HT_VALUE, mandatory=false)
 	protected Channel getHeatingWaterTemperature() throws ComponentException {
-		return getContext().getChannel(TEMP_WATER_HT_VALUE);
+		return getContext().getDefaultChannel(TEMP_WATER_HT_VALUE);
 	}
 
 	@Override

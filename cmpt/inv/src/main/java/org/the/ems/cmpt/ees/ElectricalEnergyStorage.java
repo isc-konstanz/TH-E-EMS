@@ -183,15 +183,13 @@ public class ElectricalEnergyStorage extends Component implements ElectricalEner
 	@Override
 	protected void onConfigure(Configurations configs) throws ConfigurationException {
 		super.onConfigure(configs);
-		if (isEnabled()) {
-			// If the Component is enabled, verify semi-mandatory configs
-			if (Double.isNaN(capacity) || Double.isInfinite(capacity)) {
-				throw new ConfigurationException("Mandatory configuration of storage not found: capacity");
-			}
-			onConfigureSoCBoundary(socMax);
-			onConfigureSoCBoundary(socMin);
-			onConfigureSoCBoundary(socHyst);
+
+		if (Double.isNaN(capacity) || Double.isInfinite(capacity)) {
+			throw new ConfigurationException("Mandatory configuration of storage not found: capacity");
 		}
+		onConfigureSoCBoundary(socMax);
+		onConfigureSoCBoundary(socMin);
+		onConfigureSoCBoundary(socHyst);
 	}
 
 	private void onConfigureSoCBoundary(double soc) throws ConfigurationException {

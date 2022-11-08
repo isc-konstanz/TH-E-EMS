@@ -94,7 +94,7 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	@Configuration(scale=1000)
 	protected double powerMin;
 
-	@Configuration
+	@Configuration(mandatory=false)
 	protected Channel setpoint;
 	protected volatile Value setpointValue = DoubleValue.zeroValue();
 
@@ -198,7 +198,7 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	}
 
 	@Override
-	@Configuration(value= {INPUT_ENERGY_VALUE, DC_ENERGY_VALUE}, mandatory=false)
+	@Configuration(value=INPUT_ENERGY_VALUE, mandatory=false)
 	public Value getInputEnergy() throws ComponentException, InvalidValueException {
 		return getContext().getDefaultChannel(INPUT_ENERGY_VALUE, DC_ENERGY_VALUE).getLatestValue();
 	}
@@ -219,7 +219,7 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	}
 
 	@Override
-	@Configuration(value={INPUT_POWER_VALUE, DC_POWER_VALUE}, mandatory=false)
+	@Configuration(value=INPUT_POWER_VALUE, mandatory=false)
 	public Value getInputPower() throws ComponentException, InvalidValueException {
 		return getContext().getDefaultChannel(INPUT_POWER_VALUE, DC_POWER_VALUE).getLatestValue();
 	}
@@ -240,7 +240,7 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	}
 
 	@Override
-	@Configuration(value= {ACTIVE_POWER_VALUE, AC_POWER_VALUE}, mandatory=false)
+	@Configuration(value=ACTIVE_POWER_VALUE, mandatory=false)
 	public Value getActivePower() throws ComponentException, InvalidValueException {
 		return getContext().getDefaultChannel(ACTIVE_POWER_VALUE, AC_POWER_VALUE).getLatestValue();
 	}
@@ -261,7 +261,7 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	}
 
 	@Override
-	@Configuration(value= {ACTIVE_POWER_L1_VALUE, AC_POWER_L1_VALUE}, mandatory=false)
+	@Configuration(value=ACTIVE_POWER_L1_VALUE, mandatory=false)
 	public Value getActivePowerL1() throws ComponentException, InvalidValueException {
 		return getContext().getDefaultChannel(ACTIVE_POWER_L1_VALUE, AC_POWER_L1_VALUE).getLatestValue();
 	}
@@ -385,7 +385,7 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
     @SuppressWarnings("unchecked")
 	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
-		
+
 		Class<S> storageClass;
 		Class<?> thisClass = this.getClass();
 		if (!thisClass.equals(Inverter.class)) {
@@ -414,16 +414,18 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 	    }
 		String id = getId().startsWith(getType().getKey()) ? 
 					getId().replace(getType().getKey(), "ees") : "ees";
-		
 		getContext().registerService(id, configs, storage, ElectricalEnergyStorageService.class);
 	}
 
 	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
+		
 		getContext().registerService(getId().concat("_").concat("ext"), configs, external);
 		getContext().registerService(getId().concat("_").concat("cons"), configs, consumption);
-		setpoint.registerValueListener(new SetpointListener());
+		if (setpoint != null) {
+			setpoint.registerValueListener(new SetpointListener());
+		}
 	}
 
 	@Override
@@ -488,6 +490,10 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
     }
 
 	public void onSet(WriteContainer container, Value value) throws ComponentException {
+		if (setpoint == null) {
+			throw new ComponentException(
+					MessageFormat.format("Unable to configure setpoint for \"{0}\"", getClass().getSimpleName()));
+		}
 		double setpoint = value.doubleValue();
 		if (setpoint > getMaxPower() || setpoint < getMinPower()) {
 			throw new ComponentException("Inverter setpoint out of bounds: " + value);

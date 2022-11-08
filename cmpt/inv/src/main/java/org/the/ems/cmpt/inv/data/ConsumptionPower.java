@@ -47,6 +47,8 @@ public class ConsumptionPower extends Component implements Channel, ValueListene
 
 	private final static String SECTION = "Consumption";
 
+	private final Inverter<?> inverter;
+
 	private volatile InverterCallbacks callbacks = null;
 
 	@Configuration(value="power_cons", section=Configurations.GENERAL)
@@ -58,23 +60,21 @@ public class ConsumptionPower extends Component implements Channel, ValueListene
 	@Configuration(value="power_input*")
 	protected ChannelCollection inputPowers;
 
-	private final ElectricalEnergyStorage storage;
-
 	protected long timestampLast = -1;
 
 	private volatile boolean running = false;
 
 	public ConsumptionPower(Inverter<?> inverter) {
 		super(SECTION);
-		this.storage = inverter.getElectricalEnergyStorage();
+		this.inverter = inverter;
 	}
 
 	@Override
 	protected void onActivate() throws ComponentException {
 		super.onActivate();
 		if (isEnabled()) {
-			if (storage.isEnabled()) {
-				storage.registerPowerListener(new PowerTypeListener(this, PowerType.EES));
+			if (getStorage().isEnabled()) {
+				getStorage().registerPowerListener(new PowerTypeListener(this, PowerType.EES));
 			}
 			for (Channel power : inputPowers.values()) {
 				power.registerValueListener(new PowerTypeListener(this, PowerType.INPUT));
@@ -85,6 +85,10 @@ public class ConsumptionPower extends Component implements Channel, ValueListene
 			running = true;
 		}
 		consumptionPower.registerValueListener(this);
+	}
+
+	private ElectricalEnergyStorage getStorage() {
+		return inverter.getElectricalEnergyStorage();
 	}
 
 	public void register(InverterCallbacks callbacks) {
@@ -174,8 +178,8 @@ public class ConsumptionPower extends Component implements Channel, ValueListene
 				}
 				consumption += power.getLatestValue().doubleValue();
 			}
-			if (storage.isEnabled()) {
-				consumption -= storage.getPower().doubleValue();
+			if (getStorage().isEnabled()) {
+				consumption -= getStorage().getPower().doubleValue();
 			}
 			if (consumption < 0) {
 				consumption = 0;

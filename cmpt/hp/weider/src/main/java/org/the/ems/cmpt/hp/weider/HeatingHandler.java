@@ -18,18 +18,23 @@ import org.the.ems.core.data.WriteContainer;
 public class HeatingHandler extends Component implements ValueListener {
 	private static final Logger logger = LoggerFactory.getLogger(HeatingHandler.class);
 
+	private static final String WATER_TEMP_MAX = "water_temp_max";
+	private static final String WATER_TEMP_MIN = "water_temp_min";
+
 	private final WeiTrona heatPump;
 
 	@Configuration(value = "state_pump")
 	private Channel pumpState;
 
+	private Double waterTempMax = Double.NaN;
 
-	@Configuration
-	private double waterTempMax;
+	@Configuration(mandatory = false)
+	private Double waterTempMaxFallback = Double.NaN;
 
-	@Configuration
-	private double waterTempMin;
+	private Double waterTempMin = Double.NaN;
 
+	@Configuration(mandatory = false)
+	private Double waterTempMinFallback = Double.NaN;
 
 	@Configuration
 	private Channel waterTemp;
@@ -59,17 +64,57 @@ public class HeatingHandler extends Component implements ValueListener {
 		if (waterTempHysteresisFallback.isNaN()) {
 			switch (type) {
 			case DOMESTIC_WATER:
-				waterTempHysteresisFallback = 4.0;
+				waterTempHysteresisFallback = 4.;
 				break;
 			case HEATING_WATER:
 			default:
-				waterTempHysteresisFallback = 2.0;
+				waterTempHysteresisFallback = 2.;
 				break;
 			}
 			logger.debug("Configured hysteresis fallback value for {} handler: {}", 
 					type.getFullName(), waterTempHysteresisFallback);
 		}
-		logger.info("Starting WeiTrona {} handler with min temperature: {}", type.getFullName(), getStopSetpoint());
+		if (waterTempMaxFallback.isNaN()) {
+			waterTempMaxFallback = 55.;
+			logger.debug("Configured maximum fallback value for {} handler: {}", 
+					type.getFullName(), waterTempMaxFallback);
+		}
+		try {
+			if (waterTempMax.isNaN()) {
+				waterTempMax = getTemperatureValue(WATER_TEMP_MAX, new ValueListener() {
+					@Override
+					public void onValueChanged(Value temperature) { waterTempMax = temperature.doubleValue(); }
+				});
+			}
+		} catch (InvalidValueException e) {
+			waterTempMax = waterTempMaxFallback;
+		}
+		if (waterTempMinFallback.isNaN()) {
+			switch (type) {
+			case DOMESTIC_WATER:
+				waterTempMinFallback = 50.;
+				break;
+			case HEATING_WATER:
+			default:
+				waterTempMinFallback = 20.;
+				break;
+			}
+			logger.debug("Configured minimum fallback value for {} handler: {}", 
+					type.getFullName(), waterTempMinFallback);
+		}
+		try {
+			if (waterTempMin.isNaN()) {
+				waterTempMin = getTemperatureValue(WATER_TEMP_MIN, new ValueListener() {
+					@Override
+					public void onValueChanged(Value temperature) { waterTempMin = temperature.doubleValue(); }
+				});
+			}
+		} catch (InvalidValueException e) {
+			waterTempMin = waterTempMinFallback;
+		}
+		logger.info("Starting WeiTrona {} handler from {} to {}°C", type.getFullName(), 
+				String.format("%.1f", getTemperatureMinimum()),
+				String.format("%.1f", getTemperatureMaximum()));
 	}
 
 	@Override
@@ -100,7 +145,7 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	private double getStartSetpoint() {
-		return waterTempMax;
+		return getTemperatureMaximum();
 	}
 
 	public boolean isStarted() {
@@ -119,7 +164,7 @@ public class HeatingHandler extends Component implements ValueListener {
 			return false;
 		}
 		try {
-			return waterTemp.getLatestValue().doubleValue() < waterTempMax - getTemperatureHysteresis();
+			return waterTemp.getLatestValue().doubleValue() < getTemperatureMaximum() - getTemperatureHysteresis();
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
@@ -154,7 +199,7 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	private double getStopSetpoint() {
-		return waterTempMin + getTemperatureHysteresis();
+		return getTemperatureMinimum() + getTemperatureHysteresis();
 	}
 
 	public boolean isStopped() {
@@ -173,7 +218,7 @@ public class HeatingHandler extends Component implements ValueListener {
 			return false;
 		}
 		try {
-			return waterTemp.getLatestValue().doubleValue() > waterTempMin;
+			return waterTemp.getLatestValue().doubleValue() > getTemperatureMinimum();
 			
 		} catch (InvalidValueException e) {
 			logger.debug("Error retrieving {} temperature: {}", type.toString().toLowerCase(),  
@@ -208,6 +253,19 @@ public class HeatingHandler extends Component implements ValueListener {
 			
 			return waterTempHysteresisFallback;
 		}
+	}
+
+	private double getTemperatureValue(String key, ValueListener listener)
+			throws ConfigurationException, InvalidValueException {
+		try {
+			if (getConfigurations().containsKey(getDefaultSection(), key)) {
+				return getConfigurations().getDouble(getDefaultSection(), key);
+			}
+		} catch (NumberFormatException e) {
+			// Do nothing and continue configuring channel
+		}
+		Channel channel = getContext().getDefaultChannel(key);
+		return channel.getLatestValue(listener).doubleValue();
 	}
 
 	@Override

@@ -65,15 +65,16 @@ public abstract class Configurable {
 			elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
 		    clazz = clazz.getSuperclass();
 		}
-		if (isEnabled()) {
-			doConfigure(configs, elements);
-			onConfigure(configs);
-		}
+		doConfigure(configs, elements);
+		onConfigure(configs);
 	}
 
 	void doConfigure(Configurations configs, List<AnnotatedElement> elements) 
 			throws ConfigurationException {
-		
+
+		if (!isEnabled()) {
+			return;
+		}
 		for (AnnotatedElement element : elements) {
 			Configuration config = element.getAnnotation(Configuration.class);
 			if (config == null) {

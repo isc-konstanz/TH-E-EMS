@@ -127,6 +127,9 @@ public abstract class Component extends Configurable implements ComponentService
 		componentContext.activate();
 		Configurations configs = Configurations.create(properties);
 		configure(configs);
+		if (!isEnabled()) {
+			return;
+		}
 		onActivate(componentContext, properties);
 		onActivate(componentContext, configs);
 		onActivate(configs);
@@ -163,6 +166,9 @@ public abstract class Component extends Configurable implements ComponentService
 	void doModified(Map<String, ?> properties) throws ComponentException {
 		Configurations configs = Configurations.create(properties);
 		configure(configs);
+		if (!isEnabled()) {
+			return;
+		}
 		onModified(FrameworkUtil.getBundle(getClass()).getBundleContext(), properties);
 	}
 
@@ -197,6 +203,9 @@ public abstract class Component extends Configurable implements ComponentService
 
 	void doDeactivate() throws ComponentException {
 		getContext().deactivate();
+		if (!isEnabled()) {
+			return;
+		}
 		onDeactivate();
 	}
 

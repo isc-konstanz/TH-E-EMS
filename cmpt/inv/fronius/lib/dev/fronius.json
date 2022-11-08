@@ -1,6 +1,6 @@
 {
-    "name": "Fronius Symo",
-    "group": "Sunspec",
+    "name": "Symo 3.0-3/3.7-3/4.5-3",
+    "group": "Fronius",
     "category": "Inverter",
     "description": "Requires the <b>Modbus</b> (TCP) driver to be installed.<br><br>Fronius Datamanager Registers",
 
@@ -246,6 +246,13 @@
     ],
 
     "feeds": [
+        {
+            "name": "Power consumption",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_cons_power",
+            "unit": "W"
+        },
         {
             "name": "Power generation",
             "tag": "<name>",

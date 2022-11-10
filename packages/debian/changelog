@@ -1,5 +1,14 @@
 <package> (<version>) stable; urgency=medium
 
+  * Fix Inverter Component ConsumptionPower calculation
+  * Add Fronius inverter nighttime NaN value handling
+  * Make Weider HeatPump temperature boundaries dynamic
+  * Stop activating disabled components
+
+ -- <maintainer>  <date>
+
+th-e-ems (1.4.1) stable; urgency=medium
+
   * Add Flotteladen ElectricVehicle Component
   * Add Fronius Inverter component
   * Add WeiTrona power consumption estimate
@@ -8,7 +17,7 @@
   * Rework ASV setpoint handling
   * Implement ComponentContext structure
 
- -- <maintainer>  <date>
+ -- Adrian Minde <adrian.minde@isc-konstanz.de>  Tue, 25 Oct 2022 13:12:03 +0200
 
 th-e-ems (1.3.7) stable; urgency=medium
 

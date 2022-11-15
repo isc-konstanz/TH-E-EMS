@@ -92,25 +92,34 @@ public abstract class Heating extends Runnable implements HeatingService {
 
 	protected void bindEnergyStorage(ComponentContext context, Configurations configs) 
 			throws ComponentException {
-		ThermalEnergyStorageService storage = null;
 		EnergyManagementService manager = context.getEnergyManager();
 		for (ComponentService component : manager.getComponents(ComponentType.THERMAL_ENERGY_STORAGE)) {
-			// TODO: implement configurations to filter TES, if more than one is available
-			storage = (ThermalEnergyStorageService) component;
+			bindEnergyStorage((ThermalEnergyStorageService) component);
 		}
-		bindEnergyStorage(storage);
 	}
 
 	@Reference(
 		cardinality = ReferenceCardinality.OPTIONAL,
 		policy = ReferencePolicy.DYNAMIC
 	)
-	protected void bindEnergyStorage(ThermalEnergyStorageService service) {
-		storage = service;
+	protected void bindEnergyStorage(ThermalEnergyStorageService storageService) throws ComponentException {
+		if (storageService instanceof HeatStorage) {
+			HeatStorage heatStorage = (HeatStorage) storageService;
+			if (heatStorage.bindHeating(this)) {
+				this.storage = storageService;
+			}
+		}
+		else {
+			this.storage = storageService;
+		}
 	}
 
-	protected void unbindEnergyStorage(ThermalEnergyStorageService service) {
-		storage = null;
+	protected void unbindEnergyStorage(ThermalEnergyStorageService storageService) {
+		if (storageService instanceof HeatStorage) {
+			HeatStorage heatStorage = (HeatStorage) storageService;
+			heatStorage.unbindHeating(this);
+		}
+		this.storage = null;
 	}
 
 	@Configuration(value=ELECTRICAL_ENERGY_VALUE, mandatory=false)

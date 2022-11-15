@@ -57,24 +57,22 @@ public abstract class Configurable {
 
 	void doConfigure(Configurations configs) throws ConfigurationException {
 		this.configs = configs;
-		
-		List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
-		Class<?> clazz = this.getClass();
-		while(clazz.getSuperclass() != null) {
-			elements.addAll(Arrays.asList(clazz.getDeclaredFields()));
-			elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
-		    clazz = clazz.getSuperclass();
+		if (isEnabled()) {
+			List<AnnotatedElement> elements = new LinkedList<AnnotatedElement>();
+			Class<?> clazz = this.getClass();
+			while(clazz.getSuperclass() != null) {
+				elements.addAll(Arrays.asList(clazz.getDeclaredFields()));
+				elements.addAll(Arrays.asList(clazz.getDeclaredMethods()));
+			    clazz = clazz.getSuperclass();
+			}
+			doConfigure(configs, elements);
+			onConfigure(configs);
 		}
-		doConfigure(configs, elements);
-		onConfigure(configs);
 	}
 
-	void doConfigure(Configurations configs, List<AnnotatedElement> elements) 
+	private void doConfigure(Configurations configs, List<AnnotatedElement> elements) 
 			throws ConfigurationException {
 
-		if (!isEnabled()) {
-			return;
-		}
 		for (AnnotatedElement element : elements) {
 			Configuration config = element.getAnnotation(Configuration.class);
 			if (config == null) {

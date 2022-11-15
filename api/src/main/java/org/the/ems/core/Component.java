@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
@@ -44,6 +43,7 @@ public abstract class Component extends Configurable implements ComponentService
 
     private ComponentContext componentContext = null;
 
+    private volatile boolean componentActive = false;
 	private volatile ComponentStatus componentStatus = ComponentStatus.DISABLED;
 
 	@Configuration(section = Configurations.GENERAL, mandatory = false)
@@ -88,6 +88,16 @@ public abstract class Component extends Configurable implements ComponentService
 	}
 
 	@Override
+	public boolean isEnabled() {
+		return super.isEnabled() &&
+				componentStatus != ComponentStatus.DISABLED;
+	}
+
+	public boolean isActive() {
+		return componentActive;
+	}
+
+	@Override
 	public final ComponentContext getContext() {
 		return componentContext;
 	}
@@ -115,9 +125,10 @@ public abstract class Component extends Configurable implements ComponentService
 			doActivate(context, properties);
 			
 		} catch (Exception e) {
+			componentStatus = ComponentStatus.DISABLED;
 			logger.warn("Error while activating {} {}: {}", 
 					getType().getFullName(), getId(), e.getMessage());
-			
+
 			throw new org.osgi.service.component.ComponentException(e);
 		}
 	}
@@ -125,15 +136,22 @@ public abstract class Component extends Configurable implements ComponentService
 	void doActivate(BundleContext context, Map<String, ?> properties) throws ComponentException {
 		componentContext = new ComponentContext(this, context);
 		componentContext.activate();
+		doActivate(componentContext, properties);
+	}
+
+	void doActivate(ComponentContext context, Map<String, ?> properties) throws ComponentException {
+		componentStatus = ComponentStatus.ENABLED;
+		
 		Configurations configs = Configurations.create(properties);
 		configure(configs);
-		if (!isEnabled()) {
-			return;
+		if (isEnabled()) {
+			onActivate(componentContext, properties);
+			onActivate(componentContext, configs);
+			onActivate(configs);
+			onActivate();
+			
+			componentActive = true;
 		}
-		onActivate(componentContext, properties);
-		onActivate(componentContext, configs);
-		onActivate(configs);
-		onActivate();
 	}
 
 	protected void onActivate(ComponentContext context, Map<String, ?> properties) throws ComponentException {
@@ -166,18 +184,32 @@ public abstract class Component extends Configurable implements ComponentService
 	void doModified(Map<String, ?> properties) throws ComponentException {
 		Configurations configs = Configurations.create(properties);
 		configure(configs);
-		if (!isEnabled()) {
-			return;
+		if (isActive()) {
+			// TODO: Remove deactivating/activating
+			doDeactivate();
+			doActivate(componentContext, properties);
+			
+			onModified(componentContext, properties);
+			onModified(componentContext, configs);
+			onModified(configs);
+			onModified();
 		}
-		onModified(FrameworkUtil.getBundle(getClass()).getBundleContext(), properties);
 	}
 
-	protected void onModified(BundleContext context, Map<String, ?> properties) throws ComponentException {
-		Configurations configs = Configurations.create(properties);
-		doDeactivate();
-		onActivate(componentContext, properties);
-		onActivate(componentContext, configs);
-		onActivate(configs);
+	protected void onModified(ComponentContext context, Map<String, ?> properties) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onModified(ComponentContext context, Configurations configs) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onModified(Configurations configs) throws ComponentException {
+		// Default implementation to be overridden
+	}
+
+	protected void onModified() throws ComponentException {
+		// Default implementation to be overridden
 	}
 
 	protected void onResume() throws ComponentException {
@@ -203,10 +235,11 @@ public abstract class Component extends Configurable implements ComponentService
 
 	void doDeactivate() throws ComponentException {
 		getContext().deactivate();
-		if (!isEnabled()) {
-			return;
+		if (isActive()) {
+			onDeactivate();
+			componentStatus = ComponentStatus.DISABLED;
+			componentActive = false;
 		}
-		onDeactivate();
 	}
 
 	protected void onDeactivate() throws ComponentException {

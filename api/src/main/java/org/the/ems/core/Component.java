@@ -32,6 +32,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.the.ems.core.config.Configuration;
+import org.the.ems.core.config.ConfigurationException;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
 import org.the.ems.core.data.WriteContainer;
@@ -115,6 +116,15 @@ public abstract class Component extends Configurable implements ComponentService
 	void unbindContentManagementService(ContentManagementService service) {
 		if (componentContext != null) {
 			componentContext.setContentManagement(null);
+		}
+	}
+
+	@Override
+	void doConfigure(Configurations configs) throws ConfigurationException {
+		super.doConfigure(configs);
+		if (!isEnabled() && 
+				configs.containsKey(Configurations.GENERAL, "id")) {
+			this.id = configs.get(Configurations.GENERAL, "id");
 		}
 	}
 

@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,8 +155,6 @@ public final class ComponentContext extends ConfigurableContext {
 			}
 			componentConfigs.put(entry.getKey(), entry.getValue());
 		}
-		BundleContext context = FrameworkUtil.getBundle(getClass()).getBundleContext();
-		
 		component.activate(context, componentConfigs);
 		
 		ServiceRegistration<C> serviceRegistration = context.registerService(service, (C) component, componentConfigs);

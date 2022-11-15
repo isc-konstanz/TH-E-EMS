@@ -282,17 +282,22 @@ public final class EnergyManager extends Configurable
 					componentService.getType().getFullName(), id);
 			
 			if (componentService instanceof Component) {
+				Component component = (Component) componentService;
 				if (!components.containsKey(id)) {
-					if (componentService.getType() != ComponentType.GENERAL) {
+					if (component.getType() != ComponentType.GENERAL) {
 						logger.info(msg);
 					}
 					else if (logger.isDebugEnabled()) {
 						logger.debug(msg);
 					}
-					components.put(id, (Component) componentService);
+					components.put(id, component);
 					if (manager != null) {
 						manager.interrupt();
 					}
+				}
+				else {
+					logger.warn(MessageFormat.format("Unable to register additional {0} for existing ID: {1}", 
+							componentService.getType().getFullName(), id));
 				}
 			}
 			else {

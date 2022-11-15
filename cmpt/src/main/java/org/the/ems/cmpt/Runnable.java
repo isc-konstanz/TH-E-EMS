@@ -220,26 +220,33 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	@Override
 	protected void onInterrupt() throws ComponentException {
-		super.onInterrupt();
-		long timestamp = System.currentTimeMillis();
-		if (timestamp - runStateValidationTime > runStateValidationInterval) {
-			switch(getState()) {
-			case STARTING:
-			case STANDBY:
-				if (isRunning()) {
-					doRunning();
+		try {
+			super.onInterrupt();
+			long timestamp = System.currentTimeMillis();
+			if (timestamp - runStateValidationTime > runStateValidationInterval) {
+				switch(getState()) {
+				case STARTING:
+				case STANDBY:
+					if (isRunning()) {
+						doRunning();
+					}
+					break;
+				case STOPPING:
+				case RUNNING:
+					if (isStandby()) {
+						doStandby();
+					}
+					break;
+				default:
+					break;
 				}
-				break;
-			case STOPPING:
-			case RUNNING:
-				if (isStandby()) {
-					doStandby();
-				}
-				break;
-			default:
-				break;
+				runStateValidationTime = timestamp;
 			}
-			runStateValidationTime = timestamp;
+		} catch (InvalidValueException e) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unable to retrieve value while interruption {} component \"{}\": {}", 
+						getType().getFullName(), getId(), e.getMessage());
+			}
 		}
 	}
 
@@ -470,7 +477,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		// Default implementation to be overridden
 	}
 
-	public boolean isRunning() throws ComponentException {
+	public boolean isRunning() throws ComponentException, InvalidValueException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STARTING:
@@ -575,7 +582,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		// Default implementation to be overridden
 	}
 
-	public boolean isStandby() throws ComponentException {
+	public boolean isStandby() throws ComponentException, InvalidValueException {
 		// Default implementation to be overridden
 		switch(getState()) {
 		case STANDBY:

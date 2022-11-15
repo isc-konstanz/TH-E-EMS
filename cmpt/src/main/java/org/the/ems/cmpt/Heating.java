@@ -353,7 +353,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 		onStart(container, value);
 	}
 
-	public boolean isRunning(HeatingType type) throws ComponentException {
+	public boolean isRunning(HeatingType type) throws ComponentException, InvalidValueException {
 		// Default implementation to be overridden
 		return isRunning();
 	}
@@ -382,7 +382,7 @@ public abstract class Heating extends Runnable implements HeatingService {
 		// Default implementation to be overridden
 	}
 
-	public boolean isStandby(HeatingType type) throws ComponentException {
+	public boolean isStandby(HeatingType type) throws ComponentException, InvalidValueException {
 		// Default implementation to be overridden
 		return isStandby();
 	}

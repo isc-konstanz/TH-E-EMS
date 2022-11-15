@@ -271,10 +271,10 @@ public abstract class Component extends Configurable implements ComponentService
 	void interrupt() throws EnergyManagementException {
 		try {
 			onInterrupt();
-			
+
 		} catch (Exception e) {
-			logger.warn("Error while interrupting {} {}: {}", 
-					getType().getFullName(), id, e.getMessage());
+			logger.warn("Error while interrupting {} component \"{}\": {}", 
+					getType().getFullName(), getId(), e.getMessage());
 		}
 	}
 

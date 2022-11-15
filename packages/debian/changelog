@@ -1,7 +1,9 @@
 <package> (<version>) stable; urgency=medium
 
   * Fix Inverter Component ConsumptionPower calculation
+  * Fix dynamic Component creation by TES referencing
   * Add Fronius inverter nighttime NaN value handling
+  * Improve logging of interrupted components for invalid values
   * Make Weider HeatPump temperature boundaries dynamic
   * Stop activating disabled components
 

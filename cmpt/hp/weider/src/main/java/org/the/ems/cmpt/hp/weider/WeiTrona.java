@@ -194,7 +194,7 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
-	public boolean isRunning(HeatingType type) throws ComponentException {
+	public boolean isRunning(HeatingType type) throws ComponentException, InvalidValueException {
 		if (isRunning()) {
 			try {
 				if (isSeason(Season.SUMMER) && type == HeatingType.HEATING_WATER) {
@@ -221,13 +221,8 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
-	public boolean isRunning() throws ComponentException {
-		try {
-			return state.getLatestValue().booleanValue();
-			
-		} catch (InvalidValueException e) {
-			throw new ComponentException(e);
-		}
+	public boolean isRunning() throws ComponentException, InvalidValueException {
+		return state.getLatestValue().booleanValue();
 	}
 
 	@Override
@@ -263,12 +258,12 @@ public class WeiTrona extends HeatPump {
 	}
 
 	@Override
-	public boolean isStandby(HeatingType type) throws ComponentException {
+	public boolean isStandby(HeatingType type) throws ComponentException, InvalidValueException {
 		return !isRunning(type);
 	}
 
 	@Override
-	public boolean isStandby() throws ComponentException {
+	public boolean isStandby() throws ComponentException, InvalidValueException {
 		return !isRunning();
 	}
 

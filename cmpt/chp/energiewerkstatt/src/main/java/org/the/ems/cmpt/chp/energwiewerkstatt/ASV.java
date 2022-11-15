@@ -121,7 +121,7 @@ public class ASV extends Cogenerator {
 	}
 
 	@Override
-	public boolean isRunning() throws ComponentException {
+	public boolean isRunning() throws ComponentException, InvalidValueException {
 		double minimum = getMinPower();
 		if (minimum > 0) {
 			double power = electricalPowerValue.doubleValue();
@@ -148,7 +148,7 @@ public class ASV extends Cogenerator {
 	}
 
 	@Override
-	public boolean isStandby() throws ComponentException {
+	public boolean isStandby() throws ComponentException, InvalidValueException {
 		double power = electricalPowerValue.doubleValue();
 		try {
 			power = getElectricalPower().doubleValue();

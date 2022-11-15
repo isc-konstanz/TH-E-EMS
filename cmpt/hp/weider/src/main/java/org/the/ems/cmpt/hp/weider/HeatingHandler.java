@@ -19,7 +19,12 @@ public class HeatingHandler extends Component implements ValueListener {
 	private static final Logger logger = LoggerFactory.getLogger(HeatingHandler.class);
 
 	private static final String WATER_TEMP_MAX = "water_temp_max";
+	private static final String WATER_TEMP_MAX_DEFAULT = "water_temp_min_default";
+	private static final String WATER_TEMP_MAX_FALLBACK = "water_temp_min_fallback";
+
 	private static final String WATER_TEMP_MIN = "water_temp_min";
+	private static final String WATER_TEMP_MIN_DEFAULT = "water_temp_min_default";
+	private static final String WATER_TEMP_MIN_FALLBACK = "water_temp_min_fallback";
 
 	private final WeiTrona heatPump;
 
@@ -28,13 +33,13 @@ public class HeatingHandler extends Component implements ValueListener {
 
 	private Double waterTempMax = Double.NaN;
 
-	@Configuration(mandatory = false)
-	private Double waterTempMaxFallback = Double.NaN;
+	@Configuration(value= {WATER_TEMP_MAX_DEFAULT, WATER_TEMP_MAX_FALLBACK}, mandatory = false)
+	private Double waterTempMaxDefault = Double.NaN;
 
 	private Double waterTempMin = Double.NaN;
 
-	@Configuration(mandatory = false)
-	private Double waterTempMinFallback = Double.NaN;
+	@Configuration(value= {WATER_TEMP_MIN_DEFAULT, WATER_TEMP_MIN_FALLBACK}, mandatory = false)
+	private Double waterTempMinDefault = Double.NaN;
 
 	@Configuration
 	private Channel waterTemp;
@@ -74,10 +79,10 @@ public class HeatingHandler extends Component implements ValueListener {
 			logger.debug("Configured hysteresis fallback value for {} handler: {}", 
 					type.getFullName(), waterTempHysteresisFallback);
 		}
-		if (waterTempMaxFallback.isNaN()) {
-			waterTempMaxFallback = 55.;
+		if (waterTempMaxDefault.isNaN()) {
+			waterTempMaxDefault = 55.;
 			logger.debug("Configured maximum fallback value for {} handler: {}", 
-					type.getFullName(), waterTempMaxFallback);
+					type.getFullName(), waterTempMaxDefault);
 		}
 		try {
 			if (waterTempMax.isNaN()) {
@@ -87,20 +92,20 @@ public class HeatingHandler extends Component implements ValueListener {
 				});
 			}
 		} catch (InvalidValueException e) {
-			waterTempMax = waterTempMaxFallback;
+			waterTempMax = waterTempMaxDefault;
 		}
-		if (waterTempMinFallback.isNaN()) {
+		if (waterTempMinDefault.isNaN()) {
 			switch (type) {
 			case DOMESTIC_WATER:
-				waterTempMinFallback = 50.;
+				waterTempMinDefault = 50.;
 				break;
 			case HEATING_WATER:
 			default:
-				waterTempMinFallback = 20.;
+				waterTempMinDefault = 21.;
 				break;
 			}
 			logger.debug("Configured minimum fallback value for {} handler: {}", 
-					type.getFullName(), waterTempMinFallback);
+					type.getFullName(), waterTempMinDefault);
 		}
 		try {
 			if (waterTempMin.isNaN()) {
@@ -110,7 +115,7 @@ public class HeatingHandler extends Component implements ValueListener {
 				});
 			}
 		} catch (InvalidValueException e) {
-			waterTempMin = waterTempMinFallback;
+			waterTempMin = waterTempMinDefault;
 		}
 		logger.info("Starting WeiTrona {} handler from {} to {}°C", type.getFullName(), 
 				String.format("%.1f", getTemperatureMinimum()),
@@ -199,7 +204,7 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	private double getStopSetpoint() {
-		return getTemperatureMinimum() + getTemperatureHysteresis();
+		return waterTempMinDefault + getTemperatureHysteresis();
 	}
 
 	public boolean isStopped() {

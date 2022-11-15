@@ -107,14 +107,8 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	@Override
-	public boolean isRunning() throws ComponentException {
-		try {
-			return Math.abs(getElectricalPower().doubleValue()) >= (getMinPower() - getMaxPower()*0.01);
-			
-		} catch(ComponentException | InvalidValueException e) {
-			logger.debug("Error while checking run state: {}", e.getMessage());
-		}
-		return super.isRunning();
+	public boolean isRunning() throws ComponentException, InvalidValueException {
+		return Math.abs(getElectricalPower().doubleValue()) >= (getMinPower() - getMaxPower()*0.01);
 	}
 
 	@Override
@@ -171,14 +165,8 @@ public class InternalCombustionEngine extends Cogenerator {
 	}
 
 	@Override
-	public boolean isStandby() throws ComponentException {
-		try {
-			return getElectricalPower().doubleValue() == 0.0;
-			
-		} catch(ComponentException | InvalidValueException e) {
-			logger.debug("Error while checking standby state: {}", e.getMessage());
-		}
-		return super.isStandby();
+	public boolean isStandby() throws ComponentException, InvalidValueException {
+		return getElectricalPower().doubleValue() == 0.0;
 	}
 
 	@Override

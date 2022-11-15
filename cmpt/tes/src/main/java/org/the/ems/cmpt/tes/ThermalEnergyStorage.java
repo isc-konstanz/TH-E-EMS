@@ -12,9 +12,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +19,10 @@ import org.the.ems.core.Component;
 import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentService;
+import org.the.ems.core.ComponentType;
 import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.HeatingType;
-import org.the.ems.core.UnknownComponentException;
-import org.the.ems.core.cmpt.CogeneratorService;
-import org.the.ems.core.cmpt.HeatPumpService;
-import org.the.ems.core.cmpt.HeatingRodService;
 import org.the.ems.core.cmpt.StratifiedChargeStorage;
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
 import org.the.ems.core.config.Configuration;
@@ -102,51 +96,58 @@ public class ThermalEnergyStorage extends Component
 
 	protected final Map<String, ThermalEnergy> heatingEnergies = new HashMap<String, ThermalEnergy>();
 
-	@Reference(
-		cardinality = ReferenceCardinality.OPTIONAL,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindCogeneratorService(CogeneratorService cogeneratorService) {
-		bindHeatingService(cogeneratorService);
-	}
-
-	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
-		unbindHeatingService(cogeneratorService);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
-		bindHeatingService(heatPumpService);
-	}
-
-	protected void unbindHeatPumpService(HeatPumpService heatPumpService) {
-		unbindHeatingService(heatPumpService);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
-	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
-		bindHeatingService(heatingRodService);
-	}
-
-	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
-		unbindHeatingService(heatingRodService);
-	}
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC
-	)
+//	FIXME: Find the reason why this causes the bundles to be constructed and activated an additional time
+//	@Reference(
+//		cardinality = ReferenceCardinality.OPTIONAL,
+//		policy = ReferencePolicy.DYNAMIC
+//	)
+//	protected void bindCogeneratorService(CogeneratorService cogeneratorService) {
+//		bindHeatingService(cogeneratorService);
+//	}
+//
+//	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
+//		unbindHeatingService(cogeneratorService);
+//	}
+//
+//	@Reference(
+//		cardinality = ReferenceCardinality.MULTIPLE,
+//		policy = ReferencePolicy.DYNAMIC
+//	)
+//	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
+//		bindHeatingService(heatPumpService);
+//	}
+//
+//	protected void unbindHeatPumpService(HeatPumpService heatPumpService) {
+//		unbindHeatingService(heatPumpService);
+//	}
+//
+//	@Reference(
+//		cardinality = ReferenceCardinality.MULTIPLE,
+//		policy = ReferencePolicy.DYNAMIC
+//		
+//	)
+//	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
+//		bindHeatingService(heatingRodService);
+//	}
+//
+//	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
+//		unbindHeatingService(heatingRodService);
+//	}
+//
+//	@Reference(
+//		cardinality = ReferenceCardinality.MULTIPLE,
+//		policy = ReferencePolicy.DYNAMIC
+//	)
 	protected void bindHeatingService(HeatingService heatingService) {
 		String id = heatingService.getId();
+		
+		if (!heatingIds.isEmpty() && !heatingIds.contains(id)) {
+			return;
+		}
 		synchronized (heatingEnergies) {
 			if (!heatingEnergies.containsKey(id)) {
-				logger.debug("Registering heating component \"{}\" to be feeding into thermal storage {}", id);
+				logger.info("Registering TH-E EMS {} \"{}\" to be feeding into thermal storage {}", 
+						heatingService.getType().getFullName(), id, getId());
 				
 				ThermalEnergy energy = new ThermalEnergy(heatingService);
 				heatingEnergies.put(id, energy);
@@ -157,7 +158,7 @@ public class ThermalEnergyStorage extends Component
 	protected void unbindHeatingService(HeatingService heatingService) {
 		String id = heatingService.getId();
 		synchronized (heatingEnergies) {
-			logger.debug("Deregistered heating component: {}", id);
+			logger.info("Deregistered heating component: {}", id);
 			heatingEnergies.remove(id);
 		}
 	}
@@ -165,34 +166,33 @@ public class ThermalEnergyStorage extends Component
 	@Override
 	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
-		try {
-			EnergyManagementService manager = context.getEnergyManager();
-			for (String heating : heatingIds) {
-				ComponentService component = manager.getComponent(heating);
-				if (component instanceof HeatingService) {
-					bindHeatingService((HeatingService) component);
-				}
+		
+		EnergyManagementService manager = context.getEnergyManager();
+		for (ComponentService heating : manager.getComponents(
+				ComponentType.COMBINED_HEAT_POWER,
+				ComponentType.HEAT_PUMP,
+				ComponentType.HEATING_ROD)) {
+			if (heating instanceof HeatingService) {
+				bindHeatingService((HeatingService) heating);
 			}
-			for (Channel temperature : temperatures.values()) {
-				temperature.registerValueListener(this);
-			}
-			
-			// Storage medium mass in kilogram
-			mass = capacity*density;
-			
-			NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E EMS "+getId().toUpperCase()+" Pool - thread-");
-			executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
-			
-			LocalTime time = LocalTime.now();
-			LocalTime next = time.with(next(interval));
-			logger.debug("Starting TH-E EMS {} power calculation {}", getId().toUpperCase(), next);
-			
-			executor.scheduleAtFixedRate(this, 
-					time.until(next, ChronoUnit.MILLIS), interval, TimeUnit.MILLISECONDS);
-			
-		} catch (UnknownComponentException e) {
-			throw new ConfigurationException("Unable to find controllable component " + e.getMessage());
 		}
+		for (Channel temperature : temperatures.values()) {
+			temperature.registerValueListener(this);
+		}
+		
+		// Storage medium mass in kilogram
+		mass = capacity*density;
+		
+		NamedThreadFactory namedThreadFactory = new NamedThreadFactory("TH-E EMS "+getId().toUpperCase()+" Pool - thread-");
+		executor = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), namedThreadFactory);
+		
+		LocalTime time = LocalTime.now();
+		LocalTime next = time.with(next(interval));
+		logger.debug("Starting TH-E EMS {} power calculation {}", getId().toUpperCase(), next);
+		
+		executor.scheduleAtFixedRate(this, 
+				time.until(next, ChronoUnit.MILLIS), interval, TimeUnit.MILLISECONDS);
+			
 	}
 
 	@Override

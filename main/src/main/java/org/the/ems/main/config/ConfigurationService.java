@@ -94,15 +94,17 @@ public final class ConfigurationService extends Thread {
 			// and only continue if all bundles are active, instead of waiting a second
 			
 			register(ComponentType.GENERAL);
-			register(ComponentType.ELECTRIC_VEHICLE, ComponentType.VENTILATION);
-			register(ComponentType.ELECTRICAL_ENERGY_STORAGE, 
-					ComponentType.THERMAL_ENERGY_STORAGE);
 			
 			wait(1);
 			register(ComponentType.COMBINED_HEAT_POWER, 
 					ComponentType.HEAT_PUMP, 
 					ComponentType.HEATING_ROD);
 			register(ComponentType.INVERTER);
+			
+			wait(1);
+			register(ComponentType.ELECTRIC_VEHICLE, ComponentType.VENTILATION);
+			register(ComponentType.ELECTRICAL_ENERGY_STORAGE, 
+					ComponentType.THERMAL_ENERGY_STORAGE);
 			
 			wait(1);
 			register(ComponentType.CONTROL);

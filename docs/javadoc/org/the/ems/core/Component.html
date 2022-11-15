@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -124,7 +124,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>Direct Known Subclasses:</dt>
-<dd><code><a href="../cmpt/circ/Circulation.html" title="class in org.the.ems.cmpt.circ">Circulation</a></code>, <code><a href="../cmpt/circ/CirculationPump.html" title="class in org.the.ems.cmpt.circ">CirculationPump</a></code>, <code><a href="../ctrl/Control.html" title="class in org.the.ems.ctrl">Control</a></code>, <code><a href="../cmpt/Runnable.html" title="class in org.the.ems.cmpt">Runnable</a></code></dd>
+<dd><code><a href="../cmpt/circ/Circulation.html" title="class in org.the.ems.cmpt.circ">Circulation</a></code>, <code><a href="../cmpt/circ/CirculationPump.html" title="class in org.the.ems.cmpt.circ">CirculationPump</a></code>, <code><a href="../ctrl/Control.html" title="class in org.the.ems.ctrl">Control</a></code>, <code><a href="../cmpt/HeatStorage.html" title="class in org.the.ems.cmpt">HeatStorage</a></code>, <code><a href="../cmpt/Runnable.html" title="class in org.the.ems.cmpt">Runnable</a></code></dd>
 </dl>
 <hr>
 <pre>public abstract class <span class="typeNameLabel">Component</span>
@@ -230,68 +230,94 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 </tr>
 <tr class="rowColor" id="i5">
 <td class="colFirst"><code>boolean</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isMaintenance()">isMaintenance</a></span>()</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isActive()">isActive</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="altColor" id="i6">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEnabled()">isEnabled</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor" id="i7">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isMaintenance()">isMaintenance</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i8">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#modified(java.util.Map)">modified</a></span>&#8203;(java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i7">
+<tr class="rowColor" id="i9">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate()">onActivate</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i8">
+<tr class="altColor" id="i10">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a></span>&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
           java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i9">
+<tr class="rowColor" id="i11">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
           <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i10">
+<tr class="altColor" id="i12">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onActivate(org.the.ems.core.config.Configurations)">onActivate</a></span>&#8203;(<a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i11">
+<tr class="rowColor" id="i13">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onDeactivate()">onDeactivate</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i12">
+<tr class="altColor" id="i14">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onInterrupt()">onInterrupt</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i13">
+<tr class="rowColor" id="i15">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a></span>&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onModified()">onModified</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i16">
+<td class="colFirst"><code>protected void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onModified(org.the.ems.core.ComponentContext,java.util.Map)">onModified</a></span>&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
           java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i14">
+<tr class="rowColor" id="i17">
+<td class="colFirst"><code>protected void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onModified(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onModified</a></span>&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
+          <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="altColor" id="i18">
+<td class="colFirst"><code>protected void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onModified(org.the.ems.core.config.Configurations)">onModified</a></span>&#8203;(<a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor" id="i19">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onPause()">onPause</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i15">
+<tr class="altColor" id="i20">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#onResume()">onResume</a></span>()</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor" id="i16">
+<tr class="rowColor" id="i21">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a></span>&#8203;(<a href="ComponentStatus.html" title="enum in org.the.ems.core">ComponentStatus</a>&nbsp;status)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor" id="i17">
+<tr class="altColor" id="i22">
 <td class="colFirst"><code>protected void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#write(org.the.ems.core.data.WriteContainer)">write</a></span>&#8203;(<a href="data/WriteContainer.html" title="class in org.the.ems.core.data">WriteContainer</a>&nbsp;container)</code></th>
 <td class="colLast">&nbsp;</td>
@@ -305,7 +331,7 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="Configurable.html" title="class in org.the.ems.core">Configurable</a></h3>
-<code><a href="Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="Configurable.html#getConfigurations()">getConfigurations</a>, <a href="Configurable.html#getDefaultSection()">getDefaultSection</a>, <a href="Configurable.html#isEnabled()">isEnabled</a>, <a href="Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="Configurable.html#setDefaultSection(java.lang.String)">setDefaultSection</a></code></li>
+<code><a href="Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="Configurable.html#getConfigurations()">getConfigurations</a>, <a href="Configurable.html#getDefaultSection()">getDefaultSection</a>, <a href="Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="Configurable.html#setDefaultSection(java.lang.String)">setDefaultSection</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -414,6 +440,28 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <pre class="methodSignature">public final&nbsp;boolean&nbsp;isMaintenance()</pre>
 </li>
 </ul>
+<a id="isEnabled()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isEnabled</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;isEnabled()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code><a href="Configurable.html#isEnabled()">isEnabled</a></code>&nbsp;in class&nbsp;<code><a href="Configurable.html" title="class in org.the.ems.core">Configurable</a></code></dd>
+</dl>
+</li>
+</ul>
+<a id="isActive()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isActive</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;isActive()</pre>
+</li>
+</ul>
 <a id="getContext()">
 <!--   -->
 </a>
@@ -510,14 +558,57 @@ implements <a href="ComponentService.html" title="interface in org.the.ems.core"
 <pre class="methodSignature">protected&nbsp;void&nbsp;modified&#8203;(java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)</pre>
 </li>
 </ul>
-<a id="onModified(org.osgi.framework.BundleContext,java.util.Map)">
+<a id="onModified(org.the.ems.core.ComponentContext,java.util.Map)">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>onModified</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;onModified&#8203;(org.osgi.framework.BundleContext&nbsp;context,
+<pre class="methodSignature">protected&nbsp;void&nbsp;onModified&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
                           java.util.Map&lt;java.lang.String,&#8203;?&gt;&nbsp;properties)
+                   throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a id="onModified(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>onModified</h4>
+<pre class="methodSignature">protected&nbsp;void&nbsp;onModified&#8203;(<a href="ComponentContext.html" title="class in org.the.ems.core">ComponentContext</a>&nbsp;context,
+                          <a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)
+                   throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a id="onModified(org.the.ems.core.config.Configurations)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>onModified</h4>
+<pre class="methodSignature">protected&nbsp;void&nbsp;onModified&#8203;(<a href="config/Configurations.html" title="class in org.the.ems.core.config">Configurations</a>&nbsp;configs)
+                   throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a id="onModified()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>onModified</h4>
+<pre class="methodSignature">protected&nbsp;void&nbsp;onModified()
                    throws <a href="ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>

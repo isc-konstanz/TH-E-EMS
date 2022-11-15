@@ -276,7 +276,7 @@ implements <a href="../core/HeatingService.html" title="interface in org.the.ems
 <tbody>
 <tr class="altColor" id="i0">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#bindEnergyStorage(org.the.ems.core.cmpt.ThermalEnergyStorageService)">bindEnergyStorage</a></span>&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;service)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#bindEnergyStorage(org.the.ems.core.cmpt.ThermalEnergyStorageService)">bindEnergyStorage</a></span>&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;storageService)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 <tr class="rowColor" id="i1">
@@ -450,7 +450,7 @@ implements <a href="../core/HeatingService.html" title="interface in org.the.ems
 </tr>
 <tr class="altColor" id="i36">
 <td class="colFirst"><code>protected void</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#unbindEnergyStorage(org.the.ems.core.cmpt.ThermalEnergyStorageService)">unbindEnergyStorage</a></span>&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;service)</code></th>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#unbindEnergyStorage(org.the.ems.core.cmpt.ThermalEnergyStorageService)">unbindEnergyStorage</a></span>&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;storageService)</code></th>
 <td class="colLast">&nbsp;</td>
 </tr>
 </tbody>
@@ -469,14 +469,14 @@ implements <a href="../core/HeatingService.html" title="interface in org.the.ems
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../core/Component.html" title="class in org.the.ems.core">Component</a></h3>
-<code><a href="../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../core/Component.html#deactivate()">deactivate</a>, <a href="../core/Component.html#getContext()">getContext</a>, <a href="../core/Component.html#getId()">getId</a>, <a href="../core/Component.html#getStatus()">getStatus</a>, <a href="../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../core/Component.html#onActivate()">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a>, <a href="../core/Component.html#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a>, <a href="../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
+<code><a href="../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../core/Component.html#deactivate()">deactivate</a>, <a href="../core/Component.html#getContext()">getContext</a>, <a href="../core/Component.html#getId()">getId</a>, <a href="../core/Component.html#getStatus()">getStatus</a>, <a href="../core/Component.html#isActive()">isActive</a>, <a href="../core/Component.html#isEnabled()">isEnabled</a>, <a href="../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../core/Component.html#onActivate()">onActivate</a>, <a href="../core/Component.html#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a>, <a href="../core/Component.html#onModified()">onModified</a>, <a href="../core/Component.html#onModified(org.the.ems.core.ComponentContext,java.util.Map)">onModified</a>, <a href="../core/Component.html#onModified(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onModified</a>, <a href="../core/Component.html#onModified(org.the.ems.core.config.Configurations)">onModified</a>, <a href="../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.the.ems.core.Configurable">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../core/Configurable.html" title="class in org.the.ems.core">Configurable</a></h3>
-<code><a href="../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../core/Configurable.html#getDefaultSection()">getDefaultSection</a>, <a href="../core/Configurable.html#isEnabled()">isEnabled</a>, <a href="../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../core/Configurable.html#setDefaultSection(java.lang.String)">setDefaultSection</a></code></li>
+<code><a href="../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../core/Configurable.html#getDefaultSection()">getDefaultSection</a>, <a href="../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../core/Configurable.html#setDefaultSection(java.lang.String)">setDefaultSection</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -692,7 +692,12 @@ implements <a href="../core/HeatingService.html" title="interface in org.the.ems
 <ul class="blockList">
 <li class="blockList">
 <h4>bindEnergyStorage</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;bindEnergyStorage&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;service)</pre>
+<pre class="methodSignature">protected&nbsp;void&nbsp;bindEnergyStorage&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;storageService)
+                          throws <a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
+</dl>
 </li>
 </ul>
 <a id="unbindEnergyStorage(org.the.ems.core.cmpt.ThermalEnergyStorageService)">
@@ -701,7 +706,7 @@ implements <a href="../core/HeatingService.html" title="interface in org.the.ems
 <ul class="blockList">
 <li class="blockList">
 <h4>unbindEnergyStorage</h4>
-<pre class="methodSignature">protected&nbsp;void&nbsp;unbindEnergyStorage&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;service)</pre>
+<pre class="methodSignature">protected&nbsp;void&nbsp;unbindEnergyStorage&#8203;(<a href="../core/cmpt/ThermalEnergyStorageService.html" title="interface in org.the.ems.core.cmpt">ThermalEnergyStorageService</a>&nbsp;storageService)</pre>
 </li>
 </ul>
 <a id="getElectricalEnergy()">
@@ -1138,10 +1143,12 @@ public&nbsp;<a href="../core/data/Value.html" title="class in org.the.ems.core.d
 <li class="blockList">
 <h4>isRunning</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;isRunning&#8203;(<a href="../core/HeatingType.html" title="enum in org.the.ems.core">HeatingType</a>&nbsp;type)
-                  throws <a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
+                  throws <a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a>,
+                         <a href="../core/data/InvalidValueException.html" title="class in org.the.ems.core.data">InvalidValueException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
+<dd><code><a href="../core/data/InvalidValueException.html" title="class in org.the.ems.core.data">InvalidValueException</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -1182,10 +1189,12 @@ public&nbsp;<a href="../core/data/Value.html" title="class in org.the.ems.core.d
 <li class="blockList">
 <h4>isStandby</h4>
 <pre class="methodSignature">public&nbsp;boolean&nbsp;isStandby&#8203;(<a href="../core/HeatingType.html" title="enum in org.the.ems.core">HeatingType</a>&nbsp;type)
-                  throws <a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></pre>
+                  throws <a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a>,
+                         <a href="../core/data/InvalidValueException.html" title="class in org.the.ems.core.data">InvalidValueException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a></code></dd>
+<dd><code><a href="../core/data/InvalidValueException.html" title="class in org.the.ems.core.data">InvalidValueException</a></code></dd>
 </dl>
 </li>
 </ul>

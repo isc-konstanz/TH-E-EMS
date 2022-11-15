@@ -703,14 +703,14 @@ implements <a href="../../core/cmpt/InverterService.html" title="interface in or
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../../core/Component.html" title="class in org.the.ems.core">Component</a></h3>
-<code><a href="../../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../../core/Component.html#deactivate()">deactivate</a>, <a href="../../core/Component.html#getContext()">getContext</a>, <a href="../../core/Component.html#getId()">getId</a>, <a href="../../core/Component.html#getStatus()">getStatus</a>, <a href="../../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../../core/Component.html#onActivate()">onActivate</a>, <a href="../../core/Component.html#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a>, <a href="../../core/Component.html#onDeactivate()">onDeactivate</a>, <a href="../../core/Component.html#onInterrupt()">onInterrupt</a>, <a href="../../core/Component.html#onModified(org.osgi.framework.BundleContext,java.util.Map)">onModified</a>, <a href="../../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
+<code><a href="../../core/Component.html#activate(org.osgi.framework.BundleContext,java.util.Map)">activate</a>, <a href="../../core/Component.html#deactivate()">deactivate</a>, <a href="../../core/Component.html#getContext()">getContext</a>, <a href="../../core/Component.html#getId()">getId</a>, <a href="../../core/Component.html#getStatus()">getStatus</a>, <a href="../../core/Component.html#isActive()">isActive</a>, <a href="../../core/Component.html#isEnabled()">isEnabled</a>, <a href="../../core/Component.html#isMaintenance()">isMaintenance</a>, <a href="../../core/Component.html#modified(java.util.Map)">modified</a>, <a href="../../core/Component.html#onActivate()">onActivate</a>, <a href="../../core/Component.html#onActivate(org.the.ems.core.ComponentContext,java.util.Map)">onActivate</a>, <a href="../../core/Component.html#onDeactivate()">onDeactivate</a>, <a href="../../core/Component.html#onInterrupt()">onInterrupt</a>, <a href="../../core/Component.html#onModified()">onModified</a>, <a href="../../core/Component.html#onModified(org.the.ems.core.ComponentContext,java.util.Map)">onModified</a>, <a href="../../core/Component.html#onModified(org.the.ems.core.ComponentContext,org.the.ems.core.config.Configurations)">onModified</a>, <a href="../../core/Component.html#onModified(org.the.ems.core.config.Configurations)">onModified</a>, <a href="../../core/Component.html#setStatus(org.the.ems.core.ComponentStatus)">setStatus</a>, <a href="../../core/Component.html#write(org.the.ems.core.data.WriteContainer)">write</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.org.the.ems.core.Configurable">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.the.ems.core.<a href="../../core/Configurable.html" title="class in org.the.ems.core">Configurable</a></h3>
-<code><a href="../../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../../core/Configurable.html#getDefaultSection()">getDefaultSection</a>, <a href="../../core/Configurable.html#isEnabled()">isEnabled</a>, <a href="../../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../../core/Configurable.html#setDefaultSection(java.lang.String)">setDefaultSection</a></code></li>
+<code><a href="../../core/Configurable.html#configure(org.the.ems.core.config.Configurations)">configure</a>, <a href="../../core/Configurable.html#getConfigurations()">getConfigurations</a>, <a href="../../core/Configurable.html#getDefaultSection()">getDefaultSection</a>, <a href="../../core/Configurable.html#onConfigure(org.the.ems.core.config.Configurations)">onConfigure</a>, <a href="../../core/Configurable.html#setDefaultSection(java.lang.String)">setDefaultSection</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -1109,7 +1109,7 @@ protected&nbsp;double powerMin</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>setpoint</h4>
-<pre><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>
+<pre><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#mandatory()">mandatory</a>=false)
 protected&nbsp;<a href="../../core/data/Channel.html" title="interface in org.the.ems.core.data">Channel</a> setpoint</pre>
 </li>
 </ul>
@@ -1457,7 +1457,7 @@ public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.cor
 <ul class="blockList">
 <li class="blockList">
 <h4>getInputEnergy</h4>
-<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>={"energy_input","energy_dc"},
+<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>="energy_input",
                <a href="../../core/config/Configuration.html#mandatory()">mandatory</a>=false)
 public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;getInputEnergy()
                      throws <a href="../../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a>,
@@ -1527,7 +1527,7 @@ public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.cor
 <ul class="blockList">
 <li class="blockList">
 <h4>getInputPower</h4>
-<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>={"power_input","power_dc"},
+<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>="power_input",
                <a href="../../core/config/Configuration.html#mandatory()">mandatory</a>=false)
 public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;getInputPower()
                     throws <a href="../../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a>,
@@ -1597,7 +1597,7 @@ public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.cor
 <ul class="blockList">
 <li class="blockList">
 <h4>getActivePower</h4>
-<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>={"power_active","power_ac"},
+<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>="power_active",
                <a href="../../core/config/Configuration.html#mandatory()">mandatory</a>=false)
 public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;getActivePower()
                      throws <a href="../../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a>,
@@ -1667,7 +1667,7 @@ public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.cor
 <ul class="blockList">
 <li class="blockList">
 <h4>getActivePowerL1</h4>
-<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>={"power_active_l1","power_ac_l1"},
+<pre class="methodSignature"><a href="../../core/config/Configuration.html" title="annotation in org.the.ems.core.config">@Configuration</a>(<a href="../../core/config/Configuration.html#value()">value</a>="power_active_l1",
                <a href="../../core/config/Configuration.html#mandatory()">mandatory</a>=false)
 public&nbsp;<a href="../../core/data/Value.html" title="class in org.the.ems.core.data">Value</a>&nbsp;getActivePowerL1()
                        throws <a href="../../core/ComponentException.html" title="class in org.the.ems.core">ComponentException</a>,

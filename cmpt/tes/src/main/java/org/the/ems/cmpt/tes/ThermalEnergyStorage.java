@@ -5,7 +5,6 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -15,12 +14,9 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.the.ems.core.Component;
+import org.the.ems.cmpt.HeatStorage;
 import org.the.ems.core.ComponentContext;
 import org.the.ems.core.ComponentException;
-import org.the.ems.core.ComponentService;
-import org.the.ems.core.ComponentType;
-import org.the.ems.core.EnergyManagementService;
 import org.the.ems.core.HeatingService;
 import org.the.ems.core.HeatingType;
 import org.the.ems.core.cmpt.StratifiedChargeStorage;
@@ -43,8 +39,8 @@ import org.the.ems.core.schedule.NamedThreadFactory;
 	configurationPid = ThermalEnergyStorageService.PID,
 	configurationPolicy = ConfigurationPolicy.REQUIRE
 )
-public class ThermalEnergyStorage extends Component 
-		implements ThermalEnergyStorageService, StratifiedChargeStorage, ValueListener, Runnable {
+public class ThermalEnergyStorage extends HeatStorage 
+		implements StratifiedChargeStorage, ValueListener, Runnable {
 
 	private static final Logger logger = LoggerFactory.getLogger(ThermalEnergyStorage.class);
 
@@ -72,9 +68,6 @@ public class ThermalEnergyStorage extends Component
 
 	protected double mass;
 
-	@Configuration(value="heating*")
-	protected List<String> heatingIds;
-
 	@Configuration(value="weight_*")
 	protected DoubleCollection weights;
 
@@ -96,86 +89,20 @@ public class ThermalEnergyStorage extends Component
 
 	protected final Map<String, ThermalEnergy> heatingEnergies = new HashMap<String, ThermalEnergy>();
 
-//	FIXME: Find the reason why this causes the bundles to be constructed and activated an additional time
-//	@Reference(
-//		cardinality = ReferenceCardinality.OPTIONAL,
-//		policy = ReferencePolicy.DYNAMIC
-//	)
-//	protected void bindCogeneratorService(CogeneratorService cogeneratorService) {
-//		bindHeatingService(cogeneratorService);
-//	}
-//
-//	protected void unbindCogeneratorService(CogeneratorService cogeneratorService) {
-//		unbindHeatingService(cogeneratorService);
-//	}
-//
-//	@Reference(
-//		cardinality = ReferenceCardinality.MULTIPLE,
-//		policy = ReferencePolicy.DYNAMIC
-//	)
-//	protected void bindHeatPumpService(HeatPumpService heatPumpService) {
-//		bindHeatingService(heatPumpService);
-//	}
-//
-//	protected void unbindHeatPumpService(HeatPumpService heatPumpService) {
-//		unbindHeatingService(heatPumpService);
-//	}
-//
-//	@Reference(
-//		cardinality = ReferenceCardinality.MULTIPLE,
-//		policy = ReferencePolicy.DYNAMIC
-//		
-//	)
-//	protected void bindHeatingRodService(HeatingRodService heatingRodService) {
-//		bindHeatingService(heatingRodService);
-//	}
-//
-//	protected void unbindHeatingRodService(HeatingRodService heatingRodService) {
-//		unbindHeatingService(heatingRodService);
-//	}
-//
-//	@Reference(
-//		cardinality = ReferenceCardinality.MULTIPLE,
-//		policy = ReferencePolicy.DYNAMIC
-//	)
-	protected void bindHeatingService(HeatingService heatingService) {
-		String id = heatingService.getId();
-		
-		if (!heatingIds.isEmpty() && !heatingIds.contains(id)) {
-			return;
-		}
-		synchronized (heatingEnergies) {
-			if (!heatingEnergies.containsKey(id)) {
-				logger.info("Registering TH-E EMS {} \"{}\" to be feeding into thermal storage {}", 
-						heatingService.getType().getFullName(), id, getId());
-				
-				ThermalEnergy energy = new ThermalEnergy(heatingService);
-				heatingEnergies.put(id, energy);
-			}
-		}
+	@Override
+	protected void onBindHeating(HeatingService heatingService) {
+		ThermalEnergy energy = new ThermalEnergy(heatingService);
+		heatingEnergies.put(heatingService.getId(), energy);
 	}
 
-	protected void unbindHeatingService(HeatingService heatingService) {
-		String id = heatingService.getId();
-		synchronized (heatingEnergies) {
-			logger.info("Deregistered heating component: {}", id);
-			heatingEnergies.remove(id);
-		}
+	@Override
+	protected void onUnbindHeating(HeatingService heatingService) {
+		heatingEnergies.remove(heatingService.getId());
 	}
 
 	@Override
 	protected void onActivate(ComponentContext context, Configurations configs) throws ComponentException {
 		super.onActivate(context, configs);
-		
-		EnergyManagementService manager = context.getEnergyManager();
-		for (ComponentService heating : manager.getComponents(
-				ComponentType.COMBINED_HEAT_POWER,
-				ComponentType.HEAT_PUMP,
-				ComponentType.HEATING_ROD)) {
-			if (heating instanceof HeatingService) {
-				bindHeatingService((HeatingService) heating);
-			}
-		}
 		for (Channel temperature : temperatures.values()) {
 			temperature.registerValueListener(this);
 		}

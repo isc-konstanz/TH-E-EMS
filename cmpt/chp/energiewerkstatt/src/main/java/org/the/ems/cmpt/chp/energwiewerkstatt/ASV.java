@@ -49,6 +49,9 @@ public class ASV extends Cogenerator {
 	private Channel electricalPower;
 	private Value electricalPowerValue = DoubleValue.emptyValue();
 
+	@Configuration(mandatory=false)
+	private Channel setpoint;
+
 	@Configuration
 	private Channel setpointPower;
 
@@ -69,6 +72,23 @@ public class ASV extends Cogenerator {
 
 	protected void setSetpointPowerValue(double value, long timestamp) throws ComponentException {
 		this.setSetpointPowerValue(new DoubleValue(value, timestamp));
+	}
+
+	protected Value getSetpointPowerValue() {
+		return setpointPowerValue;
+	}
+
+	private void addSetpointPercentValue(WriteContainer container) {
+		if (setpoint == null) {
+			return;
+		}
+		container.add(setpoint, getSetpointPercentValue());
+	}
+
+	protected Value getSetpointPercentValue() {
+		return new DoubleValue(
+				setpointPowerValue.doubleValue()/getMaxPower()*100., 
+				setpointPowerValue.getEpochMillis());
 	}
 
 	protected int getEnabledState() throws InvalidValueException {
@@ -101,11 +121,12 @@ public class ASV extends Cogenerator {
 	protected void onSet(WriteContainer container, Value value) throws ComponentException {
 		if (setpointPowerValue.isNaN() || setpointPowerValue.doubleValue() != value.doubleValue()) {
 			setSetpointPowerValue(value);
+			addSetpointPercentValue(container);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Updating Energiewerkstatt ASV power setpoint to {} kW",
 						Math.round(value.intValue()/1000));
 			}
-			container.add(setpointPower, setpointPowerValue);
+			container.add(setpointPower, getSetpointPowerValue());
 		}
 	}
 
@@ -116,8 +137,9 @@ public class ASV extends Cogenerator {
 					Math.round(settings.getValue().intValue()/1000));
 		}
 		setSetpointPowerValue(settings.getValue());
+		addSetpointPercentValue(container);
 		container.addBoolean(enable, true, settings.getEpochMillis());
-		container.add(setpointPower, setpointPowerValue);
+		container.add(setpointPower, getSetpointPowerValue());
 	}
 
 	@Override
@@ -143,7 +165,8 @@ public class ASV extends Cogenerator {
 		logger.debug("Stopping Energiewerkstatt ASV");
 
 		setSetpointPowerValue(0, settings.getEpochMillis());
-		container.add(setpointPower, setpointPowerValue);
+		addSetpointPercentValue(container);
+		container.add(setpointPower, getSetpointPowerValue());
 		container.addBoolean(enable, false, settings.getEpochMillis());
 	}
 
@@ -179,13 +202,13 @@ public class ASV extends Cogenerator {
 					}
 				}
 				else if (interval >= SETPOINT_WRITE_INTERVAL) {
+					WriteContainer container = new WriteContainer();
 					// Update latest setpoint timestamp
 					double setpointPowerValue = this.setpointPowerValue.doubleValue();
 					setSetpointPowerValue(new DoubleValue(setpointPowerValue, timestamp));
-					
-					WriteContainer container = new WriteContainer();
-					container.addBoolean(enable, setpointPowerValue > 0., timestamp);
+					addSetpointPercentValue(container);
 					container.addDouble(setpointPower, setpointPowerValue, timestamp);
+					container.addBoolean(enable, setpointPowerValue > 0., timestamp);
 					write(container);
 				}
 			}

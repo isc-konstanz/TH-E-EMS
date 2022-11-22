@@ -45,13 +45,15 @@ public class HeatingHandler extends Component implements ValueListener {
 	private Channel waterTemp;
 
 	@Configuration
-	private Channel waterTempSetpoint;
-
-	@Configuration
 	private Channel waterTempHysteresis;
 
 	@Configuration(mandatory = false)
 	private Double waterTempHysteresisFallback = Double.NaN;
+
+	@Configuration
+	private Channel waterTempSetpoint;
+
+	private double waterTempSetpointValue;
 
 
 	final HeatingType type;
@@ -84,20 +86,24 @@ public class HeatingHandler extends Component implements ValueListener {
 			logger.debug("Configured maximum fallback value for {} handler: {}", 
 					type.getFullName(), waterTempMaxDefault);
 		}
-		try {
-			if (waterTempMax.isNaN()) {
-				waterTempMax = getTemperatureValue(WATER_TEMP_MAX, new ValueListener() {
+		this.waterTempMax = getTemperatureValue(WATER_TEMP_MAX);
+		if (waterTempMax.isNaN()) {
+			try {
+				Channel waterTempMaxChannel = getContext().getDefaultChannel(WATER_TEMP_MAX);
+				this.waterTempMax = waterTempMaxChannel.getLatestValue(new ValueListener() {
 					@Override
-					public void onValueChanged(Value temperature) { waterTempMax = temperature.doubleValue(); }
-				});
+					public void onValueChanged(Value temperature) {
+						waterTempMax = temperature.doubleValue();
+					}
+				}).doubleValue();
+			} catch (InvalidValueException e) {
+				waterTempMax = waterTempMaxDefault;
 			}
-		} catch (InvalidValueException e) {
-			waterTempMax = waterTempMaxDefault;
 		}
 		if (waterTempMinDefault.isNaN()) {
 			switch (type) {
 			case DOMESTIC_WATER:
-				waterTempMinDefault = 50.;
+				waterTempMinDefault = 41.;
 				break;
 			case HEATING_WATER:
 			default:
@@ -107,15 +113,23 @@ public class HeatingHandler extends Component implements ValueListener {
 			logger.debug("Configured minimum fallback value for {} handler: {}", 
 					type.getFullName(), waterTempMinDefault);
 		}
-		try {
-			if (waterTempMin.isNaN()) {
-				waterTempMin = getTemperatureValue(WATER_TEMP_MIN, new ValueListener() {
+		this.waterTempMin = getTemperatureValue(WATER_TEMP_MIN);
+		if (!waterTempMin.isNaN()) {
+			waterTempSetpointValue = waterTempMin + getTemperatureHysteresis();
+		}
+		else {
+			waterTempSetpointValue = waterTempMinDefault + getTemperatureHysteresis();
+			try {
+				Channel waterTempMinChannel = getContext().getDefaultChannel(WATER_TEMP_MIN);
+				this.waterTempMin = waterTempMinChannel.getLatestValue(new ValueListener() {
 					@Override
-					public void onValueChanged(Value temperature) { waterTempMin = temperature.doubleValue(); }
-				});
+					public void onValueChanged(Value temperature) {
+						waterTempMin = temperature.doubleValue() - getTemperatureHysteresis();
+					}
+				}).doubleValue();
+			} catch (InvalidValueException e) {
+				waterTempMin = waterTempMinDefault;
 			}
-		} catch (InvalidValueException e) {
-			waterTempMin = waterTempMinDefault;
 		}
 		logger.info("Starting WeiTrona {} handler from {} to {}°C", type.getFullName(), 
 				String.format("%.1f", getTemperatureMinimum()),
@@ -204,7 +218,7 @@ public class HeatingHandler extends Component implements ValueListener {
 	}
 
 	private double getStopSetpoint() {
-		return waterTempMinDefault + getTemperatureHysteresis();
+		return getTemperatureSetpoint();
 	}
 
 	public boolean isStopped() {
@@ -240,6 +254,10 @@ public class HeatingHandler extends Component implements ValueListener {
 		return waterTemp.getLatestValue();
 	}
 
+	double getTemperatureSetpoint() {
+		return waterTempSetpointValue;
+	}
+
 	double getTemperatureMaximum() {
 		return waterTempMax;
 	}
@@ -260,17 +278,15 @@ public class HeatingHandler extends Component implements ValueListener {
 		}
 	}
 
-	private double getTemperatureValue(String key, ValueListener listener)
-			throws ConfigurationException, InvalidValueException {
+	private double getTemperatureValue(String key) throws ConfigurationException {
 		try {
 			if (getConfigurations().containsKey(getDefaultSection(), key)) {
 				return getConfigurations().getDouble(getDefaultSection(), key);
 			}
 		} catch (NumberFormatException e) {
-			// Do nothing and continue configuring channel
+			// Do nothing and return NaN
 		}
-		Channel channel = getContext().getDefaultChannel(key);
-		return channel.getLatestValue(listener).doubleValue();
+		return Double.NaN;
 	}
 
 	@Override

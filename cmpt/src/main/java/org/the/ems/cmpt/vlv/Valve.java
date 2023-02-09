@@ -42,6 +42,10 @@ public class Valve extends Component implements Runnable, ValueListener {
 
 	private final static String SECTION = "Valve";
 
+	private enum Rotation {
+		CW, CCW;
+	}
+
 	@Configuration(value = "rotate_cw")
 	private Channel rotateClockwise;
 
@@ -51,20 +55,23 @@ public class Valve extends Component implements Runnable, ValueListener {
 	@Configuration(value = "rotate_duration", scale = 1000)
 	private int rotateDuration;
 
+	@Configuration(value = "rotate_min", mandatory = false)
+	Rotation rotateMin = Rotation.CCW;
 
-//	@Configuration(value = "pas_angle_min", mandatory = false)
+
+//	@Configuration(value = "pos_angle_min", mandatory = false)
 //	private int positionAngleMin = 0;
 
-	@Configuration(value = "pas_angle_max", mandatory = false)
+	@Configuration(value = "pos_angle_max", mandatory = false)
 	private int positionAngleMax = 90;
 
-	@Configuration(value = "pas_angle_setpoint")
+	@Configuration(value = "pos_angle_setpoint")
 	private Channel positionAngleSetpoint;
 
-	@Configuration(value = "pas_angle", mandatory = false)
+	@Configuration(value = "pos_angle", mandatory = false)
 	private Channel positionAngle;
 
-	private DoubleValue positionAngleValue = DoubleValue.emptyValue();
+	private DoubleValue positionAngleMinimum = DoubleValue.emptyValue();
 	private boolean positionAngleCalibrated = false;
 
 	private Thread positionAngleWatcher = null;
@@ -92,7 +99,7 @@ public class Valve extends Component implements Runnable, ValueListener {
 	}
 
 	public Value getPositionAngle() {
-		return positionAngleValue;
+		return positionAngleMinimum;
 	}
 
 	public Value getPositionAngleSetpoint() throws InvalidValueException {
@@ -148,12 +155,18 @@ public class Valve extends Component implements Runnable, ValueListener {
 		doSet(value);
 	}
 
-	void doSet(Value value) throws EnergyManagementException {
+	void doSet(Value positionAngleValue) throws EnergyManagementException {
 		WriteContainer writeContainer = new WriteContainer();
-		if (value.doubleValue() != positionAngleSetpoint.getLatestValue().doubleValue()) {
-			writeContainer.add(positionAngleSetpoint, value);
+		try {
+			if (Math.abs(positionAngleValue.doubleValue() -
+					positionAngleSetpoint.getLatestValue().doubleValue()) > .1) {
+				writeContainer.add(positionAngleSetpoint, positionAngleValue);
+			}
+		} catch (InvalidValueException e) {
+			// Setpoint channel not yet written to
+			writeContainer.add(positionAngleSetpoint, positionAngleValue);
 		}
-		onSet(writeContainer, value);
+		onSet(writeContainer, positionAngleValue);
 		write(writeContainer);
 	}
 
@@ -162,13 +175,16 @@ public class Valve extends Component implements Runnable, ValueListener {
 			logger.debug("Skipping setting of rotation while calibrating");
 			return;
 		}
-		if (value.doubleValue() < positionAngleValue.doubleValue() || positionAngleValue.isNaN()) {
+		// TODO: Implement {@link Rotation} configuration
+		if (positionAngleMinimum.doubleValue() > value.doubleValue()) {
+			positionAngleMinimum = new DoubleValue(positionAngleMinimum.doubleValue());
 			if (isRotatingClockwise()) {
 				container.addBoolean(rotateClockwise, false);
 			}
 			container.addBoolean(rotateCounterClockwise, true);
 		}
-		else if (value.doubleValue() > positionAngleValue.doubleValue()) {
+		else if (positionAngleMinimum.doubleValue() < value.doubleValue()) {
+			positionAngleMinimum = new DoubleValue(positionAngleMinimum.doubleValue());
 			if (isRotatingCounterClockwise()) {
 				container.addBoolean(rotateCounterClockwise, false);
 			}
@@ -191,9 +207,10 @@ public class Valve extends Component implements Runnable, ValueListener {
 	protected void onActivate() throws ComponentException {
 		super.onActivate();
 		try {
+			positionAngleMinimum = new DoubleValue(getPositionAngleMinimum());
 			positionAngleCalibrated = false;
 			positionAngleSetpoint.registerValueListener(this);
-			setMin();
+			set(positionAngleMinimum);
 			
 			// TODO: run this thread only if rotating
 			positionAngleWatcher = new Thread(this);
@@ -237,8 +254,8 @@ public class Valve extends Component implements Runnable, ValueListener {
 				try {
 					if (positionAngleCalibrated) {
 						if (isRotating()) {
-							double positionAngle = positionAngleValue.doubleValue();
-							double positionAngleChange = (timestamp - positionAngleValue.getEpochMillis()) * 
+							double positionAngle = positionAngleMinimum.doubleValue();
+							double positionAngleChange = (timestamp - positionAngleMinimum.getEpochMillis()) * 
 									((double) positionAngleMax)/(double) rotateDuration;
 							if (isRotatingClockwise())  {
 								positionAngle += positionAngleChange;
@@ -253,26 +270,26 @@ public class Valve extends Component implements Runnable, ValueListener {
 							if (positionAngle < getPositionAngleMinimum()) {
 								positionAngle = getPositionAngleMinimum();
 							}
-							positionAngleValue = new DoubleValue(positionAngle);
+							positionAngleMinimum = new DoubleValue(positionAngle);
 							
-							if (Math.abs(positionAngleValue.doubleValue() - 
-									positionAngleSetpoint.getLatestValue().doubleValue()) < 0.05) {
+							double positionAngleSetValue = positionAngleSetpoint.getLatestValue().doubleValue();
+							if ((isRotatingCounterClockwise() && positionAngle <= positionAngleSetValue) || 
+									(isRotatingClockwise() && positionAngle >= positionAngleSetValue)) {
 								reset();
 							}
 						}
-						else if (positionAngleValue.doubleValue() !=
-								positionAngleSetpoint.getLatestValue().doubleValue()) {
+						else if (Math.abs(positionAngleMinimum.doubleValue() -
+								positionAngleSetpoint.getLatestValue().doubleValue()) > .1) {
 							set(positionAngleSetpoint.getLatestValue());
 						}
 					}
-					// TODO: Implement default position configuration
-					else if (timestamp - rotateCounterClockwise.getLatestValue().getEpochMillis() >= rotateDuration) {
-						positionAngleValue = new DoubleValue(0);
+					// TODO: Implement {@link Rotation} configuration
+					else if (timestamp - positionAngleMinimum.getEpochMillis() >= rotateDuration) {
 						positionAngleCalibrated = true;
 						reset();
 					}
-					if (positionAngleValue.isFinite() && positionAngle != null) {
-						positionAngle.setLatestValue(positionAngleValue);
+					if (positionAngleMinimum.isFinite() && positionAngle != null) {
+						positionAngle.setLatestValue(positionAngleMinimum);
 					}
 				} catch (InvalidValueException e) {
 					logger.debug("Unable to retrieve valve position angle: {}", e.getMessage());

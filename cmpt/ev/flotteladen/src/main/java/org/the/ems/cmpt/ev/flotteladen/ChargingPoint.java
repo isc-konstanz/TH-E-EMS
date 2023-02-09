@@ -71,7 +71,7 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 	 */
 	@Override
     public double getMaxPower() {
-        return getMaxCurrent()*getVoltage()*3;
+        return Math.min(getMaxCurrent()*getVoltage()*3, super.getMaxPower());
     }
 
     public double getMaxCurrent() {
@@ -89,7 +89,7 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 	 */
 	@Override
     public double getMinPower() {
-        return getMinCurrent()*getVoltage()*3;
+        return Math.max(getMinCurrent()*getVoltage()*3, super.getMinPower());
     }
 
     public double getMinCurrent() {
@@ -208,6 +208,11 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 	}
 
 	@Override
+	public boolean isRunning() {
+		return isCharging();
+	}
+
+	@Override
 	protected void onSet(WriteContainer container, Value setpointPower) throws ComponentException {
 		if (!isCharging()) {
 			throw new ComponentException("Unable to update charging setpoint for charging point state: " + statusValue);
@@ -245,16 +250,23 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 		return super.isStoppable(timestamp);
 	}
 
+	@Override
+	public boolean isStandby() {
+		return !isCharging();
+	}
+
 	public boolean isCharging() {
 		return statusValue == ChargingPointStatus.CHARGING;
 	}
 
 	@Override
 	public void onValueReceived(Value status) {
-		ChargingPointStatus statusValue = ChargingPointStatus.valueOf(status.stringValue());
+		logger.info("Received status: {}", status.stringValue());
+		ChargingPointStatus statusValue = ChargingPointStatus.valueOf(status);
 		if (this.statusValue == statusValue) {
 			return;
 		}
+		this.statusValue = statusValue;
 		if (statusCode != null) {
 			statusCode.setLatestValue(new ByteValue(statusValue.getCode(), status.getEpochMillis()));
 		}
@@ -266,6 +278,9 @@ public class ChargingPoint extends ElectricVehicle implements ValueListener {
 				onStandby();
 				setState(RunState.STANDBY);
 				updateChargePower();
+				break;
+			case CHARGING_STARTED_EV:
+				setState(RunState.STARTING);
 				break;
 			case CHARGING:
 				onRunning();

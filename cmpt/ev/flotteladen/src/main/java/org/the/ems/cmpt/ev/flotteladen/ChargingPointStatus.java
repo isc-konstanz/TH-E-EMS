@@ -3,13 +3,16 @@ package org.the.ems.cmpt.ev.flotteladen;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.the.ems.core.data.Value;
+
 public enum ChargingPointStatus {
 
 	STANDBY(0),
 	AVAILABLE(1),
 	CONNECTED(2),
-	CHARGING(3),
-	CHARGING_COMPLETE(4);
+	CHARGING_STARTED_EV(3),
+	CHARGING(4),
+	CHARGING_COMPLETE(5);
 
 	private final int code;
 
@@ -30,12 +33,17 @@ public enum ChargingPointStatus {
 		}
 	}
 
+	public static ChargingPointStatus valueOf(Value value) {
+		String status = value.stringValue().trim().replace("\"", "");
+		return ChargingPointStatus.valueOf(status);
+	}
+
 	public static ChargingPointStatus valueOf(int code) {
-		ChargingPointStatus state = stateCodes.get((byte) code);
-		if (state == null) {
+		ChargingPointStatus status = stateCodes.get((byte) code);
+		if (status == null) {
 			throw new IllegalArgumentException("Unknown charging point status code: " + code);
 		}
-		return state;
+		return status;
 	}
 
 }

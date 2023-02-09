@@ -52,32 +52,32 @@ public abstract class Inverter<S extends ElectricalEnergyStorage> extends Compon
 
 	private static final Logger logger = LoggerFactory.getLogger(Inverter.class);
 
-	protected static final String IMPORT_ENERGY_VALUE = "energy_import";
-	protected static final String IMPORT_POWER_VALUE = "power_import";
+	protected static final String IMPORT_ENERGY_VALUE = "import_energy";
+	protected static final String IMPORT_POWER_VALUE = "import_power";
 
-	protected static final String EXPORT_ENERGY_VALUE = "energy_export";
-	protected static final String EXPORT_POWER_VALUE = "power_export";
+	protected static final String EXPORT_ENERGY_VALUE = "export_energy";
+	protected static final String EXPORT_POWER_VALUE = "export_power";
 
-	protected static final String INPUT_ENERGY_VALUE = "energy_input";
-	protected static final String INPUT_POWER_VALUE = "power_input";
+	protected static final String INPUT_ENERGY_VALUE = "input_energy";
+	protected static final String INPUT_POWER_VALUE = "input_power";
 
-	protected static final String DC_ENERGY_VALUE = "energy_dc";
-	protected static final String DC_POWER_VALUE = "power_dc";
+	protected static final String DC_ENERGY_VALUE = "dc_energy";
+	protected static final String DC_POWER_VALUE = "dc_power";
 
-	protected static final String AC_POWER_VALUE = "power_ac";
-	protected static final String AC_POWER_L1_VALUE = "power_ac_l1";
-	protected static final String AC_POWER_L2_VALUE = "power_ac_l2";
-	protected static final String AC_POWER_L3_VALUE = "power_ac_l3";
+	protected static final String AC_POWER_VALUE = "ac_power";
+	protected static final String AC_POWER_L1_VALUE = "ac_power_l1";
+	protected static final String AC_POWER_L2_VALUE = "ac_power_l2";
+	protected static final String AC_POWER_L3_VALUE = "ac_power_l3";
 
-	protected static final String ACTIVE_POWER_VALUE = "power_active";
-	protected static final String ACTIVE_POWER_L1_VALUE = "power_active_l1";
-	protected static final String ACTIVE_POWER_L2_VALUE = "power_active_l2";
-	protected static final String ACTIVE_POWER_L3_VALUE = "power_active_l3";
+	protected static final String ACTIVE_POWER_VALUE = "active_power";
+	protected static final String ACTIVE_POWER_L1_VALUE = "active_power_l1";
+	protected static final String ACTIVE_POWER_L2_VALUE = "active_power_l2";
+	protected static final String ACTIVE_POWER_L3_VALUE = "active_power_l3";
 
-	protected static final String REACTIVE_POWER_VALUE = "power_reactive";
-	protected static final String REACTIVE_POWER_L1_VALUE = "power_reactive_l1";
-	protected static final String REACTIVE_POWER_L2_VALUE = "power_reactive_l2";
-	protected static final String REACTIVE_POWER_L3_VALUE = "power_reactive_l3";
+	protected static final String REACTIVE_POWER_VALUE = "reactive_power";
+	protected static final String REACTIVE_POWER_L1_VALUE = "reactive_power_l1";
+	protected static final String REACTIVE_POWER_L2_VALUE = "reactive_power_l2";
+	protected static final String REACTIVE_POWER_L3_VALUE = "reactive_power_l3";
 
 	protected static final String VOLTAGE_VALUE = "voltage";
 	protected static final String VOLTAGE_L1_VALUE = "voltage_l1";

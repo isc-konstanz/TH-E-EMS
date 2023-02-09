@@ -38,16 +38,16 @@ public class ActivePower extends Component implements Channel, ValueListener {
 
 	private volatile InverterCallbacks callbacks = null;
 
-	@Configuration(value="power_active", section=Configurations.GENERAL)
+	@Configuration(value="active_power", section=Configurations.GENERAL)
 	private Channel activePower;
 
-	@Configuration(value="power_source")
+	@Configuration(value="source_power")
 	private Channel sourcePower;
 
-	@Configuration(value="power_extern")
+	@Configuration(value="extern_power")
 	private Channel externalPower;
 
-	@Configuration(value="scaling_external", mandatory=false)
+	@Configuration(value="external_scaling", mandatory=false)
 	private double externalScaling = -1;
 
 	private volatile boolean running = false;

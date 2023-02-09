@@ -54,18 +54,18 @@ public class EffektaInverter extends Inverter<EffektaBattery> implements ValueLi
 	private final static Logger logger = LoggerFactory.getLogger(EffektaInverter.class);
 
 	@Configuration
-	protected Channel power;
+	protected Channel activePower;
 
-	@Configuration(value = "power_output_ac", mandatory = false)
+	@Configuration(value = "output_power_ac", mandatory = false)
 	protected Channel alternatingPowerOutput;
 
-	@Configuration(value = "power_input_ac")
+	@Configuration(value = "input_power_ac")
 	protected Channel alternatingPowerInput;
 
-	@Configuration(value = "power_input_dc")
+	@Configuration(value = "input_power_dc")
 	protected Channel directPowerInput;
 
-	@Configuration(value = "power_input_dc_*")
+	@Configuration(value = "input_power_dc_*")
 	private ChannelCollection directPowerInputs;
 
 	@Configuration(mandatory = false, scale = 1000)
@@ -107,22 +107,22 @@ public class EffektaInverter extends Inverter<EffektaBattery> implements ValueLi
 
 	@Override
 	public Value getActivePower() throws ComponentException, InvalidValueException {
-		return power.getLatestValue();
+		return activePower.getLatestValue();
 	}
 
 	@Override
 	public Value getActivePower(ValueListener listener) throws ComponentException, InvalidValueException {
-		return power.getLatestValue(listener);
+		return activePower.getLatestValue(listener);
 	}
 
 	@Override
 	public void registerActivePowerListener(ValueListener listener) throws ComponentException {
-		power.registerValueListener(listener);
+		activePower.registerValueListener(listener);
 	}
 
 	@Override
 	public void deregisterActivePowerListener(ValueListener listener) throws ComponentException {
-		power.deregisterValueListener(listener);
+		activePower.deregisterValueListener(listener);
 	}
 
 	@Override
@@ -233,7 +233,7 @@ public class EffektaInverter extends Inverter<EffektaBattery> implements ValueLi
 			alternatingPowerValue += alternatingPowerInput.getLatestValue().doubleValue();
 			alternatingPowerValue += storage.getPower().doubleValue();
 			
-			power.setLatestValue(new DoubleValue(alternatingPowerValue, timeMax));
+			activePower.setLatestValue(new DoubleValue(alternatingPowerValue, timeMax));
 			
 			setpointUpdateTime = timeMax;
 			onSetpointUpdate();

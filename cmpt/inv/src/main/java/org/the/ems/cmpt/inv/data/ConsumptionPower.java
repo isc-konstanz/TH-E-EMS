@@ -51,13 +51,13 @@ public class ConsumptionPower extends Component implements Channel, ValueListene
 
 	private volatile InverterCallbacks callbacks = null;
 
-	@Configuration(value="power_cons", section=Configurations.GENERAL)
+	@Configuration(value="cons_power", section=Configurations.GENERAL)
 	private Channel consumptionPower;
 
-	@Configuration(value="power_active*")
+	@Configuration(value="active_power*")
 	protected ChannelCollection activePowers;
 
-	@Configuration(value="power_input*")
+	@Configuration(value="input_power*")
 	protected ChannelCollection inputPowers;
 
 	protected long timestampLast = -1;

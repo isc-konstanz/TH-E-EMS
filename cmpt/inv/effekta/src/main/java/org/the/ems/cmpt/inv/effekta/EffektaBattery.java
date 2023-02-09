@@ -73,13 +73,13 @@ public class EffektaBattery extends ElectricalEnergyStorage {
 	@Configuration("current_discharge_max")
 	private Channel dischargeCurrentMax;
 
-	@Configuration(value = "power_standby", mandatory = false)
+	@Configuration(value = "standby_power", mandatory = false)
 	private double dischargePowerStandby = 100;
 
-	@Configuration(value = "power_extern_*", mandatory = false)
+	@Configuration(value = "extern_power_*", mandatory = false)
 	private ChannelCollection externalPowers;
 
-	@Configuration(value = "power_input_*")
+	@Configuration(value = "input_power_*")
 	private ChannelCollection inputPowers;
 
 	volatile Value powerSetpoint;

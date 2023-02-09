@@ -7,13 +7,13 @@
     "devices": [
         {
             "name": "<node>",
-            "description": "KACO inverter",
+            "description": "KACO inverter EDCOM connection",
             "driver": "edcom",
-			"address": "ip:<ip>",
-            "settings": "user:<user>,cert:<cert>"
+			"address": "<ip>",
+            "settings": "userkey=<userkey>;identkey=<identkey>"
         },
         {
-            "name": "<node>*ctrl",
+            "name": "_<node>",
             "description": "KACO inverter control",
             "driver": "virtual"
         }
@@ -28,16 +28,16 @@
             "mandatory": true
         },
         {
-            "id": "user",
-            "name": "User name",
-            "description": "The user name for the EDCOM library.",
+            "id": "userkey",
+            "name": "User key",
+            "description": "The key / password for the inverter.",
             "type": "text",
             "mandatory": true
         },
         {
-            "id": "cert",
-            "name": "Certificate",
-            "description": "The certificate for the EDCOM library",
+            "id": "identkey",
+            "name": "Ident key",
+            "description": "The proprietary ident key for the inverter as a RSA key or a hex string of the form '0xF0BA...",
             "type": "text",
             "mandatory": true
         }
@@ -45,17 +45,26 @@
 
     "items": [
         {
-            "id": "dc",
+            "id": "input",
             "type": "Text",
-            "label": "DC power",
+            "label": "Generated power",
+            "header": true,
             "format": "%.1f kW",
             "scale": 0.001,
             "input": "<node>*dc*power"
         },
         {
+            "id": "cons",
+            "type": "Text",
+            "label": "Consumed power",
+            "format": "%.1f kW",
+            "scale": 0.001,
+            "input": "<node>*power*cons"
+        },
+        {
             "id": "setpoint",
             "type": "Slider",
-            "label": "Export/Import",
+            "label": "Export/Import power",
             "format": "%.1f kW",
             "max": 10000,
             "min": -10000,
@@ -63,10 +72,9 @@
             "scale": 0.001,
             "default": 0,
             "mapping": {
-                "SET": { "channel": "<node>*ctrl*setpoint", "write":false }
+                "SET": { "channel": "<node>*power*setpoint", "write":false }
             },
-            "input": "<node>*ctrl*setpoint",
-			"node": "<node>*ctrl"
+            "input": "<node>*power*setpoint"
         }
     ],
 
@@ -78,7 +86,7 @@
             "address": "DC_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
-                "feed": {"name": "Power DC", "tag": "<name>"}
+                "feed": {"name": "Power generation", "tag": "<name>"}
             }
         },
         {
@@ -87,7 +95,7 @@
             "device": "<node>",
             "address": "DC_1_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
                 "feed": {"name": "Voltage DC1", "tag": "<name>"}
             }
         },
@@ -97,33 +105,63 @@
             "device": "<node>",
             "address": "DC_2_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
                 "feed": {"name": "Voltage DC2", "tag": "<name>"}
             }
         },
         {
             "name": "<node>*ac*voltage",
-            "description": "Grid voltage",
+            "description": "AC voltage",
             "device": "<node>",
-            "address": "GRID_VOLTAGE",
+            "address": "AC_VOLTAGE",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
                 "feed": {"name": "Voltage", "tag": "<name>"}
             }
         },
         {
-            "name": "<node>*ac*frequency",
-            "description": "Grid frequency",
+            "name": "<node>*l1*voltage",
+            "description": "AC Phase 1 voltage",
             "device": "<node>",
-            "address": "GRID_FREQUENCY",
+            "address": "AC_L1_VOLTAGE",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "<name> L1"}
+            }
+        },
+        {
+            "name": "<node>*l2*voltage",
+            "description": "AC Phase 2 voltage",
+            "device": "<node>",
+            "address": "AC_L2_VOLTAGE",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "<name> L2"}
+            }
+        },
+        {
+            "name": "<node>*l3*voltage",
+            "description": "AC Phase 3 voltage",
+            "device": "<node>",
+            "address": "AC_L3_VOLTAGE",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"V"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 900000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+                "feed": {"name": "Voltage", "tag": "<name> L3"}
+            }
+        },
+        {
+            "name": "<node>*ac*frequency",
+            "description": "AC frequency",
+            "device": "<node>",
+            "address": "AC_FREQUENCY",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Hz"},
             "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.01, "average": true, "engine":"SQL",
                 "feed": {"name": "Frequency", "tag": "<name>"}
             }
         },
         {
-            "name": "<node>*ac*active",
-            "description": "Grid active power",
+            "name": "<node>*ac*power*active",
+            "description": "AC active power",
             "device": "<node>",
             "address": "GRID_ACTIVE_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
@@ -132,8 +170,38 @@
             }
         },
         {
-            "name": "<node>*ac*reactive",
-            "description": "Grid reactive power",
+            "name": "<node>*l1*power*active",
+            "description": "AC Phase 1 active power",
+            "device": "<node>",
+            "address": "GRID_L1_ACTIVE_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power active", "tag": "<name> L2"}
+            }
+        },
+        {
+            "name": "<node>*l2*power*active",
+            "description": "AC Phase 2 active power",
+            "device": "<node>",
+            "address": "GRID_L2_ACTIVE_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power active", "tag": "<name> L2"}
+            }
+        },
+        {
+            "name": "<node>*l3*power*active",
+            "description": "AC Phase 3 active power",
+            "device": "<node>",
+            "address": "GRID_L3_ACTIVE_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power active", "tag": "<name> L3"}
+            }
+        },
+        {
+            "name": "<node>*ac*power*reactive",
+            "description": "AC reactive power",
             "device": "<node>",
             "address": "GRID_REACTIVE_POWER",
             "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Var"},
@@ -142,37 +210,83 @@
             }
         },
         {
-            "name": "<node>*ac*setpoint",
-            "description": "Inverter setpoint",
+            "name": "<node>*l1*power*reactive",
+            "description": "AC Phase 1 reactive power",
             "device": "<node>",
-            "address": "AC_SETPOINT",
-            "configs": {"valueType":"DOUBLE", "unit":"W"}
+            "address": "GRID_L1_REACTIVE_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Var"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power reactive", "tag": "<name> L2"}
+            }
         },
         {
-            "name": "<node>*setpoint",
-            "description": "Inverter control setpoint",
-            "device": "<node>*ctrl",
-            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"W"},
-            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "average": true, "engine":"SQL",
+            "name": "<node>*l2*power*reactive",
+            "description": "AC Phase 2 reactive power",
+            "device": "<node>",
+            "address": "GRID_L2_REACTIVE_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Var"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power reactive", "tag": "<name> L2"}
+            }
+        },
+        {
+            "name": "<node>*l3*power*reactive",
+            "description": "AC Phase 3 reactive power",
+            "device": "<node>",
+            "address": "GRID_L3_REACTIVE_POWER",
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "unit":"Var"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power reactive", "tag": "<name> L3"}
+            }
+        },
+        {
+            "name": "<node>*ac*power*setpoint",
+            "description": "AC active power setpoint",
+            "device": "<node>",
+            "address": "AC_SETPOINT",
+            "configs": {"valueType":"DOUBLE", "scalingFactor": -1, "unit":"W"}
+        },
+        {
+            "name": "<node>*power*setpoint",
+            "description": "Inverter active power setpoint",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 0.1, "engine":"SQL",
                 "feed": {"name": "Power setpoint", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*power*cons",
+            "description": "<name> consumed power",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit":"W"},
+            "logging": {"loggingInterval": 5000, "loggingMaxInterval": 60000, "loggingTolerance": 10, "average": true, "engine":"SQL",
+                "feed": {"name": "Power consumption", "tag": "<name>"}
             }
         }
     ],
 
     "feeds": [
         {
-            "name": "Power DC",
+            "name": "Power setpoint",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power_setpoint",
+            "unit": "W"
+        },
+        {
+            "name": "Power consumption",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power_cons",
+            "unit": "W"
+        },
+        {
+            "name": "Power generation",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_dc_power",
             "unit": "W"
-        },
-        {
-            "name": "Energy DC",
-            "tag": "<name>",
-            "engine": "Engine::MYSQL",
-            "table": "<node>_dc_energy",
-            "unit": "kWh"
         },
         {
             "name": "Voltage DC1",
@@ -192,28 +306,84 @@
             "name": "Power active",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>_ac_active",
+            "table": "<node>_ac_power_active",
+            "unit": "W"
+        },
+        {
+            "name": "Power active",
+            "tag": "<name> L1",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l1_power_active",
+            "unit": "W"
+        },
+        {
+            "name": "Power active",
+            "tag": "<name> L2",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l2_power_active",
+            "unit": "W"
+        },
+        {
+            "name": "Power active",
+            "tag": "<name> L3",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l3_power_active",
             "unit": "W"
         },
         {
             "name": "Power reactive",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>_ac_reactive",
+            "table": "<node>_ac_power_reactive",
             "unit": "Var"
         },
         {
-            "name": "Power setpoint",
-            "tag": "<name>",
+            "name": "Power reactive",
+            "tag": "<name> L1",
             "engine": "Engine::MYSQL",
-            "table": "<node>_ac_setpoint",
-            "unit": "W"
+            "table": "<node>_l1_power_reactive",
+            "unit": "Var"
+        },
+        {
+            "name": "Power reactive",
+            "tag": "<name> L2",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l2_power_reactive",
+            "unit": "Var"
+        },
+        {
+            "name": "Power reactive",
+            "tag": "<name> L3",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l3_power_reactive",
+            "unit": "Var"
         },
         {
             "name": "Voltage",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_ac_voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name> L1",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l1_voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name> L2",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l2_voltage",
+            "unit": "V"
+        },
+        {
+            "name": "Voltage",
+            "tag": "<name> L3",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_l3_voltage",
             "unit": "V"
         },
         {

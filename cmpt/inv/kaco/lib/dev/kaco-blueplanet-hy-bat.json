@@ -4,8 +4,13 @@
     "category": "Inverter",
     "description": "KACO blueplanet hybrid 10.0 TL3 battery",
 
-    "driver": "edcom",
-    "devices": [],
+    "devices": [
+        {
+            "name": "<inverter>",
+            "description": "KACO inverter EDCOM connection",
+            "driver": "edcom"
+        }
+    ],
 
     "options": [
         {

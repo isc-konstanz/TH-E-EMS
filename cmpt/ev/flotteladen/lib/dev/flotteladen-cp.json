@@ -143,7 +143,7 @@
             "device": "_<node>",
             "configs": {"valueType":"DOUBLE"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
-                "feed": {"name": "Power", "tag": "<name>"}
+                "feed": {"name": "Power estimate", "tag": "<name>"}
             }
         },
         {
@@ -206,7 +206,7 @@
             "table": "<node>_current"
         },
         {
-            "name": "Power",
+            "name": "Power estimate",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
             "table": "<node>_power",

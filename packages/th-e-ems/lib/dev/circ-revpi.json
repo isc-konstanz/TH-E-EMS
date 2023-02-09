@@ -1,16 +1,15 @@
 {
-    "name": "Circulation (RPi)",
+    "name": "Circulation (RevPi)",
     "group": "TH-E EMS",
     "category": "Miscellaneous",
-    "description": "Basic circulation pump utilities controlled via Raspberry Pi GPIO Pin",
+    "description": "Basic circulation pump utilities controlled via Revolution Pi DIO Channel",
 
     "devices": [
         {
-            "name": "<node>",
+            "name": "<device-io>",
             "description": "<name> pump",
-            "driver": "rpi-gpio",
-            "address": "pin:<pin>",
-            "settings": "mode:DIGITAL_OUTPUT,defaultState:false"
+            "driver": "revpi",
+            "settings": "mode=DIGITAL_OUTPUT"
         },
         {
             "name": "_<node>",
@@ -19,18 +18,21 @@
         }
     ],
 
-    "scan": {
-        "settings": "mode:DIGITAL_OUTPUT"
-    },
-
     "options": [
         {
-            "id": "pin",
-            "name": "Pin",
-            "description": "The Pin number, according to the <a href='https://pi4j.com/1.4/pin-numbering-scheme.html'>WiringPi Pin Numbering Scheme</a>",
+            "id": "address",
+            "name": "Address",
+            "description": "The channel identifier of the digital IO",
             "type": "text",
-            "scan": true,
             "default": -1,
+            "mandatory": false
+        },
+        {
+            "id": "device-io",
+            "name": "Device ID",
+            "description": "The device ID of the IO device",
+            "type": "text",
+            "default": "<node>",
             "mandatory": false
         },
         {
@@ -63,11 +65,49 @@
         }
     ],
 
+    "items": [
+        {
+            "id": "pump",
+            "type": "Switch",
+            "label": "Pump",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*pump*state"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Thermal power",
+            "format": "%.1f kW",
+            "input": "<node>*power"
+        },
+        {
+            "id": "temp-inlet",
+            "type": "Text",
+            "label": "Temperature Inlet",
+            "format": "%.1f °C",
+            "input": "<node>*temp*in"
+        },
+        {
+            "id": "temp-outlet",
+            "type": "Text",
+            "label": "Temperature Outlet",
+            "format": "%.1f °C",
+            "input": "<node>*temp*out"
+        }
+    ],
+
     "channels": [
         {
             "name": "<node>*pump*state",
             "description": "<name> pump state",
             "device": "<device-io>",
+            "address": "<address>",
             "configs": {"samplingInterval": "<refresh>", "valueType":"BOOLEAN"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "engine":"SQL",
                 "feed": {"name": "State", "tag": "<name>"}
@@ -75,7 +115,7 @@
         },
         {
             "name": "<node>*temp*delta",
-            "description": "<name> temperature",
+            "description": "<name> delta temperature",
             "device": "_<node>",
             "configs": {"valueType":"DOUBLE", "unit": "°C"},
             "logging": {"loggingInterval": 15000, "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true}

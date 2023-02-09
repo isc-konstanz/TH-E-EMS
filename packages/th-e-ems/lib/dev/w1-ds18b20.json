@@ -1,26 +1,38 @@
 {
-    "name": "DS18B20 (SQL)",
-    "group": "1-Wire (Raspberry Pi)",
+    "name": "DS18B20 (Modbus TCP)",
+    "group": "1-Wire",
     "category": "Sensor",
-    "description": "Configuration for a 1-Wire temperature sensor for the Raspberry Pi, type DS18B20",
+    "description": "Configuration for a 1-Wire temperature sensor via Modbus TCP, type DS18B20",
 
-    "scan": true,
+    "driver": "modbus",
     "devices": [
         {
-            "description": "DS18B20 temperature sensor",
-            "driver": "rpi-w1",
-            "address": "<id>",
-            "settings": "type:SENSOR_TEMPERATURE"
+            "name": "<device-id>",
+            "description": "DS18B20 temperature sensor"
         }
     ],
 
     "options": [
         {
-            "id": "id",
-            "name": "Device ID",
-            "description": "The device ID, retrievable through scanning.",
+            "id": "address",
+            "name": "Address",
+            "description": "Address of the Coil, Input or Register. Identified by an Integer value, not HEX.",
             "type": "text",
-            "scan": true,
+            "mandatory": true
+        },
+        {
+            "id": "unit-id",
+            "name": "Unid ID",
+            "description": "The device address of the Modbus slave.<br>The slave device address is assigned form 1 to 247.<br>Address 0 is used as broadcast address.</li></ul>",
+            "type": "text",
+            "default": 1,
+            "mandatory": false
+        },
+        {
+            "id": "device-id",
+            "name": "Device ID",
+            "description": "The device ID of the Modbus TCP connection.",
+            "type": "text",
             "mandatory": true
         },
         {
@@ -52,7 +64,7 @@
                 { "name": "10 minutes", "value": 600000 },
                 { "name": "15 minutes", "value": 900000 }
             ],
-            "default": 60000,
+            "default": 15000,
             "mandatory": false
         }
     ],
@@ -61,7 +73,7 @@
         {
             "name": "<node>*temp",
             "description": "DS18B20 temperature",
-            "settings": "unit:CELSIUS",
+            "address": "<unit-id>:HOLDING_REGISTERS:<address>:FLOAT",
             "configs": {"samplingInterval": "<refresh>", "unit": "°C", "valueType":"DOUBLE"},
             "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
                 "feed": {"name": "Temperature", "tag": "<name>"}

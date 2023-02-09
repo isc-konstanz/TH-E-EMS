@@ -39,7 +39,7 @@
             "name": "Port",
             "description": "The port of the target MQTT broker.<br>By convention, MQTT brokers use the port 1883.",
             "type": "text",
-            "default": "1883",
+            "default": 1883,
             "mandatory": false
         },
         {
@@ -203,8 +203,7 @@
             "name": "Status code",
             "tag": "<name>",
             "engine": "Engine::MYSQL",
-            "table": "<node>_current",
-            "unit": "A"
+            "table": "<node>_current"
         },
         {
             "name": "Power",

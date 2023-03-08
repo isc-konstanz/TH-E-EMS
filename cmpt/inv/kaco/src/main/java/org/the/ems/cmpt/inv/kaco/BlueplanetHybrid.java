@@ -12,7 +12,6 @@ import org.the.ems.core.cmpt.InverterService;
 import org.the.ems.core.config.Configuration;
 import org.the.ems.core.config.Configurations;
 import org.the.ems.core.data.Channel;
-import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -41,7 +40,6 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 
 	@Configuration
 	private Channel setpointPower;
-	private Value setpointPowerValue = DoubleValue.zeroValue();
 
 	private ValueListener socListener;
 
@@ -71,34 +69,33 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 	}
 
 	@Override
-	protected void onSetpointUpdate(WriteContainer container, Value value) throws ComponentException {
-		setpointPowerValue = value;
-		onSetpointUpdate(container);
-	}
-
-	private void onSetpointUpdate(WriteContainer container) throws ComponentException {
-		double setpointValue = setpointPowerValue.doubleValue();
+	protected void onSetpointUpdate(WriteContainer container, Value setpointValue) throws ComponentException {
+		double setpoint = setpointValue.doubleValue();
 		double setpointLatest = 0;
 		try {
 			setpointLatest = setpointPower.getLatestValue().doubleValue();
 			
 		} catch (InvalidValueException e) {
 		}
-		if (setpointValue != 0 && activeError && activePower != null) {
+		if (setpoint != 0 && activeError && activePower != null) {
 			try {
-				setpointValue += setpointLatest - activePower.getLatestValue().doubleValue();
+				setpoint += setpointLatest - activePower.getLatestValue().doubleValue();
 				
 			} catch (InvalidValueException e) {
 			}
 		}
 		if (trickleCurrentFlag) {
-			if (setpointValue < storage.getTricklePower()) {
-				setpointValue = storage.getTricklePower();
+			if (setpoint < storage.getTricklePower()) {
+				setpoint = storage.getTricklePower();
 			}
 		}
-		if (setpointValue != setpointLatest) {
-			container.addDouble(setpointPower, setpointValue, setpointPowerValue.getEpochMillis());
+		if (setpoint != setpointLatest) {
+			container.addDouble(setpointPower, setpoint, setpointValue.getEpochMillis());
 		}
+	}
+
+	private void onSetpointUpdate(WriteContainer container) throws ComponentException {
+		this.onSetpointUpdate(container, setpointValue);
 	}
 
 	private class SetpointUpdater implements ValueListener {
@@ -143,13 +140,12 @@ public class BlueplanetHybrid extends Inverter<BlueplanetHyBat> {
 			}
 			else if (soc >= storage.getMinStateOfCharge() + socHyst && trickleCurrentFlag) {
 				trickleCurrentFlag = false;
-				container.addDouble(setpointPower, setpointPowerValue.doubleValue(), System.currentTimeMillis());
+				container.addDouble(setpointPower, setpointValue.doubleValue(), System.currentTimeMillis());
 				try {
 					write(container);
 				} catch (EnergyManagementException e) {
 					logger.warn("Could not reset trickle current: {}", e.getMessage());
 				}
-				
 			}
 		}
 	}

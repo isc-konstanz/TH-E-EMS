@@ -244,7 +244,7 @@
             "description": "AC active power setpoint",
             "device": "<node>",
             "address": "AC_SETPOINT",
-            "configs": {"valueType":"DOUBLE", "scalingFactor": -1, "unit":"W"}
+            "configs": {"samplingInterval": 5000, "valueType":"DOUBLE", "scalingFactor": -1, "unit":"W"}
         },
         {
             "name": "<node>*power*setpoint",

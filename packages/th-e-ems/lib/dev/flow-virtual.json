@@ -1,0 +1,79 @@
+{
+    "name": "Virtual flow",
+    "group": "TH-E EMS",
+    "category": "Miscellaneous",
+    "description": "Configuration for an analog flow/temperature sensor via Modbus TCP, type AS006-11 Vortex flow sensor",
+
+    "devices": [
+        {
+            "name": "_<node>",
+            "description": "<name>",
+            "driver": "virtual"
+        }
+    ],
+
+    "items": [
+        {
+            "id": "pump",
+            "type": "Switch",
+            "label": "Pump",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*circ*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Thermal power",
+            "format": "%.1f kW",
+            "input": "<node>*power"
+        },
+        {
+            "id": "temp-delta",
+            "type": "Text",
+            "label": "Delta temperature",
+            "format": "%.1f °C",
+            "input": "<node>*delta*temp"
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*delta*temp",
+            "description": "<name> delta temperature",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": 15000, "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true}
+        },
+        {
+            "name": "<node>*power",
+            "description": "<name> thermal power",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": 15000, "loggingDelayMaximum": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*energy",
+            "description": "<name> thermal energy",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Power thermal",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power"
+        }
+    ]
+}

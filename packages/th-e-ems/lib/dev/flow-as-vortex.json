@@ -1,0 +1,193 @@
+{
+    "name": "AS Vortex flow sensor (Modbus TCP)",
+    "group": "Analog",
+    "category": "Sensor",
+    "description": "Configuration for an analog flow/temperature sensor via Modbus TCP, type AS006-11 Vortex flow sensor",
+
+    "devices": [
+        {
+            "name": "<device-io>",
+            "description": "AS Vortex flow sensor",
+    		"driver": "modbus"
+        },
+        {
+            "name": "_<node>",
+            "description": "Modbus TCP/IP connection",
+            "driver": "virtual"
+        }
+    ],
+
+    "items": [
+        {
+            "id": "pump",
+            "type": "Switch",
+            "label": "Pump",
+            "header": true,
+            "left": "Off",
+            "right": "On",
+            "mapping": {
+                "ON": { "channel": "<node>*circ*pump*state", "value": true, "valueType": "BOOLEAN" },
+                "OFF": { "channel": "<node>*circ*pump*state", "value": false, "valueType": "BOOLEAN" }
+            },
+            "input": "<node>*circ*pump*state",
+            "node": "<node>*circ"
+        },
+        {
+            "id": "power",
+            "type": "Text",
+            "label": "Thermal power",
+            "format": "%.1f kW",
+            "input": "<node>*power"
+        },
+        {
+            "id": "temp-delta",
+            "type": "Text",
+            "label": "Delta temperature",
+            "format": "%.1f °C",
+            "input": "<node>*delta*temp"
+        }
+    ],
+
+    "options": [
+        {
+            "id": "flow-address",
+            "name": "Address of the flow rate",
+            "description": "Address of the flow rate register. Identified by an Integer value, not HEX.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "temp-address",
+            "name": "Address of the Temperature",
+            "description": "Address of the temperature register. Identified by an Integer value, not HEX.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "temp-location",
+            "name": "Location of the Sensor",
+            "description": "The location of the installed sensor in the flow",
+            "type": "selection",
+            "select": [
+                { "name": "Source", "value": "source" },
+                { "name": "Return", "value": "return" }
+            ],
+            "mandatory": true
+        },
+        {
+            "id": "unit-id",
+            "name": "Unid ID",
+            "description": "The device address of the Modbus slave.<br>The slave device address is assigned form 1 to 247.<br>Address 0 is used as broadcast address.</li></ul>",
+            "type": "text",
+            "default": 1,
+            "mandatory": false
+        },
+        {
+            "id": "device-io",
+            "name": "Device ID",
+            "description": "The device ID of the Modbus TCP connection.",
+            "type": "text",
+            "mandatory": true
+        },
+        {
+            "id": "refresh",
+            "name": "Refresh interval",
+            "description": "Defines at which interval the sensors will be read.",
+            "type": "selection",
+            "select": [
+                { "name": "1 second", "value": 1000 },
+                { "name": "2 seconds", "value": 2000 },
+                { "name": "3 seconds", "value": 3000 },
+                { "name": "4 seconds", "value": 4000 },
+                { "name": "5 seconds", "value": 5000 },
+                { "name": "10 seconds", "value": 10000 },
+                { "name": "15 seconds", "value": 15000 },
+                { "name": "20 seconds", "value": 20000 },
+                { "name": "25 seconds", "value": 25000 },
+                { "name": "30 seconds", "value": 30000 },
+                { "name": "35 seconds", "value": 35000 },
+                { "name": "40 seconds", "value": 40000 },
+                { "name": "45 seconds", "value": 45000 },
+                { "name": "50 seconds", "value": 50000 },
+                { "name": "55 seconds", "value": 55000 },
+                { "name": "1 minute",  "value": 60000 },
+                { "name": "2 minutes", "value": 120000 },
+                { "name": "3 minutes", "value": 180000 },
+                { "name": "4 minutes", "value": 240000 },
+                { "name": "5 minutes", "value": 300000 },
+                { "name": "10 minutes", "value": 600000 },
+                { "name": "15 minutes", "value": 900000 }
+            ],
+            "default": 15000,
+            "mandatory": false
+        }
+    ],
+
+    "channels": [
+        {
+            "name": "<node>*rate",
+            "description": "AS Vortex flow rate",
+            "device": "<device-io>",
+            "address": "<unit-id>:HOLDING_REGISTERS:<flow-address>:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "unit": "l/min", "scalingFactor": 0.938, "valueType":"FLOAT"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 60000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Flow rate", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*<temp-location>*temp",
+            "description": "AS Vortex flow temperature",
+            "device": "<device-io>",
+            "address": "<unit-id>:HOLDING_REGISTERS:<temp-address>:FLOAT",
+            "configs": {"samplingInterval": "<refresh>", "unit": "°C", "scalingFactor": 9.375, "valueOffset": -25, "valueType":"FLOAT"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Temperature", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*delta*temp",
+            "description": "<name> delta temperature",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "°C"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 900000, "loggingTolerance": 0.25, "loggingAverage": true}
+        },
+        {
+            "name": "<node>*power",
+            "description": "<name> thermal power",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "W"},
+            "logging": {"loggingInterval": "<refresh>", "loggingDelayMaximum": 180000, "loggingTolerance": 10, "loggingAverage": true, "engine":"SQL",
+                "feed": {"name": "Power", "tag": "<name>"}
+            }
+        },
+        {
+            "name": "<node>*energy",
+            "description": "<name> thermal energy",
+            "device": "_<node>",
+            "configs": {"valueType":"DOUBLE", "unit": "kWh"}
+        }
+    ],
+
+    "feeds": [
+        {
+            "name": "Flow rate",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_rate",
+            "unit": "l/min"
+        },
+        {
+            "name": "Temperature <temp-location>",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_<temp-location>_temp",
+            "unit": "°C"
+        },
+        {
+            "name": "Power thermal",
+            "tag": "<name>",
+            "engine": "Engine::MYSQL",
+            "table": "<node>_power"
+        }
+    ]
+}

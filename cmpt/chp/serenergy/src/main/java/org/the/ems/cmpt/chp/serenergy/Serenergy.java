@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.the.ems.cmpt.chp.Cogenerator;
 import org.the.ems.cmpt.chp.serenergy.data.Request;
 import org.the.ems.cmpt.chp.serenergy.data.State;
+import org.the.ems.cmpt.vlv.Valve;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.EnergyManagementException;
 import org.the.ems.core.cmpt.CogeneratorService;
@@ -54,9 +55,26 @@ public class Serenergy extends Cogenerator {
 	@Configuration
 	private Channel stackTemp;
 
+	@Configuration(ELECTRICAL_POWER_VALUE)
+	private Channel power;
+
+	protected final Valve circulationValve;
+
+	public Serenergy() {
+		super();
+		this.circulationValve = new Valve();
+	}
+
+	@Configuration(ELECTRICAL_POWER_VALUE)
+	public Value getElectricalPower() throws ComponentException, InvalidValueException {
+		return power.getLatestValue();
+	}
+
 	@Override
 	public void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
+		getContext().registerService(getId().concat("_").concat("circ_valve"), configs, circulationValve);
+		
 		stackTemp.registerValueListener(new StackTempListener());
 	}
 

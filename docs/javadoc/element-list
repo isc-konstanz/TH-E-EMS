@@ -9,6 +9,7 @@ org.the.ems.cmpt.inv
 org.the.ems.cmpt.inv.data
 org.the.ems.cmpt.tes
 org.the.ems.cmpt.util
+org.the.ems.cmpt.vlv
 org.the.ems.core
 org.the.ems.core.cmpt
 org.the.ems.core.config

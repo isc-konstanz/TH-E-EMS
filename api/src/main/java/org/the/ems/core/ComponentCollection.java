@@ -19,7 +19,8 @@
  */
 package org.the.ems.core;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 
@@ -27,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ComponentCollection extends HashMap<String, Component> {
-	private static final long serialVersionUID = 2296740817884958428L;
+	private static final long serialVersionUID = -2207305169561493106L;
 
 	private final static Logger logger = LoggerFactory.getLogger(ComponentCollection.class);
 
@@ -35,65 +36,63 @@ public class ComponentCollection extends HashMap<String, Component> {
 		return put(component.getId(), component);
 	}
 
-	public void addAll(List<Component> components) {
-		for (Component component : components) {
+	public <C extends Component> void addAll(List<C> components) {
+		for (C component : components) {
 			put(component.getId(), component);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	public <C extends Component> List<C> getAll(Class<C> type) {
-		List<C> components = new ArrayList<C>();
+	public <C extends Component> Deque<Component> getAll(Class<C> type) {
+		Deque<Component> components = new ArrayDeque<Component>();
 		for (Component component : values()) {
 			if (type.isAssignableFrom(component.getClass())) {
-				components.add((C) component);
+				components.add(component);
 			}
 		}
 		return components;
 	}
 
-	@SuppressWarnings("unchecked")
-	public <C extends Component> List<C> getAll(ComponentType... types) {
-		List<C> components = new ArrayList<C>();
+	public Deque<Component> getAll(ComponentType... types) {
+		Deque<Component> components = new ArrayDeque<Component>();
 		for (Component component : values()) {
 			for (ComponentType type : types) {
 				if (component.getType() == type) {
-					components.add((C) component);
+					components.add(component);
 				}
 			}
 		}
 		return components;
 	}
 
-	public <C extends Component> C get(Class<C> type) {
-		List<C> components = getAll(type);
+	public <C extends Component> Component get(Class<C> type) {
+		Deque<Component> components = getAll(type);
 		if (components.size() > 0) {
 			if (components.size() > 1) {
 				logger.warn("Several components available for type: {}", type.getSimpleName());
 			}
-			return components.get(0);
+			return components.getFirst();
 		}
 		return null;
 	}
 
-	public <C extends Component> C get(ComponentType type) {
-		List<C> components = getAll(type);
+	public Component get(ComponentType type) {
+		Deque<Component> components = getAll(type);
 		if (components.size() > 0) {
 			if (components.size() > 1) {
 				logger.warn("Several components available for type: {}", type.getFullName());
 			}
-			return components.get(0);
+			return components.getFirst();
 		}
 		return null;
 	}
 
 	public boolean containsType(ComponentType type) {
-		List<Component> components = getAll(type);
+		Deque<Component> components = getAll(type);
 		return components.size() > 0;
 	}
 
 	public <C extends Component> boolean contains(Class<C> type) {
-		List<C> components = getAll(type);
+		Deque<Component> components = getAll(type);
 		return components.size() > 0;
 	}
 

@@ -19,8 +19,10 @@
  */
 package org.the.ems.core.config;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class ConfigurationCollection<V> {
 
@@ -47,6 +49,18 @@ public abstract class ConfigurationCollection<V> {
 	public <E extends Enum<E>> V get(E e) {
 		return configs.get(e.toString());
 	}
+
+	public Set<String> keys() {
+    	return configs.keySet();
+    }
+
+	public Collection<V> values() {
+    	return configs.values();
+    }
+
+	public Set<Map.Entry<String, V>> entries() {
+    	return configs.entrySet();
+    }
 
 	public static class StringCollection extends ConfigurationCollection<String> {
 

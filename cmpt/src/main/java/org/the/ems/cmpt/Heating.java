@@ -226,7 +226,18 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 * {@inheritDoc}
 	 */
 	@Override
-    public double getStartPower() {
+	public double getStartablePower() throws ComponentException, InvalidValueException {
+		if (!isRunning()) {
+			return getStartPower();
+		}
+		return 0.;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+    public double getStartPower() throws ComponentException, InvalidValueException {
 		return getMinPower();
 	}
 
@@ -234,8 +245,19 @@ public abstract class Heating extends Runnable implements HeatingService {
 	 * {@inheritDoc}
 	 */
 	@Override
-    public double getStopPower() {
-		return 0.0;
+	public double getStoppablePower() throws ComponentException, InvalidValueException {
+		if (isRunning()) {
+			return getElectricalPower().doubleValue();
+		}
+		return 0.;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+    public double getStopPower() throws ComponentException, InvalidValueException {
+		return 0.;
 	}
 
 	/**

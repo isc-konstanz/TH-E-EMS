@@ -30,6 +30,8 @@ public interface StratifiedChargeStorage extends ThermalEnergyStorageService {
 	/*
 	 * Get the temperature of a certain layer in degree celsius [°C].
 	 * 
+	 * @param type the {@link HeatingType} to addressed
+	 * 
 	 * @return the average temperature {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -41,6 +43,8 @@ public interface StratifiedChargeStorage extends ThermalEnergyStorageService {
 	 * Get the temperature of a certain layer in degree celsius [°C].
 	 * Additionally, register a {@link ValueListener}, to be notified of new temperature values.
 	 * 
+	 * @param type the {@link HeatingType} to addressed
+	 * 
 	 * @return the average temperature {@link Value}
 	 * 
 	 * @throws ComponentException if any kind of error occurs retrieving the value
@@ -51,6 +55,7 @@ public interface StratifiedChargeStorage extends ThermalEnergyStorageService {
 	/*
 	 * Register a {@link ValueListener}, to be notified of new temperature values of a certain layer.
 	 * 
+	 * @param type the {@link HeatingType} to addressed
 	 * @param listener the {@link ValueListener} to be notified of values
 	 * 
 	 * @throws ComponentException if any kind of error occurs registering the listener
@@ -60,6 +65,7 @@ public interface StratifiedChargeStorage extends ThermalEnergyStorageService {
 	/*
 	 * Deregister a {@link ValueListener}, notified of new temperature values of a certain layer.
 	 * 
+	 * @param type the {@link HeatingType} to addressed
 	 * @param listener the {@link ValueListener} notified of values
 	 * 
 	 * @throws ComponentException if any kind of error occurs deregistering the listener

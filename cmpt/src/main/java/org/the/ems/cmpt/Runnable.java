@@ -187,18 +187,6 @@ public abstract class Runnable extends Component implements RunnableService {
 	}
 
 	@Override
-	public StartSettings getStartSettings(long timestamp) throws ComponentException, InvalidValueException {
-		Value value = getStartValue(timestamp);
-		return new ValueSettings(value);
-	}
-
-	@Override
-	public StopSettings getStopSettings(long timestamp) throws ComponentException, InvalidValueException {
-		Value value = getStopValue(timestamp);
-		return new ValueSettings(value);
-	}
-
-	@Override
 	protected void onActivate(Configurations configs) throws ComponentException {
 		super.onActivate(configs);
 		if (state != null) {
@@ -280,7 +268,7 @@ public abstract class Runnable extends Component implements RunnableService {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
-			if (value.doubleValue() == getStopValue(value.getEpochMillis()).doubleValue()) {
+			if (value.doubleValue() == getStopPower()) {
 				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
 					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
@@ -324,11 +312,10 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
-		Value stopValue = getStopValue(value.getEpochMillis());
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-			if (value.doubleValue() > stopValue.doubleValue()) {
+			if (value.doubleValue() > getStopPower()) {
 				if (getIdletime(value.getEpochMillis()) < idletimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
 							idletimeMin/60000));
@@ -339,7 +326,7 @@ public abstract class Runnable extends Component implements RunnableService {
 			break;
 		case STARTING:
 		case RUNNING:
-			if (value.doubleValue() == stopValue.doubleValue()) {
+			if (value.doubleValue() == getStopPower()) {
 				if (getRuntime(value.getEpochMillis()) < runtimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 							runtimeMin/60000));
@@ -381,6 +368,11 @@ public abstract class Runnable extends Component implements RunnableService {
 			throws UnsupportedOperationException, ComponentException {
 		// Default implementation to be overridden
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public StartSettings getStartSettings(long timestamp) throws ComponentException, InvalidValueException {
+		return ValueSettings.ofDouble(getStartPower(), timestamp);
 	}
 
 	@Override
@@ -486,6 +478,11 @@ public abstract class Runnable extends Component implements RunnableService {
 		default:
 			return false;
 		}
+	}
+
+	@Override
+	public StopSettings getStopSettings(long timestamp) throws ComponentException, InvalidValueException {
+		return ValueSettings.ofDouble(getStopPower(), timestamp);
 	}
 
 	@Override

@@ -24,8 +24,18 @@ import org.the.ems.core.schedule.Schedule;
 
 public interface SchedulableService extends ComponentService {
 
+	/*
+	 * Schedule the component to a specific setpoint.
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs scheduling the component
+	 */
 	public void schedule(Schedule schedule) throws EnergyManagementException, UnsupportedOperationException;
 
+	/*
+	 * Configure the component to a specific setpoint.
+	 * 
+	 * @throws EnergyManagementException if any kind of error occurs setting the component
+	 */
 	public void set(Value value) throws EnergyManagementException, UnsupportedOperationException;
 
 }

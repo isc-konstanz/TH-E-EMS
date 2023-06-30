@@ -22,7 +22,6 @@ package org.the.ems.core.cmpt;
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
 import org.the.ems.core.RunnableService;
-import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -35,50 +34,6 @@ public interface ElectricVehicleService extends RunnableService {
 	public default ComponentType getType() {
 		return ComponentType.ELECTRIC_VEHICLE;
 	};
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public default Value getStartValue(long time) {
-		return new DoubleValue(getStartPower(), time);
-	}
-
-	/*
-	 * Get the default power with which an electric vehicle will be started with in watts [W].
-	 * 
-	 * @return the default power with which an electric vehicle will be started with
-	 */
-	public double getStartPower();
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public default Value getStopValue(long time) {
-		return new DoubleValue(getStopPower(), time);
-	}
-
-	/*
-	 * Get the default power to which an electric vehicle will be stopped to in watts [W].
-	 * 
-	 * @return the default power to which an electric vehicle will be stopped to
-	 */
-	public double getStopPower();
-
-	/*
-	 * Get the minimum charging power in watts [W].
-	 * 
-	 * @return the minimum charging power of this electric vehicle
-	 */
-	public double getMinPower();
-
-	/*
-	 * Get the maximum charging power in watts [W].
-	 * 
-	 * @return the maximum charging power of this electric vehicle
-	 */
-	public double getMaxPower();
 
 	/*
 	 * Get the capacity of the storage system in kilowatt hours [kWh] larger than 0.

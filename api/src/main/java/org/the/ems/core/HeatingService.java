@@ -20,7 +20,6 @@
 package org.the.ems.core;
 
 import org.the.ems.core.cmpt.ThermalEnergyStorageService;
-import org.the.ems.core.data.DoubleValue;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
@@ -37,6 +36,13 @@ public interface HeatingService extends RunnableService {
 	public ThermalEnergyStorageService getEnergyStorage() throws ComponentException;
 
 	/*
+	 * Get the maximum temperature this heating component may generate in degree celsius [°C].
+	 * 
+	 * @return the maximum temperature of this heating component
+	 */
+	public double getMaxTemperature();
+
+	/*
 	 * Get the active heating {@link Season}.
 	 * Not every heating will support heating seasons.
 	 * 
@@ -46,50 +52,6 @@ public interface HeatingService extends RunnableService {
 	 * @throws InvalidValueException if the retrieved season returned invalid
 	 */
 	public Season getSeason() throws ComponentException, InvalidValueException;
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public default Value getStartValue(long time) {
-		return new DoubleValue(getStartPower(), time);
-	}
-
-	/*
-	 * Get the default power with which a component will be started with in watts [W].
-	 * 
-	 * @return the default power to which a component will be stopped to
-	 */
-	public double getStartPower();
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public default Value getStopValue(long time) {
-		return new DoubleValue(getStopPower(), time);
-	}
-
-	/*
-	 * Get the default value to which a component will be stopped to in watts [W].
-	 * 
-	 * @return the default power with which a component will be started with
-	 */
-	public double getStopPower();
-
-	/*
-	 * Get the minimum power of this heating component in watts [W].
-	 * 
-	 * @return the minimum power of this heating component
-	 */
-	public double getMinPower();
-
-	/*
-	 * Get the maximum power of this heating component in watts [W].
-	 * 
-	 * @return the maximum power of this heating component
-	 */
-	public double getMaxPower();
 
 	/*
 	 * Get the generated thermal energy in kilowatt hours [kWh].

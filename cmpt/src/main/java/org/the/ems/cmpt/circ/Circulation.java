@@ -39,7 +39,7 @@ public class Circulation extends Component implements CirculationTemperatureCall
 
 	private static final Logger logger = LoggerFactory.getLogger(Circulation.class);
 
-	private final static String SECTION = "Circulation";
+	public final static String SECTION = "Circulation";
 
 	/**
 	 * Interface used by {@link Circulation} to notify the {@link CirculationPump} about events

@@ -35,8 +35,6 @@ import org.the.ems.core.data.ValueListener;
 public class CirculationPump extends Component implements CirculationCallbacks {
 	private final static Logger logger = LoggerFactory.getLogger(CirculationPump.class);
 
-	private final static String SECTION = "Circulation";
-
 	private final static String STATE = "state";
 
 	private final Circulation circulation;
@@ -57,7 +55,7 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 	private volatile boolean running = false;
 
 	public CirculationPump(Circulation circulation) {
-		super(SECTION);
+		super(Circulation.SECTION);
 		this.circulation = circulation;
 	}
 
@@ -93,7 +91,7 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 
 	@Override
 	public boolean isEnabled() {
-		if (!getConfigurations().containsKey(SECTION, STATE)) {
+		if (!getConfigurations().containsKey(Circulation.SECTION, STATE)) {
 			return false;
 		}
 		return super.isEnabled();

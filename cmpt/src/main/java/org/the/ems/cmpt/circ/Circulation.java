@@ -200,7 +200,7 @@ public class Circulation extends Component implements CirculationTemperatureCall
 			synchronized (flowTempDeltaValues) {
 				try {
 					if (flowTempDeltaValues.size() > 0) {
-						flowTempDeltaValue= flowTempDeltaValues.stream()
+						flowTempDeltaValue = flowTempDeltaValues.stream()
 								.mapToDouble(d -> d.doubleValue())
 								.average().orElse(Double.NaN);
 						

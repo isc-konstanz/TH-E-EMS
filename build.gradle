@@ -1,8 +1,8 @@
 /* 
- * Copyright 2016-2021 ISC Konstanz
+ * Copyright 2016-2024 ISC Konstanz
  * 
  * This file is part of TH-E EMS.
- * For more information visit https://github.com/isc-konstanz/th-e-ems
+ * For more information visit https://github.com/isc-konstanz/TH-E-EMS
  * 
  * TH-E EMS is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,12 +78,12 @@ configure(javaProjects()) {
     }
 
     task javadocJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
+        archiveClassifier = 'javadoc'
         from javadoc.destinationDir
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
-        classifier = 'sources'
+        archiveClassifier  = 'sources'
         from sourceSets.main.allSource
     }
 

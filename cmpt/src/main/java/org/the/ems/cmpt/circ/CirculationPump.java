@@ -43,7 +43,7 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 	private int runtimeMin = 600000;
 
 	@Configuration(mandatory=false)
-	private double flowTempDeltaMin = 0.5;
+	private double flowTempDeltaMin = 0;
 
 	@Configuration
 	private Channel state;
@@ -119,7 +119,7 @@ public class CirculationPump extends Component implements CirculationCallbacks {
 
 	@Override
 	public void onTemperatureDeltaUpdated(Value delta) {
-		if (isRunning() && hasRunMinimum() && delta.doubleValue() <= flowTempDeltaMin) {
+		if (flowTempDeltaMin > 0 && flowTempDeltaMin >= delta.doubleValue() && isRunning() && hasRunMinimum()) {
 			try {
 				stop();
 				

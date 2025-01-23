@@ -124,9 +124,15 @@ public abstract class Runnable extends Component implements RunnableService {
 						stateListener.onStateChanged(state);
 						
 					} catch (EnergyManagementException e) {
-						logger.warn("Error notifying of state change: {}", e.getMessage());
+						logger.warn("Error notifying listener of state change: {}", e.getMessage());
 					}
 				}
+			}
+			try {
+				onStateChanged(state);
+				
+			} catch (EnergyManagementException e) {
+				logger.warn("Error notifying component of state change: {}", e.getMessage());
 			}
 		}
 		this.runState = state;
@@ -268,15 +274,16 @@ public abstract class Runnable extends Component implements RunnableService {
 		long startTimeLast = 0;
 		for (int i=0; i<schedule.size(); i++) {
 			Value value = schedule.get(i);
-			if (value.doubleValue() == getStopPower()) {
-				if (value.getEpochMillis() - startTimeLast < runtimeMin) {
+			long time = value.getEpochMillis();
+			if (value.doubleValue() == getStartValue(time).doubleValue()) {
+				if (time - startTimeLast < runtimeMin) {
 					logger.debug("Unable to stop component after interval shorter than {}mins", runtimeMin/60000);
 					continue;
 				}
 				onStop(writeContainer, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() == 0) {
-				startTimeLast = value.getEpochMillis();
+				startTimeLast = time;
 				onStart(writeContainer, value);
 			}
 			else if (i == 0 || schedule.get(i-1).doubleValue() != value.doubleValue()) {
@@ -312,11 +319,13 @@ public abstract class Runnable extends Component implements RunnableService {
 		if (isMaintenance()) {
 			throw new MaintenanceException();
 		}
+		long time = value.getEpochMillis();
+		
 		switch(getState()) {
 		case STANDBY:
 		case STOPPING:
-			if (value.doubleValue() > getStopPower()) {
-				if (getIdletime(value.getEpochMillis()) < idletimeMin) {
+			if (value.doubleValue() > getStopValue(time).doubleValue()) {
+				if (getIdletime(time) < idletimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to start component after interval shorter than {0}mins", 
 							idletimeMin/60000));
 				}
@@ -326,8 +335,8 @@ public abstract class Runnable extends Component implements RunnableService {
 			break;
 		case STARTING:
 		case RUNNING:
-			if (value.doubleValue() == getStopPower()) {
-				if (getRuntime(value.getEpochMillis()) < runtimeMin) {
+			if (value.doubleValue() == getStopValue(time).doubleValue()) {
+				if (getRuntime(time) < runtimeMin) {
 					throw new ComponentException(MessageFormat.format("Unable to stop component after interval shorter than {0}mins", 
 							runtimeMin/60000));
 				}
@@ -370,9 +379,11 @@ public abstract class Runnable extends Component implements RunnableService {
 		throw new UnsupportedOperationException();
 	}
 
+	protected abstract Value getStartValue(long timestamp) throws ComponentException, InvalidValueException;
+
 	@Override
 	public StartSettings getStartSettings(long timestamp) throws ComponentException, InvalidValueException {
-		return ValueSettings.ofDouble(getStartPower(), timestamp);
+		return new ValueSettings(getStartValue(timestamp));
 	}
 
 	@Override
@@ -393,7 +404,7 @@ public abstract class Runnable extends Component implements RunnableService {
 
 	void doStart(StartSettings settings) throws EnergyManagementException {
 		if (!isReady(settings.getEpochMillis())) {
-			throw new ComponentBusyException(String.format("{} component {} already written to {}s ago", 
+			throw new ComponentBusyException(String.format("%s component %s already written to %is ago", 
 					getType().getFullName(), getId(), (System.currentTimeMillis() - runActionWriteTime)/1000));
 		}
 		WriteContainer writeContainer = new WriteContainer();
@@ -480,9 +491,11 @@ public abstract class Runnable extends Component implements RunnableService {
 		}
 	}
 
+	protected abstract Value getStopValue(long timestamp) throws ComponentException, InvalidValueException;
+
 	@Override
 	public StopSettings getStopSettings(long timestamp) throws ComponentException, InvalidValueException {
-		return ValueSettings.ofDouble(getStopPower(), timestamp);
+		return new ValueSettings(getStopValue(timestamp));
 	}
 
 	@Override

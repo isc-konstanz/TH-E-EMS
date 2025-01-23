@@ -284,7 +284,7 @@ public abstract class Component extends Configurable implements ComponentService
 
 		} catch (Exception e) {
 			logger.warn("Error while interrupting {} component \"{}\": {}", 
-					getType().getFullName(), getId(), e.getMessage());
+					getType().getFullName(), getId(), e.getMessage(), e);
 		}
 	}
 

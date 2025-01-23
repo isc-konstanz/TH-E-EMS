@@ -24,7 +24,7 @@ import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public interface HeatingService extends RunnableService {
+public interface HeatingService extends FlexibleService {
 
 	/*
 	 * Get the {@link ThermalEnergyStorageService}, related to this heating.

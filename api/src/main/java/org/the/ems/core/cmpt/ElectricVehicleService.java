@@ -21,12 +21,12 @@ package org.the.ems.core.cmpt;
 
 import org.the.ems.core.ComponentException;
 import org.the.ems.core.ComponentType;
-import org.the.ems.core.RunnableService;
+import org.the.ems.core.FlexibleService;
 import org.the.ems.core.data.InvalidValueException;
 import org.the.ems.core.data.Value;
 import org.the.ems.core.data.ValueListener;
 
-public interface ElectricVehicleService extends RunnableService {
+public interface ElectricVehicleService extends FlexibleService {
 
 	public static final String PID = "org.the.ems.cmpt.ev";
 

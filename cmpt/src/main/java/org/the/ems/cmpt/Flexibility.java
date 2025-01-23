@@ -17,18 +17,24 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with TH-E-EMS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.the.ems.core.cmpt;
+package org.the.ems.cmpt;
 
-import org.the.ems.core.ComponentType;
-import org.the.ems.core.RunnableService;
+import org.the.ems.core.ComponentException;
+import org.the.ems.core.FlexibleService;
+import org.the.ems.core.data.DoubleValue;
+import org.the.ems.core.data.InvalidValueException;
+import org.the.ems.core.data.Value;
 
-public interface VentilationService extends RunnableService {
-
-	public static final String PID = "org.the.ems.cmpt.vnt";
+public abstract class Flexibility extends Runnable implements FlexibleService {
 
 	@Override
-	public default ComponentType getType() {
-		return ComponentType.VENTILATION;
-	};
+	protected Value getStartValue(long timestamp) throws ComponentException, InvalidValueException {
+		return new DoubleValue(getStartPower(), timestamp);
+	}
+
+	@Override
+	protected Value getStopValue(long timestamp) throws ComponentException, InvalidValueException {
+		return new DoubleValue(getStopPower(), timestamp);
+	}
 
 }

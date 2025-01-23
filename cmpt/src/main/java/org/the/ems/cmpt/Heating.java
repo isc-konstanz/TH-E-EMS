@@ -51,7 +51,7 @@ import org.the.ems.core.settings.StartSettings;
 import org.the.ems.core.settings.StopSettings;
 import org.the.ems.core.settings.ValueSettings;
 
-public abstract class Heating extends Runnable implements HeatingService {
+public abstract class Heating extends Flexibility implements HeatingService {
 	private final static Logger logger = LoggerFactory.getLogger(Heating.class);
 
 	protected static final String ELECTRICAL_ENERGY_VALUE = "el_energy";

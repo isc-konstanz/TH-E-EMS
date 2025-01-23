@@ -135,30 +135,6 @@ public interface RunnableService extends SchedulableService {
 	public int getMinIdletime();
 
 	/*
-	 * Get the minimum power of this heating component in watts [W].
-	 * 
-	 * @return the minimum power of this heating component
-	 */
-	public double getMinPower();
-
-	/*
-	 * Get the maximum power of this heating component in watts [W].
-	 * 
-	 * @return the maximum power of this heating component
-	 */
-	public double getMaxPower();
-
-	/*
-	 * Get the default power with which a component will be started with in watts [W].
-	 * 
-	 * @return the default power to which a component will be started with
-	 * 
-	 * @throws ComponentException if any kind of error occurs retrieving the value
-	 * @throws InvalidValueException if the retrieved value returned invalid
-	 */
-	public double getStartPower() throws ComponentException, InvalidValueException;
-
-	/*
 	 * Get the settings with which a component will be started with.
 	 * 
 	 * @param timestamp the execution time as a UNIX timestamp
@@ -181,18 +157,6 @@ public interface RunnableService extends SchedulableService {
 	public default StartSettings getStartSettings() throws ComponentException, InvalidValueException {
 		return getStartSettings(System.currentTimeMillis());
 	}
-
-	/*
-	 * Get the amount of startable electrical power in watts [W].
-	 * Returns zero, if the component is already running.
-	 * 
-	 * @return the startable electrical power in watts [W]
-	 * 
-	 * @throws ComponentException if any kind of error occurs retrieving the value
-	 * @throws InvalidValueException if the retrieved value returned invalid
-	 */
-	public double getStartablePower() throws ComponentException, InvalidValueException;
-
 	/*
 	 * Verify whether the component can be started.
 	 * For instance, this may return false if the minimum idle time was not yet passed.
@@ -246,15 +210,6 @@ public interface RunnableService extends SchedulableService {
 		start(System.currentTimeMillis());
 	}
 
-	/*
-	 * Get the default value to which a component will be stopped to in watts [W].
-	 * 
-	 * @return the default power with which a component will be stopped to
-	 * 
-	 * @throws ComponentException if any kind of error occurs retrieving the settings
-	 * @throws InvalidValueException if the settings retrieved an invalid value
-	 */
-	public double getStopPower() throws ComponentException, InvalidValueException;
 
 	/*
 	 * Get the settings with which a component will be stopped with.
@@ -279,18 +234,6 @@ public interface RunnableService extends SchedulableService {
 	public default StopSettings getStopSettings() throws ComponentException, InvalidValueException {
 		return getStopSettings(System.currentTimeMillis());
 	}
-
-	/*
-	 * Get the amount of stoppable electrical power in watts [W].
-	 * Returns zero, if the component is not running.
-	 * 
-	 * @return the stoppable electrical power in watts [W]
-	 * 
-	 * @throws ComponentException if any kind of error occurs retrieving the value
-	 * @throws InvalidValueException if the retrieved value returned invalid
-	 */
-	public double getStoppablePower() throws ComponentException, InvalidValueException;
-
 	/*
 	 * Verify whether the component can be stopped.
 	 * For instance, this may return false if the minimum runtime was not yet passed.
